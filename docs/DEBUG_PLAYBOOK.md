@@ -1,0 +1,45 @@
+# Debug Playbook
+
+This playbook lists common Tri-ARC failure patterns, diagnostics, and remediation steps. Use it alongside runtime telemetry and module-specific logs to resolve issues quickly during development or evaluation.
+
+## Tools And Logs
+- **Runtime log** (`logs/runtime.log`): Scheduler allocations, module start/stop events.
+- **Metrics stream** (`metrics.jsonl`): Per-task timings, module success rates, SMT statistics.
+- **Profiler traces** (`profiles/`): Torch profiler exports, Nsight GPU samples.
+- **SMT dumps** (`logs/smt/`): Constraint snapshots and solver outcomes.
+- **Debug CLI** (`python tools/debug.py`): Inspect module state, replay tasks, view cached artefacts.
+
+## Issue Matrix
+| Symptom | Likely cause | Diagnosis steps | Fix |
+|---------|--------------|-----------------|-----|
+| Symbolic solver times out early | Rewrite explosion or mis-scored heuristics | Check `symbolic_frontier.log` for frontier size; inspect scheduler allocation | Tighten beam width via `docs/SCHEDULER_POLICY.md`, prune rewrite agenda |
+| TTT outputs inconsistent grids | Overfitting or gradient instability | Review loss curves in `metrics.jsonl`; run `tools/plot_ttt.py` | Reduce learning rate, increase auxiliary loss weights, reset adapters |
+| LLM candidates fail SMT en masse | Prompt drift or quantisation artifacts | Inspect `logs/smt/failed/*.json`; run `tools/llm_replay.py` with higher precision | Refresh prompt templates, lower temperature, regenerate quantised weights |
+| SMT solver returns unknown frequently | Constraint blow-up or unsupported primitives | Examine solver timeout entries; verify DSL primitive coverage | Simplify candidate programs, add missing primitive semantics in `docs/DSL_SPEC.md` |
+| Arbitrator emits duplicate answers | Diversity logic disabled or insufficient candidates | Check arbitrator decision logs; ensure score diversity thresholds | Raise LLM candidate count, adjust diversity bonus rules in `docs/ARBITRATOR_RULES.md` |
+| Scheduler overruns 12-hour budget | Inaccurate runtime estimates | Compare projected vs actual runtimes in `metrics.jsonl`; inspect per-task budgets | Update scheduler lookup tables, throttle lower-priority lanes, enable early exits |
+
+## Workflow For Task Failures
+1. **Capture context**: Record task ID, module provenance, and elapsed time.
+2. **Replay**: Run `python tools/replay_task.py --task <id> --module <lane>` to reproduce the issue with verbose logging.
+3. **Inspect artefacts**:
+   - Symbolic: examine generated programs under `outputs/symbolic/`.
+   - TTT: review saved checkpoints in `cache/ttt/`.
+   - LLM: open the prompt-response transcript in `logs/llm/`.
+4. **Fix and validate**: Apply module-specific adjustments, rerun the replay, and confirm the arbitrator now selects a correct candidate.
+5. **Document**: Update this playbook or module docs if new error patterns emerge.
+
+## Profiling Guidelines
+- Run `python tools/profile.py --module ttt --duration 60` to sample GPU utilisation.
+- Use Nsight CLI (`nsys profile python run_eval.py --task <id>`) for deep dives; limit sessions to short intervals to preserve runtime budget.
+- Summarise profiler findings in `reports/perf_notes.md` for future reference.
+
+## Logging Hygiene
+- Rotate logs daily or when size exceeds 2 GB to prevent disk saturation.
+- Compress archived logs (`xz` or `gzip`) before long-term storage.
+- Ensure solver dumps are anonymised before sharing outside the team.
+
+## Escalation
+- If repeated failures persist, open an incident entry in the project tracker with task IDs, logs, and reproduction steps.
+- Tag responsible module owners and assign follow-up timelines.
+- Merge remediation changes only after regression suites covering ARC-Forge tasks pass.

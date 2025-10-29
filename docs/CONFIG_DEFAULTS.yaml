@@ -1,0 +1,85 @@
+# Global defaults for Tri-ARC orchestration.
+# Override values per experiment using config fragments located under configs/.
+
+global:
+  seed: 1337
+  device_map:
+    symbolic: cuda:0
+    ttt: cuda:1
+    llm: cuda:2
+    flex: cuda:3
+  max_wall_clock_hours: 12
+  data_root: data/arcagi2
+  cache_root: cache
+  log_root: logs
+
+scheduler:
+  feature_lookup: configs/scheduler/features.yaml
+  default_soft_timeout_s: 90
+  default_hard_timeout_s: 150
+  priority_threshold: 0.65
+  donation_window_s: 15
+  backlog_alert_threshold: 50
+
+symbolic:
+  enabled: true
+  max_depth: 12
+  beam_width: 64
+  heuristics_model_path: models/symbolic/heuristic.pt
+  egraph:
+    enabled: true
+    rewrite_limit: 5000
+    cost_metric: min_nodes
+  library_path: dsl/library.json
+
+ttt:
+  enabled: true
+  model_path: models/ttt/base.ckpt
+  trainable_params: adapters
+  steps: 16
+  learning_rate: 3.0e-4
+  gradient_clip: 1.0
+  early_stop_patience: 3
+  losses:
+    reconstruction: 1.0
+    color_conservation: 0.5
+    object_count: 0.3
+    smoothness: 0.2
+
+llm:
+  enabled: true
+  model_path: models/llm/tri-arc-30b-qlora
+  quantisation_bits: 4
+  prompt_version: v1
+  batch_size: 2
+  initial_candidates: 8
+  refinement_candidates: 4
+  temperature_initial: 0.7
+  temperature_refine: 0.4
+  top_p_initial: 0.9
+  top_p_refine: 0.8
+
+smt:
+  enabled: true
+  solver: z3
+  timeout_ms: 2000
+  max_retries: 2
+  reuse_context: true
+  max_clause_cache: 10000
+
+arbitrator:
+  confidence_threshold: 0.65
+  diversity_gap: 0.1
+  runtime_penalty_weight: 0.05
+  log_top_k: 5
+
+logging:
+  level: INFO
+  metrics_file: metrics.jsonl
+  runtime_log: runtime.log
+  profiler_enabled: false
+
+debug:
+  enable_replay_cache: true
+  store_failed_candidates: true
+  dump_smt_constraints: true
