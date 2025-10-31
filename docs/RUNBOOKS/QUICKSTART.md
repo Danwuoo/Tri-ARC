@@ -12,8 +12,7 @@ Goal: get Tri-ARC running on a small smoke split within 30 minutes on a developm
    ```
    git clone <repo> Tri-ARC
    cd Tri-ARC
-   conda env create -f environment.yml
-   conda activate tri-arc
+   bash scripts/setup_local_env.sh
    ```
 2. **Verify hardware**
    ```
