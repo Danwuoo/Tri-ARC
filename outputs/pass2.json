@@ -1,0 +1,96 @@
+{
+  "00576224": [
+    {
+      "info": {
+        "solved": "False"
+      },
+      "outputs": [
+        [
+          [
+            3,
+            2
+          ],
+          [
+            7,
+            8
+          ]
+        ]
+      ],
+      "rank": 1,
+      "solver": "baseline_echo"
+    },
+    {
+      "info": {
+        "solved": "False"
+      },
+      "outputs": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      ],
+      "rank": 2,
+      "solver": "baseline_echo"
+    }
+  ],
+  "007bbfb7": [
+    {
+      "info": {
+        "solved": "False"
+      },
+      "outputs": [
+        [
+          [
+            7,
+            0,
+            7
+          ],
+          [
+            7,
+            0,
+            7
+          ],
+          [
+            7,
+            7,
+            0
+          ]
+        ]
+      ],
+      "rank": 1,
+      "solver": "baseline_echo"
+    },
+    {
+      "info": {
+        "solved": "False"
+      },
+      "outputs": [
+        [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "rank": 2,
+      "solver": "baseline_echo"
+    }
+  ]
+}

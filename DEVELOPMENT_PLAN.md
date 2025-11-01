@@ -11,10 +11,22 @@ Establish an end-to-end ARC solving skeleton with the minimum viable modules req
 - Produce an offline wheel/model weight inventory with completeness checks to guard against notebook outages.
 - Deliverable: reproducible environment scripts + `smoke` test run logs.
 
-### Stage 2 — Smoke Validation
-- Execute the `smoke` suite end-to-end in both environments to confirm GPU, SMT, and package wiring.
-- Capture failures with root-cause notes and feed fixes back into provisioning scripts.
-- Deliverable: green `smoke` logs stored with timestamped identifiers.
+### Stage 2 - Smoke Validation
+- **Objective**: Prove that the Stage 1 environments are fully runnable by exercising GPU, SMT, and core package wiring using the automated smoke suite.
+- **Tooling**:
+  - `tri_arc.smoke` module powering targeted checks (CUDA visibility, Z3 solver round-trip, dataset presence, wheel cache inventory, logging probe).
+  - `scripts/run_smoke.py` CLI to collect JSON/Markdown artefacts under `reports/smoke_logs/` with timestamped filenames per environment.
+- **Execution Flow**:
+  - Local: `python scripts/run_smoke.py --env local`.
+  - Kaggle: `python scripts/run_smoke.py --env kaggle --wheel-root /kaggle/input/tri-arc-wheels`.
+  - Reference runbook: `docs/RUNBOOKS/SMOKE_VALIDATION.md`.
+- **Failure Handling**:
+  - Tag root causes using `docs/ERROR_TAXONOMY.md` and capture remediation notes in the Markdown log.
+  - Loop fixes into Stage 1 provisioning scripts (`scripts/setup_local_env.sh`, `scripts/setup_kaggle_env.sh`) and rerun until the suite is green.
+  - Leverage `docs/DEBUG_PLAYBOOK.md` for module-level diagnostics when GPU or SMT probes fail.
+- **Deliverables**:
+  - Passing smoke logs (`<timestamp>_<env>_smoke.md/json`) for both environments committed under `reports/smoke_logs/`.
+  - Updated provisioning artefacts reflecting any fixes uncovered during validation.
 
 ### Stage 3 — Data & Evaluation Loop
 - Implement dataset loaders, evaluation split handling, and deterministic sampling.
