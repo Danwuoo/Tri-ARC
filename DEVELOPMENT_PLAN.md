@@ -49,13 +49,14 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 ### Workstream A - Environment Bootstrapping
 - Validate hardware prerequisites (four GPUs, >=64 CPU cores, >=128 GB RAM) and record availability in `reports/hardware_inventory.md`.
 - Build the local Conda or virtualenv via `bash scripts/setup_local_env.sh`; capture `pip freeze > reports/pip_freeze.txt` and `nvidia-smi > reports/gpu_info.txt` as prescribed in `docs/ENV_SETUP.md`.
-- Pre-download Python wheels with `bash scripts/build_wheel_cache.sh`, store them under `vendor/wheels/`, and generate checksum manifests (`sha256sum`) for Kaggle uploads.
+- Pre-download Python wheels with `bash scripts/build/build_wheel_cache.sh`, store them under `vendor/wheels/`, and generate checksum manifests (`sha256sum`) for Kaggle uploads.
 - Run `python scripts/check_gpu.py` to confirm CUDA compatibility and append results to `reports/setup_verification_<date>.md`.
 
 ### Workstream B - Repository And Execution Scaffold
 - Create directory skeletons (`cache/`, `logs/`, `reports/`, `profiles/`, `vendor/wheels/`) with placeholder `.gitkeep` files to support logging expectations from `docs/DEBUG_PLAYBOOK.md`.
-- Implement a minimal `run_eval.py` or CLI entry that loads config defaults, seeds RNGs, initialises logging (`logs/runtime.log`, `metrics.jsonl`), and performs a basic ARC input/output round-trip.
+- Implement a minimal `scripts/run_eval.py` entry that loads config defaults, seeds RNGs, initialises logging (`logs/runtime.log`, `metrics.jsonl`), and performs a basic ARC input/output round-trip.
 - Stub module packages (`arc/symbolic/`, `arc/ttt/`, `arc/llm/`, `arc/scheduler/`) with interface contracts and config hooks to unblock Phase 2 development.
+- Organise repository tooling so build utilities live under `scripts/build/` and ad-hoc diagnostics under `scripts/tmp/`.
 - Ensure configuration loaders honour Kaggle path overrides (`/kaggle/working/Tri-ARC`, `/kaggle/temp/`) and mirror device maps from `docs/CONFIG_DEFAULTS.yaml`.
 
 ### Workstream C - Offline Assets And Data Packaging
@@ -65,16 +66,17 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 
 ### Workstream D - Verification, Instrumentation, And Sign-Off
 - Execute `python scripts/self_test.py --output reports/setup_verification_<date>.md` to validate imports, CUDA kernels, and Z3 availability.
-- Run `python run_eval.py --split smoke --max_tasks 1` to exercise logging, metrics, and deterministic seeding; archive results under `reports/smoke_logs/`.
+- Run `python scripts/run_eval.py --split smoke --max_tasks 1` to exercise logging, metrics, and deterministic seeding; archive results under `reports/smoke_logs/`.
 - Dry run `bash scripts/setup_kaggle_env.sh` in a clean container to prove that wheel caches and data bundles install without network access.
 - Establish observability defaults: create `logs/smt/`, `logs/llm/`, and rotation policy for `logs/runtime.log` aligned with `docs/DEBUG_PLAYBOOK.md`.
+- Publish DSL verification utilities (`arc/symbolic/dsl/verify.py`, `scripts/run_dsl.py`) with logs in `logs/verification/` and benchmarks under `reports/dsl_benchmarks_<date>.md`; back them with `tests/dsl/`.
 
 **Milestones And Gating Checks**
 | Checkpoint | Target Outcome | Evidence / Artefact |
 |------------|----------------|---------------------|
 | ENV-1: Local environment bootstrapped | Conda env, wheel cache, and GPU checks complete | `reports/pip_freeze.txt`, `reports/gpu_info.txt`, `vendor/wheels/manifest.sha256` |
-| ENV-2: Repository scaffold | Entry script, module skeletons, and logging directories present | `run_eval.py`, `arc/*/__init__.py`, placeholder logs |
-| ENV-3: Offline bundles assembled | Data archive and inventory ready for Kaggle upload | `dist/data_bundle.tar.gz`, `reports/offline_inventory_<date>.json` |
+| ENV-2: Repository scaffold | Entry script, module skeletons, and logging directories present | `scripts/run_eval.py`, `arc/*/__init__.py`, placeholder logs |
+| ENV-3: Offline bundles assembled | Data archive and inventory ready for Kaggle upload | `dist/data_bundle.tar.gz`, `reports/offline_inventory_<date>.json`, `docs/compliance/LICENCE_LOG.md` |
 | ENV-4: Smoke + Kaggle dry run | Self-test, smoke eval, and Kaggle setup script succeed | `reports/setup_verification_<date>.md`, `reports/smoke_logs/`, dry-run checklist |
 
 **Risks And Mitigations**
@@ -107,17 +109,17 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 - Stand up a governance workflow (semantic versioning, review template, release notes) that enforces spec changes to be ratified before interpreter updates merge.
 
 ### Workstream B - Interpreter Implementation
-- Design the interpreter package layout (`arc/dsl/interpreter.py`, `arc/dsl/runtime/`) with pure evaluation cores, context objects, and deterministic RNG seeding hooks.
+- Design the interpreter package layout (`arc/symbolic/dsl/interpreter.py`, `arc/symbolic/dsl/runtime/`) with pure evaluation cores, context objects, and deterministic RNG seeding hooks.
 - Implement numpy-first execution for all primitives, reusing `arc/common/grid.py` validators for shape/type checks and raising structured `InterpreterFailure` objects.
 - Support composite constructs (map, reduce, control forms) with explicit evaluation order, memoisation guards, and zero hidden global state.
 - Integrate per-operator timing, coverage, and failure logging via the shared logging substrate so every run appends to `metrics.jsonl` and `logs/runtime.log`.
 - Author micro-benchmarks and tracing scripts that benchmark hot primitives, publishing results to `reports/dsl_benchmarks_<date>.md` for scheduler calibration.
 
 ### Workstream C - Verification Harness And Test Suite
-- Implement the verification harness (`arc/dsl/verify.py`) that executes programs against train examples, returning success flags, diffs, and metadata for the arbitrator.
+- Implement the verification harness (`arc/symbolic/dsl/verify.py`) that executes programs against train examples, returning success flags, diffs, and metadata for the arbitrator.
 - Emit structured diff artefacts into `logs/verification/` and maintain roll-up summaries in `reports/verification_summary_<date>.md` for downstream analytics.
-- Create fixture-driven unit tests under `tests/dsl/test_primitives.py` covering positive paths, error cases, and regression grids drawn from canonical examples.
-- Add Hypothesis-based property tests in `tests/dsl/test_properties.py` stressing grid shape, colour, and deterministic guarantees, gating them in CI smoke runs.
+- Create fixture-driven unit tests under `tests/dsl/test_spec_examples.py` covering positive paths, error cases, and regression grids drawn from canonical examples.
+- Add guard-rail validation tests in `tests/dsl/test_validation.py` stressing argument semantics, grid shapes, and deterministic guarantees, gating them in CI smoke runs.
 - Wire the full DSL suite into the default CI invocation (`python -m pytest tests/dsl --maxfail=1 --durations=10`) and block spec merges on green results.
 
 ### Workstream D - Tooling And Fixtures For Downstream Consumers
@@ -131,7 +133,7 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 | Checkpoint | Target Outcome | Evidence / Artefact |
 |------------|----------------|---------------------|
 | DSL-1: Spec locked | Versioned grammar, primitives, and canonical examples reviewed and published | `docs/DSL_SPEC.md`, `docs/DSL_PRIMER.md`, `docs/changelog.md` entry |
-| DSL-2: Interpreter core | Interpreter passes deterministic unit + benchmark suite with instrumentation enabled | `arc/dsl/interpreter.py`, `tests/dsl/test_primitives.py`, `reports/dsl_benchmarks_<date>.md` |
+| DSL-2: Interpreter core | Interpreter passes deterministic unit + benchmark suite with instrumentation enabled | `arc/symbolic/dsl/interpreter.py`, `tests/dsl/test_spec_examples.py`, `reports/dsl_benchmarks_<date>.md` |
 | DSL-3: Verification loop | Harness generates diff artefacts and CI job succeeds on canonical tasks | `logs/verification/`, `reports/verification_summary_<date>.md`, CI run log |
 | DSL-4: Downstream readiness | CLI + fixtures integrated; symbolic solver consumes interpreter API without adapters | `scripts/run_dsl.py`, `fixtures/dsl/`, `arc/symbolic/interpreter_adapter.py` |
 
@@ -283,7 +285,7 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 - Automate batch evaluation, collect metrics, and guarantee reproducibility baselines.
 
 **Key Tasks**
-- Implement evaluation runner (`run_eval.py`) iterating over splits with configurable module sets (Config A default).
+- Implement evaluation runner (`scripts/run_eval.py`) iterating over splits with configurable module sets (Config A default).
 - Capture per-task metrics (pass@2 success, runtime, memory) and aggregate summaries aligned with `docs/EVAL_PROTOCOL.md`.
 - Store artefacts: `outputs/pass2.json`, `reports/eval_summary.md`, `metrics.jsonl`, and run metadata (seeds, configs).
 - Add scripts for ablations and regression (e.g., `tools/ablate.py`, smoke suites).
@@ -304,7 +306,7 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 
 ## Operational Checklist
 - [ ] Environment snapshot updated and committed with date stamp.
-- [ ] Smoke tests (`python run_eval.py --split smoke --max_tasks 5`) pass before pushing changes.
+- [ ] Smoke tests (`python scripts/run_eval.py --split smoke --max_tasks 5`) pass before pushing changes.
 - [ ] `metrics.jsonl` and `logs/` cleansed of PII before sharing.
 - [ ] Documentation synced: update relevant `docs/MODULES/*.md` after interface or budget changes.
 - [ ] Regression suite rerun after every change affecting solver correctness or timing.

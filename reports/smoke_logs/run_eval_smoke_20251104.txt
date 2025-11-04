@@ -1,0 +1,6 @@
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Tri-ARC evaluation starting
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Runtime log: C:\Users\000000\Desktop\Tri-ARC\logs\runtime.log
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Metrics file: C:\Users\000000\Desktop\Tri-ARC\logs\metrics.jsonl
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Device map: {"symbolic": "cuda:0", "ttt": "cuda:1", "llm": "cuda:2", "flex": "cuda:3"}
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Round-trip 0: mirrored input grid of shape [2, 2]
+2025-11-04 22:22:27 | INFO | tri_arc.run_eval | Tri-ARC evaluation complete with status=success

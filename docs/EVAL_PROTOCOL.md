@@ -28,7 +28,7 @@ Tri-ARC evaluation mirrors ARC-AGI-2 competition constraints: offline execution,
    - Verify data directories as described in `docs/DATASETS.md`.
    - Install dependencies from `environment.yml` or `requirements.txt`.
 2. **Launch evaluation**:
-   - Execute `python run_eval.py --split evaluation --max_hours 12`.
+   - Execute `python scripts/run_eval.py --split evaluation --max_hours 12`.
    - The script initialises scheduler, modules, SMT gatekeeper, and arbitrator.
 3. **Monitor progress**:
    - Tail `logs/runtime.log` for module allocation and arbitrator decisions.

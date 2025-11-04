@@ -182,6 +182,15 @@ class ExecutionTrace:
     def append(self, result: StageResult) -> None:
         self.stage_results.append(result)
 
+    def __len__(self) -> int:
+        return len(self.stage_results)
+
+    def __iter__(self):
+        return iter(self.stage_results)
+
+    def __getitem__(self, index: int) -> StageResult:
+        return self.stage_results[index]
+
     @property
     def final_grid(self) -> Grid:
         if not self.stage_results:
@@ -213,6 +222,7 @@ class ExecutionState:
         new_state.last_grid = self.grid.copy()
         new_state.grid = grid
         new_state.env["current_grid"] = grid
+        new_state.env["last_grid"] = new_state.last_grid
         return new_state
 
     def push_object(self, region: Region) -> None:

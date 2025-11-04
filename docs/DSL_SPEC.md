@@ -83,7 +83,7 @@ Interpreter preflight enforces the following rules before a program is executed.
 - [ ] **Deterministic seeds**: operators that rely on randomness (none in v0.2.0) must receive the interpreter seed; future extensions register through governance.
 - [ ] **Instrumentation health**: metrics sink (`metrics.jsonl`) and runtime log exist and are writable before evaluation begins.
 
-The interpreter ships a lint helper under `arc.dsl.interpreter.validate_program` so callers can stop invalid programs ahead of execution.
+The interpreter ships a lint helper under `arc.symbolic.dsl.interpreter.validate_program` so callers can stop invalid programs ahead of execution.
 
 ## Primitive Catalogue
 

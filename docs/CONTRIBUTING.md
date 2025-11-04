@@ -18,7 +18,7 @@ Thank you for helping build Tri-ARC. This guide describes the workflow, coding s
 
 ## Testing Requirements
 - Unit tests: `pytest tests/` must pass for modified areas. Add tests covering new functionality.
-- Smoke tests: `python run_eval.py --split smoke --max_tasks 5` should complete under 15 minutes.
+- Smoke tests: `python scripts/run_eval.py --split smoke --max_tasks 5` should complete under 15 minutes.
 - Linting: Run `scripts/lint.sh` (wraps `black`, `isort`, `flake8`).
 - Optional: `scripts/profile.sh` for performance-sensitive changes.
 - Provide test evidence in the pull request description (command outputs or summary).

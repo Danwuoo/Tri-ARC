@@ -21,6 +21,27 @@ This change log captures spec, interpreter, and governance updates that require 
 
 ---
 
+## 2025-11-04 - DSL Tooling Refresh
+- moved the interpreter runtime under `arc/symbolic/dsl/` and added `arc/symbolic/interpreter_adapter.py` for downstream integration.
+- shipped verification harness (`arc/symbolic/dsl/verify.py`), CLI tooling (`scripts/run_dsl.py`), and fixture-backed tests (`tests/dsl/`) to gate Phase 2 deliverables.
+- regenerated offline artefacts (`vendor/wheels/manifest.sha256`, `dist/data_bundle.tar.gz`, `reports/offline_inventory_20251104.json`) and documented licence coverage in `docs/compliance/LICENCE_LOG.md`.
+- updated developer playbooks and plans with verification workflows, benchmark reports, and smoke expectations.
+
+**Proposed by:** Phase 2 DSL working group
+
+**Reviewed by:** Symbolic Solver, Dev Productivity
+
+**Approvals:** [approved] Symbolic Solver - [approved] Dev Productivity
+
+**Validation artefacts:**
+- `arc/symbolic/dsl/verify.py`
+- `scripts/run_dsl.py`
+- `reports/dsl_benchmarks_20251104.md`
+- `logs/verification/verification_*.jsonl`
+- `tests/dsl/`
+
+---
+
 ## Template for Future Entries
 
 ```

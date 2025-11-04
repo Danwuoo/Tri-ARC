@@ -9,7 +9,7 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 - **Z3**: 4.12 CLI and Python bindings.
 - **Auxiliary tools**: `torchvision`, `numpy`, `scipy`, `networkx`, `hydra-core`, `pyyaml`, `rg` (ripgrep), `nsys`, `ncu`.
 - Dependency manifests live in `requirements.txt`, `environments/conda/environment.yml`, and `environments/docker/Dockerfile`.
-- Use `scripts/build_wheel_cache.sh` to pre-download wheels into `vendor/wheels/` for offline installs.
+- Use `scripts/build/build_wheel_cache.sh` to pre-download wheels into `vendor/wheels/` and refresh `vendor/wheels/manifest.sha256` for offline installs. Override `PIP_PYTHON_VERSION`, `PIP_PLATFORM`, or `PIP_NO_BINARY` when targeting non-default environments.
 - Verify GPU availability with `python scripts/check_gpu.py`.
 - Capture the environment snapshot with `python scripts/self_test.py --output reports/setup_verification_<date>.md`.
 
@@ -23,7 +23,7 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
    bash scripts/setup_kaggle_env.sh
    ```
    (All wheels must be pre-packaged; upload `vendor/wheels/` as a Kaggle dataset.)
-5. **GPU pinning**: Use `CUDA_VISIBLE_DEVICES=0,1,2,3 python run_eval.py ...` to align with the device map in `docs/CONFIG_DEFAULTS.yaml`.
+5. **GPU pinning**: Use `CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_eval.py ...` to align with the device map in `docs/CONFIG_DEFAULTS.yaml`.
 6. **Logging**: Redirect logs to `/kaggle/temp/` to avoid quota issues on `/kaggle/working/`.
 
 ## Local Offline Setup
@@ -45,5 +45,6 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 ## Verification
 1. Run `python scripts/self_test.py --output reports/setup_verification_<date>.md` to confirm module imports, CUDA kernels, and Z3 availability.
 2. Generate the asset manifest with `python scripts/inventory_assets.py --json reports/offline_inventory_<date>.json`.
-3. Execute `python run_eval.py --split smoke --max_tasks 5` to validate end-to-end operation within 15 minutes (Stage 2 onwards).
+3. Execute `python scripts/run_eval.py --split smoke --max_tasks 5` to validate end-to-end operation within 15 minutes (Stage 2 onwards).
 4. Log outputs in `reports/smoke_logs/`.
+5. Update `docs/compliance/LICENCE_LOG.md` with new bundles before publishing artifacts.

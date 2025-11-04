@@ -29,9 +29,15 @@ This playbook lists common Tri-ARC failure patterns, diagnostics, and remediatio
 4. **Fix and validate**: Apply module-specific adjustments, rerun the replay, and confirm the arbitrator now selects a correct candidate.
 5. **Document**: Update this playbook or module docs if new error patterns emerge.
 
+## DSL Verification Workflow
+1. **Quick health check**: run `python scripts/run_dsl.py --fixtures fixtures/dsl/spec_examples --benchmark-report reports/dsl_benchmarks_<date>.md` to execute the canonical suite, refresh benchmarks, and emit JSONL logs under `logs/verification/`.
+2. **Drill into failures**: inspect the generated log (`logs/verification/verification_<timestamp>.jsonl`) for grid diffs, value mismatches, or validation errors; rerun the specific case using `scripts/run_dsl.py --fixtures <path/to/fixture> --quiet`.
+3. **Spec alignment**: reconcile failures against `docs/DSL_SPEC.md` and `docs/DSL_PRIMER.md`; patch primitive behaviour in `arc/symbolic/dsl/runtime/primitives.py` and add regression coverage in `tests/dsl/`.
+4. **Downstream readiness**: downstream modules should call `arc/symbolic/interpreter_adapter.py` to execute programs, ensuring validation happens consistently across CI and local runs.
+
 ## Profiling Guidelines
 - Run `python tools/profile.py --module ttt --duration 60` to sample GPU utilisation.
-- Use Nsight CLI (`nsys profile python run_eval.py --task <id>`) for deep dives; limit sessions to short intervals to preserve runtime budget.
+- Use Nsight CLI (`nsys profile python scripts/run_eval.py --task <id>`) for deep dives; limit sessions to short intervals to preserve runtime budget.
 - Summarise profiler findings in `reports/perf_notes.md` for future reference.
 
 ## Logging Hygiene
