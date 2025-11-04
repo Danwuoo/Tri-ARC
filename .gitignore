@@ -1,0 +1,8 @@
+# 大模型與套件
+*.safetensors
+*.whl
+
+# 相關索引與快取（可選）
+*.safetensors.index.json
+*.safetensors.idx
+model/**/.cache/
