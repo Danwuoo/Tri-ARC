@@ -1,0 +1,59 @@
+{
+  "name": "place_duplicate_patch",
+  "operator": "place",
+  "description": "Extract a patch and place it in the top-right corner.",
+  "program": "(pipeline\n  (apply region_where_colour 2)\n  (apply extract_region @last_region 0)\n  (apply place @current_grid (tuple 0 2) \"overwrite\" @last_grid))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0,
+      2,
+      2
+    ],
+    [
+      0,
+      2,
+      2,
+      2
+    ],
+    [
+      0,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "focus_stage": 2
+}

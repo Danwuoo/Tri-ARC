@@ -1,0 +1,27 @@
+{
+  "name": "compose_rotate_replace",
+  "operator": "compose",
+  "description": "Run rotate then recolour via a compose block.",
+  "program": "(pipeline\n  (apply compose\n    (apply rotate 1)\n    (apply replace_colour 1 3)))",
+  "input_grid": [
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      3
+    ],
+    [
+      3,
+      0
+    ]
+  ],
+  "focus_stage": 0
+}

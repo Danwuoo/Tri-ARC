@@ -1,106 +1,158 @@
 # Tri-ARC DSL Specification
 
-The Tri-ARC domain-specific language describes grid transformations as composable, interpretable programs. It balances expressive power with tractable search to serve both the symbolic solver and downstream verification.
+Version: 0.2.0 (2025-11-04)
 
-## Design Principles
-- **Grid-centric**: Programs operate on finite 2D grids with discrete colours drawn from `[0, 9]`.
-- **Deterministic**: No randomness; identical inputs produce identical outputs.
-- **Composable**: Higher-order combinators encourage reuse and enable library growth.
-- **Verifiable**: Semantics are simple enough to translate into SMT constraints for formal checking.
+The Tri-ARC domain-specific language encodes grid transformations as composable, deterministic programs. This document defines the grammar, typing rules, primitive catalogue, and governance required to execute the DSL inside the symbolic solver, scheduler, and arbitrator lanes.
 
-## Syntax Overview
-The language uses prefix notation with explicit arity. Informally:
+## Design Objectives
+- **Grid-centric**: Operators consume and produce finite 2D grids whose cells encode palette colours `0-9`.
+- **Deterministic**: Evaluation is pure and reproducible. All randomness is eliminated by construction; seeded utilities live behind deterministic wrappers.
+- **Composable**: Higher-order combinators (map, repeat, if) operate on operators rather than raw code strings to keep search tractable.
+- **Auditable**: Operator contracts, static validation, and governance checkpoints guarantee downstream components can reason about program behaviour.
 
+## Core Grammar
 ```
-<program>    ::= (pipeline <stage>+)
-<stage>      ::= (apply <op> <args...>)
-<op>         ::= primitive-id | derived-id
-<args>       ::= literal | grid-ref | region-expr | expression
-<expression> ::= (if <predicate> <expression> <expression>)
-               | (map <lambda> <region-expr>)
-               | (reduce <reducer> <region-expr>)
-               | (compose <op>+)
+<program>      ::= (pipeline <stage>+)
+<stage>        ::= (apply <operator> <argument>*)
+<operator>     ::= identifier matching a registered primitive or combinator
+<argument>     ::= <literal> | <env-ref> | <tuple> | <lambda> | <stage>
+<env-ref>      ::= @identifier                       ; binds to interpreter environment
+<tuple>        ::= (tuple <argument> <argument>+)
+<lambda>       ::= (lambda (<param>) <expression>)
+<expression>   ::= literal | env-ref | tuple
+                 | (if <expression> <expression> <expression>)
+                 | (eq|ne|lt|le|gt|ge <expression> <expression>)
+                 | (and|or <expression> <expression>)
+                 | (not <expression>)
+                 | (get <expression> <expression>)
 ```
 
-Lambdas are first-order and close over a single cell binding `(lambda (cell) ...)`. Identifiers follow snake_case. Literals cover integers, colour ids, direction tokens, and boolean flags.
+- Identifiers are snake_case ASCII tokens.
+- String literals must be double quoted (for example `"horizontal"`).
+- Environment references use the `@` sigil (for example `@last_object`).
+- Nested `(apply ...)` forms may appear inside combinators such as `compose` and `repeat`.
+- Lambdas close over a single parameter; the interpreter binds dictionaries describing each visited cell when evaluating `map_cells`.
 
-## Core Semantics
-- **Grid representation**: A grid is `(rows, cols, data)` where `data` is a matrix over colours. Regions are subsets defined by predicates (e.g., object masks).
-- **Execution model**: Pipelines evaluate stages sequentially, threading the grid state. Each stage applies an operator to produce a new grid or intermediate scalar.
-- **Shape rules**: Operators must respect grid bounds. Attempts to read/write outside the grid raise verification errors and cause candidate rejection.
-- **Referential transparency**: Operators do not mutate inputs in-place; they return new grid states, enabling equational reasoning.
+## Type System
+The interpreter reasons over the following first-order types. Types are enforced during preflight validation and at runtime.
 
-## Built-In Primitives
-### Grid And Object Access
-- `identity`: return the input grid unchanged.
-- `extract_region(region)`: crop the grid to the specified region.
-- `paint_region(region, colour)`: fill the region with a single colour.
-- `place(grid, position)`: paste a sub-grid at a given top-left coordinate.
+| Type Id | Description | Notes |
+|---------|-------------|-------|
+| `grid` | Immutable wrapper around a `np.ndarray[int16]` with shape `(rows, cols)` | See `arc/symbolic/dsl/types.Grid` |
+| `region` | Boolean mask aligned with the current grid | Instances of `Region` ensure shape compatibility |
+| `colour` | Integer in `[0, 9]` | Colour names map to their ids via `COLOUR_NAME_TO_ID` |
+| `int` / `bool` / `str` | Scalar values | Strings must be ASCII |
+| `position` | Tuple `(row, col)` with zero-based coordinates | Rows and columns respect grid bounds |
+| `lambda` | First-order lambda receiving a single dictionary parameter | Used exclusively by `map_cells` |
+| `stage` | Nested `Stage` value produced by the parser | Consumed by combinators (`compose`, `repeat`, `if_equal`) |
+| `region_list` | Ordered list of regions | Produced by `detect_objects` |
 
-### Geometry And Symmetry
-- `rotate(grid, k)`: rotate by `k * 90` degrees.
-- `reflect(axis)`: mirror across horizontal, vertical, or diagonal axes.
-- `transpose`: swap row/column indices.
+Type conversions are explicit; there is no implicit casting between scalars and structured types.
 
-### Colour And Pattern Logic
-- `replace_colour(src, dst)`: globally remap colours.
-- `majority_colour(region)`: return the most frequent colour within a region.
-- `flood_fill(seed, colour)`: flood from a seed coordinate using 4-connectivity.
+## Evaluation Model
+1. Programs execute inside an `ExecutionState` containing the current grid, environment bindings, object stack, and cached scalars.
+2. Each stage looks up its operator in the primitive registry, validates argument arity and types, then executes against a cloned state. Side-effects are surfaced through environment updates (for example `last_region`, `last_value`).
+3. Stage execution appends a `StageResult` containing the operator, evaluated arguments, duration, and resulting grid or value to an `ExecutionTrace`.
+4. Determinism is guaranteed through pure numpy kernels, deterministic iteration order, and seeded RNG hooks for future stochastic extensions.
+5. Failures raise `InterpreterFailure` with machine-parsable `code` and `details`. The interpreter logs the failure, emits a metric event, and aborts evaluation.
 
-### Control And Composition
-- `if_equal(a, b, then_op, else_op)`: dynamic dispatch based on scalar equality.
-- `repeat(count, op)`: iterate an operator a fixed number of times.
-- `compose(op1, op2, ...)`: sequentially apply multiple operators.
-- `map_cells(region, lambda)`: map a lambda over each cell in the region, returning an updated grid.
+## Environment Conventions
+The interpreter exposes stable bindings that downstream tooling may rely on:
 
-## Derived Primitives And Library Growth
-- New primitives arise from frequent sub-programs mined after successful solves. A candidate is promoted when:
-  - It appears in at least three distinct tasks.
-  - Its inclusion reduces symbolic search depth in ablation comparisons.
-  - It passes equivalence checks ensuring semantics match the originating program.
-- Derived primitives store their definition so they can be inlined during SMT translation or when a solver lacks the extended library.
+| Key | Type | Producer |
+|-----|------|----------|
+| `current_grid` | `grid` | Always present; equals latest grid state |
+| `last_grid` | `grid` or `null` | Previous grid prior to the most recent mutation |
+| `last_value` | scalar | Scalars produced by the most recent operator |
+| `last_region` | `region` | Region-producing primitives (`region_all`, `region_where_colour`, `select_object`, etc.) |
+| `objects` | `region_list` | Populated by `detect_objects` |
+| `last_object` | `region` | Selection primitives (`select_object`) |
+| `object_stack_size` | `int` | Number of regions currently on the stack |
+| `background_colour` | `colour` | Lazy-computed via `detect_objects` and `region_all` |
 
-## Extension Rules
-1. Maintain backward compatibility: existing programs must remain valid when new primitives arrive.
-2. Provide metadata: each primitive defines arity, input types, output type, and side-condition predicates.
-3. Supply rewrite candidates: additions should register potential equivalence rules (e.g., associativity) to enrich the e-graph.
-4. Document test cases: every primitive includes canonical examples and counterexamples for regression testing.
+Users must reference environment bindings with the `@` prefix (for example `@last_region`).
 
-## Example Programs
-### Example 1: Paint Largest Object
-```
-(pipeline
-  (apply find_largest_object)
-  (apply paint_region last_object red))
-```
-- `find_largest_object` pushes the largest connected component onto an implicit object stack.
-- `paint_region` consumes the object reference and paints it red.
+## Static Validation and Lint Checklist
+Interpreter preflight enforces the following rules before a program is executed. Failing any item raises `InterpreterFailure` with code `VALIDATION_ERROR`.
 
-### Example 2: Symmetry Completion
-```
-(pipeline
-  (apply reflect vertical)
-  (apply compose
-    (apply overlay_half left)
-    (apply enforce_palette))
-```
-- The program mirrors the grid vertically, overlays the left half onto the right, and enforces palette conservation.
+- [ ] **Arity**: each stage matches the registered primitive arity (including optional arguments with defaults).
+- [ ] **Type safety**: argument types align with the operator contract. Regions must match the current grid shape, colours must lie in `[0, 9]`, and lambdas provide exactly one positional parameter.
+- [ ] **Bounds**: numeric arguments obey grid limits. Tuples used as positions stay within `0 <= row < rows` and `0 <= col < cols`.
+- [ ] **Region guards**: region arguments originate from earlier primitives in the same invocation or are validated explicitly via `Region.ensure_shape`.
+- [ ] **Object stack discipline**: stack operations (`select_object`, `push_region`, `pop_region`) may only operate when the stack is non-empty.
+- [ ] **Deterministic seeds**: operators that rely on randomness (none in v0.2.0) must receive the interpreter seed; future extensions register through governance.
+- [ ] **Instrumentation health**: metrics sink (`metrics.jsonl`) and runtime log exist and are writable before evaluation begins.
 
-## Equivalence And Rewrite Rules
-- **Commutativity**: `(compose opA opB)` equals `(compose opB opA)` when both operate on disjoint regions. This rule is gated by a static side-condition proven via region analysis.
-- **Idempotence**: `reflect(axis)` applied twice reduces to `identity`.
-- **Fusion**: `replace_colour(a, b)` followed by `replace_colour(b, c)` rewrites to `replace_colour(a, c)` if colour `b` does not appear outside the first replacement region.
-- **Neutral elements**: `compose(identity, op)` rewrites to `op`.
+The interpreter ships a lint helper under `arc.dsl.interpreter.validate_program` so callers can stop invalid programs ahead of execution.
 
-These rules seed the e-graph and SMT translator, shrinking search space and strengthening formal verification.
+## Primitive Catalogue
 
-## Sample SMT Translation Sketch
-1. Encode grids as integer matrices with dimension constraints.
-2. Model primitives as sets of Horn clauses (e.g., rotation as coordinate remapping constraints).
-3. Assert that executing the program on each input grid yields the matching output grid.
-4. Query Z3 for satisfiability; a model confirms the program honours all examples.
+| Operator | Inputs | Output | Description | Side effects |
+|----------|--------|--------|-------------|--------------|
+| `identity` | n/a | `grid` | Returns the input grid unchanged. | none |
+| `rotate` | `int steps` | `grid` | Rotates the grid by `steps * 90 deg` clockwise. | updates `last_grid` |
+| `reflect` | `str axis` | `grid` | Mirrors the grid across `"horizontal"`, `"vertical"`, `"main_diagonal"`, or `"anti_diagonal"`. | updates `last_grid` |
+| `transpose` | n/a | `grid` | Swaps rows and columns. | updates `last_grid` |
+| `replace_colour` | `colour src`, `colour dst`, `[region]` | `grid` | Replaces occurrences of `src` with `dst`. Optional region restricts the update. | updates `last_grid` |
+| `flood_fill` | `position seed`, `colour new_colour` | `grid` | Flood-fills from `seed` using four-connectivity and replaces the contiguous region with `new_colour`. | updates `last_grid` |
+| `paint_region` | `region`, `colour` | `grid` | Paints all cells in the supplied region. | updates `last_grid`, sets `last_region` |
+| `extract_region` | `region`, `[int pad]` | `grid` | Crops the minimal bounding box around the region with optional zero-padding. | sets `last_grid` to crop result |
+| `place` | `grid source`, `position top_left`, `[str mode]`, `[grid target]` | `grid` | Places `source` onto the current grid (or optional `target`) at `top_left`. Modes: `"overwrite"` or `"transparent"` (skip zeros). | updates `last_grid` |
+| `map_cells` | `region`, `lambda` | `grid` | Applies the lambda to each cell `(row, col, value)` in the region, expecting a colour result per invocation. | updates `last_value`, stores lambda metadata |
+| `region_all` | n/a | `region` | Produces a region covering the entire grid. | sets `last_region` and pushes onto stack |
+| `region_where_colour` | `colour` | `region` | Returns a region masking cells matching the colour. | sets `last_region`, pushes onto stack |
+| `region_from_bbox` | `int top`, `int left`, `int bottom`, `int right` | `region` | Produces a rectangular region; bounds validated against the grid. | sets `last_region`, pushes onto stack |
+| `detect_objects` | `[int connectivity]`, `[int min_size]` | `region_list` | Performs connected-component analysis over non-background cells. | populates `objects`, rebuilds object stack |
+| `select_object` | `str selector`, `[scalar hint]` | `region` | Picks a region from the object stack (`"largest"`, `"smallest"`, `"index"`, `"colour"`). | sets `last_object`, `last_region`, pushes selection |
+| `push_region` | `region` | `region_list` | Pushes a region onto the stack (for custom workflows). | updates stack |
+| `pop_region` | n/a | `region` or `null` | Pops the top region from the stack. | updates stack, `last_region` |
+| `majority_colour` | `region` | `colour` | Returns the most frequent colour inside the region. | sets `last_value` |
+| `count_cells` | `region` | `int` | Counts cells within the region. | sets `last_value` |
 
-## Usage Notes
-- Keep programs concise; arbitrator scoring penalises excessive depth and unused intermediate results.
-- Document custom primitives in `docs/MODULES/SYMBOLIC.md` and add regression tests before promoting them.
-- When extending the DSL, update the SMT translation tables and the symbolic solver enum to preserve consistency across modules.
+All region-producing primitives ensure masks align with the current grid shape.
+
+## Combinators and Control Operators
+
+| Operator | Inputs | Output | Behaviour |
+|----------|--------|--------|-----------|
+| `compose` | `<stage>+` | `grid` | Executes each nested stage sequentially against a cloned state, returning the final grid. Metrics are emitted per nested stage. |
+| `repeat` | `int count`, `<stage>` | `grid` | Executes the embedded stage `count` times. Counts must be non-negative. |
+| `if_equal` | `<expression> left`, `<expression> right`, `<stage> then`, `[<stage> else]` | `grid` | Evaluates expressions, executes the matching branch, and returns its resulting grid. |
+
+Combinators perform full validation of the nested stages before execution. Nested stage failures propagate to the parent stage with contextualised metadata (`repeat_iteration`, `compose_index`).
+
+## Lambda Semantics
+- `map_cells` receives a lambda with exactly one parameter (recommended name `cell`).
+- For each `(row, col)` in the target region the interpreter binds a dictionary: `{ "row": r, "col": c, "value": current_colour }`.
+- The lambda body may use the expression forms listed in the grammar. `get` is commonly used to access the dictionary (for example `(get cell "value")`).
+- The lambda must return an integer colour `0-9`. Violations raise `InterpreterFailure(code="LAMBDA_ERROR")`.
+- Lambdas execute in deterministic row-major order (top-left to bottom-right).
+
+## Failure Modes
+Every primitive emits structured failure codes so that solvers can diagnose issues quickly:
+
+| Code | Trigger |
+|------|---------|
+| `VALIDATION_ERROR` | Static validation failed before execution |
+| `OUT_OF_BOUNDS` | Position or region access exceeded grid bounds |
+| `MISSING_ENV` | Requested environment key was absent |
+| `PRIMITIVE_ERROR` | Primitive-specific runtime issue (details include operator name) |
+| `LAMBDA_ERROR` | Lambda returned an invalid value or raised an exception |
+
+All failures attach `stage_index`, `operator`, and evaluated arguments to the `details` payload.
+
+## Instrumentation
+- Each stage appends a JSON event to `metrics.jsonl` with keys `event="dsl_stage"`, `operator`, `duration_ms`, `result_type`, and optional `metadata`.
+- Runtime logs emit structured messages using the root logging configuration established during Phase 1 (`logs/runtime.log`).
+- The interpreter exposes trace objects so downstream tooling can perform richer analyses (coverage, timings, diffs).
+
+## Governance and Versioning
+- Spec updates follow semantic versioning. Increments occur alongside entries in `docs/changelog.md` describing the change, review owner, and ratification timestamp.
+- Any change to operator semantics, argument contracts, or evaluation order must land as a spec pull request that includes updated canonical examples and green DSL tests.
+- Interpreter releases are gated on checkpoints DSL-1 through DSL-4 in `DEVELOPMENT_PLAN.md`. Downstream lanes consume tagged spec releases only.
+- The governance board maintains a template for spec proposals (see `docs/changelog.md`), capturing motivation, design sketches, and validation evidence.
+
+## Canonical Examples
+See `docs/DSL_PRIMER.md` and the fixture set under `fixtures/dsl/spec_examples/` for end-to-end worked examples covering every primitive and combinator defined in this release.
+
+

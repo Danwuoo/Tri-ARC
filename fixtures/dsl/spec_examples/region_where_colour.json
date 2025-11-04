@@ -1,0 +1,60 @@
+{
+  "name": "region_where_colour_select",
+  "operator": "region_where_colour",
+  "description": "Select all cells with colour 1.",
+  "program": "(pipeline\n  (apply region_where_colour 1))",
+  "input_grid": [
+    [
+      1,
+      2,
+      1
+    ],
+    [
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "expected_grid": [
+    [
+      1,
+      2,
+      1
+    ],
+    [
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "expected_region_mask": [
+    [
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "parameters": {
+    "colour": 1
+  }
+}

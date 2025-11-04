@@ -1,0 +1,63 @@
+{
+  "name": "region_from_bbox_rect",
+  "operator": "region_from_bbox",
+  "description": "Create a rectangular region from coordinates.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 1 1 2))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_region_mask": [
+    [
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "parameters": {
+    "top": 0,
+    "left": 1,
+    "bottom": 1,
+    "right": 2
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "identity_basic",
+  "operator": "identity",
+  "description": "Identity leaves the grid unchanged.",
+  "program": "(pipeline\n  (apply identity))",
+  "input_grid": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      3
+    ]
+  ]
+}

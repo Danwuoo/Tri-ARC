@@ -1,0 +1,44 @@
+{
+  "name": "paint_region_bbox",
+  "operator": "paint_region",
+  "description": "Fill the previously selected bounding box with colour 4.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 0 1 1)\n  (apply paint_region @last_region 4))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      4,
+      4,
+      0
+    ],
+    [
+      4,
+      4,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "parameters": {
+    "colour": 4
+  },
+  "focus_stage": 1
+}

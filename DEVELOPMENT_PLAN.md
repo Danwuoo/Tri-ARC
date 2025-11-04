@@ -37,7 +37,7 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 
 ---
 
-## Phase 1 - Setup And Environment Preparation
+## Phase 1 - Setup And Environment Preparation - Done
 **Objectives**
 - Mirror the Kaggle offline runtime with a deterministic Python 3.11 / CUDA 12.1 stack, PyTorch 2.3, and Z3 4.12 using the process in `docs/ENV_SETUP.md`.
 - Establish repository scaffolding (entrypoints, directories, configs) so later phases can plug in without touching the environment or logging substrate.
@@ -90,27 +90,68 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 ---
 
 ## Phase 2 - DSL And Interpreter Implementation
-**Goals**
-- Finalise DSL primitives capable of representing core ARC transformations while keeping search tractable.
-- Implement interpreter and verification loop shared by symbolic solver and arbitrator.
+**Objectives**
+- Finalise DSL primitives that cover core ARC transformation families while keeping the symbolic search space tractable.
+- Deliver a deterministic interpreter and verification loop shared by the symbolic solver, scheduler, and arbitrator lanes.
 
-**Key Tasks**
-- Align DSL grammar with `docs/DSL_SPEC.md`; draft supporting documentation with examples.
-- Implement interpreter translating DSL programs into grid operations (numpy-first for determinism).
-- Build verification harness comparing candidate outputs across all examples.
-- Create unit tests covering primitive semantics, failure modes, and negative checks.
+**Scope And Interfaces**
+- Evolves the draft grammar, type system, and semantics in `docs/DSL_SPEC.md`, aligning operator contracts with interface guidance in `docs/ARCHITECTURE.md`.
+- Consumes grid representations, logging scaffolds, and config defaults surfaced during Phase 1 (`arc/common/grid.py`, `docs/CONFIG_DEFAULTS.yaml`, `logs/runtime.log`).
+- Surfaces instrumentation outputs to `metrics.jsonl`, `logs/runtime.log`, and verification reports that downstream lanes consume.
 
-**Dependencies**
-- Grid representations defined during Phase 1; architecture interface hints from `docs/ARCHITECTURE.md`.
+### Workstream A - DSL Specification And Governance
+- Audit existing primitive and combinator definitions; align normative semantics with scheduler constraints from `docs/ARCHITECTURE.md` and capture approvals in `docs/changelog.md`.
+- Formalise grammar expansions, typing rules, and operator contracts in `docs/DSL_SPEC.md`, describing preconditions, failure modes, and deterministic evaluation notes.
+- Produce canonical examples (input grid, DSL program, output grid) for every primitive and combinator; persist them in `docs/DSL_PRIMER.md` and `fixtures/dsl/spec_examples/`.
+- Document static validation rules covering arity, bounds, colour palette, and region guards, and publish them as a lint checklist for interpreter preflight.
+- Stand up a governance workflow (semantic versioning, review template, release notes) that enforces spec changes to be ratified before interpreter updates merge.
 
-**Deliverables / Exit Criteria**
-- DSL spec reviewed and versioned; interpreter passes unit suite and benchmarks within millisecond-scale per grid.
-- Verification harness reports clear diffs for mismatches (feeds retry logic in later phases).
-- Sample DSL programs solving canonical patterns committed as fixtures.
+### Workstream B - Interpreter Implementation
+- Design the interpreter package layout (`arc/dsl/interpreter.py`, `arc/dsl/runtime/`) with pure evaluation cores, context objects, and deterministic RNG seeding hooks.
+- Implement numpy-first execution for all primitives, reusing `arc/common/grid.py` validators for shape/type checks and raising structured `InterpreterFailure` objects.
+- Support composite constructs (map, reduce, control forms) with explicit evaluation order, memoisation guards, and zero hidden global state.
+- Integrate per-operator timing, coverage, and failure logging via the shared logging substrate so every run appends to `metrics.jsonl` and `logs/runtime.log`.
+- Author micro-benchmarks and tracing scripts that benchmark hot primitives, publishing results to `reports/dsl_benchmarks_<date>.md` for scheduler calibration.
 
-**Instrumentation & Observability**
-- Log interpreter timings to `metrics.jsonl` to support later profiling.
-- Capture failure traces for mismatched outputs to feed `docs/DEBUG_PLAYBOOK.md` workflows.
+### Workstream C - Verification Harness And Test Suite
+- Implement the verification harness (`arc/dsl/verify.py`) that executes programs against train examples, returning success flags, diffs, and metadata for the arbitrator.
+- Emit structured diff artefacts into `logs/verification/` and maintain roll-up summaries in `reports/verification_summary_<date>.md` for downstream analytics.
+- Create fixture-driven unit tests under `tests/dsl/test_primitives.py` covering positive paths, error cases, and regression grids drawn from canonical examples.
+- Add Hypothesis-based property tests in `tests/dsl/test_properties.py` stressing grid shape, colour, and deterministic guarantees, gating them in CI smoke runs.
+- Wire the full DSL suite into the default CI invocation (`python -m pytest tests/dsl --maxfail=1 --durations=10`) and block spec merges on green results.
+
+### Workstream D - Tooling And Fixtures For Downstream Consumers
+- Ship the CLI utility `scripts/run_dsl.py` that loads JSON/YAML programs, executes them deterministically, and emits reports to stdout and `reports/dsl_runs/`.
+- Curate a catalogue of exemplar programs demonstrating canonical ARC patterns; store fixtures in `fixtures/dsl/` and reference them from `docs/DSL_PRIMER.md`.
+- Document interpreter APIs and scheduler touchpoints in `docs/ARCHITECTURE.md`, adding quick-start examples and troubleshooting notes for downstream teams.
+- Extend `docs/DEBUG_PLAYBOOK.md` with DSL-specific logging guidance, metric field descriptions, and tips for inspecting structured failure objects.
+- Ensure all tooling honours Phase 1 configuration defaults (seeds, cache paths, offline mode) and validates metrics output before returning success.
+
+**Milestones And Gating Checks**
+| Checkpoint | Target Outcome | Evidence / Artefact |
+|------------|----------------|---------------------|
+| DSL-1: Spec locked | Versioned grammar, primitives, and canonical examples reviewed and published | `docs/DSL_SPEC.md`, `docs/DSL_PRIMER.md`, `docs/changelog.md` entry |
+| DSL-2: Interpreter core | Interpreter passes deterministic unit + benchmark suite with instrumentation enabled | `arc/dsl/interpreter.py`, `tests/dsl/test_primitives.py`, `reports/dsl_benchmarks_<date>.md` |
+| DSL-3: Verification loop | Harness generates diff artefacts and CI job succeeds on canonical tasks | `logs/verification/`, `reports/verification_summary_<date>.md`, CI run log |
+| DSL-4: Downstream readiness | CLI + fixtures integrated; symbolic solver consumes interpreter API without adapters | `scripts/run_dsl.py`, `fixtures/dsl/`, `arc/symbolic/interpreter_adapter.py` |
+
+**Dependencies And Coordination**
+- Align instrumentation schema with Phase 1 logging defaults and Phase 5 scheduler metrics expectations.
+- Coordinate with the Phase 3 symbolic solver team to prioritise primitive coverage and expose gaps early.
+- Partner with the arbitration lane so verification metadata matches `docs/ARBITRATOR_RULES.md` requirements.
+- Work with CI owners to schedule DSL suite runs in nightly smoke jobs and as a pre-merge requirement.
+
+**Risks And Mitigations**
+- DSL scope creep inflates the symbolic search space: require governance board approval and scheduler sign-off before adding new primitives.
+- Non-deterministic numpy operations or hidden state leaks: centralise RNG seeding and enforce property tests that catch ordering differences.
+- Instrumentation overhead slows evaluation: profile with micro-bench reports and gate verbose logging behind debug flags.
+- Example coverage gaps lead to mis-specified semantics: maintain a backlog in `docs/DSL_PRIMER.md` and review with solver leads each sprint.
+
+**Exit Criteria**
+- `docs/DSL_SPEC.md` publishes a tagged release with canonical examples and a validation checklist that downstream tooling consumes.
+- Interpreter implementation emits structured metrics, raises deterministic failures, and passes `python -m pytest tests/dsl`.
+- Verification harness produces diff artefacts and `scripts/run_dsl.py` executes sample programs end-to-end with logs and metrics populated.
+- Property-based and regression suites run green in CI, unblocking the Phase 3 symbolic solver integration.
 
 ---
 

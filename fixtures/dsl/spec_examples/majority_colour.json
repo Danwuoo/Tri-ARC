@@ -1,0 +1,42 @@
+{
+  "name": "majority_colour_region",
+  "operator": "majority_colour",
+  "description": "Return the dominant colour inside a region.",
+  "program": "(pipeline\n  (apply region_where_colour 1)\n  (apply majority_colour @last_region))",
+  "input_grid": [
+    [
+      1,
+      1,
+      2
+    ],
+    [
+      1,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      2
+    ]
+  ],
+  "expected_grid": [
+    [
+      1,
+      1,
+      2
+    ],
+    [
+      1,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      2
+    ]
+  ],
+  "expected_value": 1,
+  "focus_stage": 1
+}

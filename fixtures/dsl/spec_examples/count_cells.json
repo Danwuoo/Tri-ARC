@@ -1,0 +1,42 @@
+{
+  "name": "count_cells_bbox",
+  "operator": "count_cells",
+  "description": "Count the number of cells inside a bounding box region.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 0 1 2)\n  (apply count_cells @last_region))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_value": 6,
+  "focus_stage": 1
+}

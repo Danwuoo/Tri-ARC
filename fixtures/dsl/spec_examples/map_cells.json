@@ -1,0 +1,41 @@
+{
+  "name": "map_cells_paint_ring",
+  "operator": "map_cells",
+  "description": "Recolour the ring of ones to colour 3 using a constant lambda.",
+  "program": "(pipeline\n  (apply region_where_colour 1)\n  (apply map_cells @last_region (lambda (cell) 3)))",
+  "input_grid": [
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      3,
+      0
+    ],
+    [
+      3,
+      3,
+      3
+    ],
+    [
+      0,
+      3,
+      0
+    ]
+  ],
+  "focus_stage": 1
+}

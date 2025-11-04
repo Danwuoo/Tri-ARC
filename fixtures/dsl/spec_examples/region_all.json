@@ -1,0 +1,36 @@
+{
+  "name": "region_all_full_mask",
+  "operator": "region_all",
+  "description": "Create a region covering the entire grid.",
+  "program": "(pipeline\n  (apply region_all))",
+  "input_grid": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "expected_region_mask": [
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      1
+    ]
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "select_object_largest",
+  "operator": "select_object",
+  "description": "Select the largest object detected in the previous step.",
+  "program": "(pipeline\n  (apply detect_objects 4)\n  (apply select_object \"largest\"))",
+  "input_grid": [
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ]
+  ],
+  "expected_region_mask": [
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      1
+    ]
+  ],
+  "parameters": {
+    "selector": "largest"
+  },
+  "focus_stage": 1
+}

@@ -1,0 +1,115 @@
+{
+  "name": "detect_objects_two_components",
+  "operator": "detect_objects",
+  "description": "Detect separate components for colour 2 and colour 3.",
+  "program": "(pipeline\n  (apply detect_objects 4))",
+  "input_grid": [
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ],
+    [
+      0,
+      0,
+      3,
+      3
+    ]
+  ],
+  "expected_regions": [
+    [
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        1
+      ]
+    ]
+  ],
+  "parameters": {
+    "connectivity": 4
+  }
+}

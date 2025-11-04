@@ -1,0 +1,47 @@
+{
+  "name": "flood_fill_seed",
+  "operator": "flood_fill",
+  "description": "Flood fill from the top-left cell with colour 5.",
+  "program": "(pipeline\n  (apply flood_fill (tuple 0 0) 5))",
+  "input_grid": [
+    [
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2
+    ]
+  ],
+  "expected_grid": [
+    [
+      5,
+      5,
+      0
+    ],
+    [
+      5,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2
+    ]
+  ],
+  "parameters": {
+    "seed": [
+      0,
+      0
+    ],
+    "colour": 5
+  }
+}

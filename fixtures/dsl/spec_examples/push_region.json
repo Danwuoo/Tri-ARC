@@ -1,0 +1,78 @@
+{
+  "name": "push_region_manual",
+  "operator": "push_region",
+  "description": "Push a region onto the object stack.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 0 1 1)\n  (apply push_region @last_region))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_regions": [
+    [
+      [
+        1,
+        1,
+        0
+      ],
+      [
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    [
+      [
+        1,
+        1,
+        0
+      ],
+      [
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  ],
+  "expected_stack_size": 2,
+  "focus_stage": 1
+}

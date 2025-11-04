@@ -1,0 +1,34 @@
+{
+  "name": "extract_region_colour",
+  "operator": "extract_region",
+  "description": "Crop the bounding box covering colour 2 cells.",
+  "program": "(pipeline\n  (apply region_where_colour 2)\n  (apply extract_region @last_region 0))",
+  "input_grid": [
+    [
+      2,
+      2,
+      0
+    ],
+    [
+      2,
+      0,
+      0
+    ],
+    [
+      3,
+      3,
+      3
+    ]
+  ],
+  "expected_grid": [
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      0
+    ]
+  ],
+  "focus_stage": 1
+}

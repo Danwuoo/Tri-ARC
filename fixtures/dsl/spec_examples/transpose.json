@@ -1,0 +1,32 @@
+{
+  "name": "transpose_rectangular",
+  "operator": "transpose",
+  "description": "Swap rows and columns for a rectangular grid.",
+  "program": "(pipeline\n  (apply transpose))",
+  "input_grid": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      4,
+      5,
+      6
+    ]
+  ],
+  "expected_grid": [
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      3,
+      6
+    ]
+  ]
+}

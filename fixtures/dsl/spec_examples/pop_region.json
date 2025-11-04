@@ -1,0 +1,59 @@
+{
+  "name": "pop_region_latest",
+  "operator": "pop_region",
+  "description": "Pop the most recently pushed region.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 0 1 1)\n  (apply push_region @last_region)\n  (apply pop_region))",
+  "input_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_grid": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_region_mask": [
+    [
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_stack_size": 1,
+  "focus_stage": 2
+}
