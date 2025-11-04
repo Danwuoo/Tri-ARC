@@ -1,0 +1,16 @@
+name: tri-arc
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - git
+  - cudatoolkit=12.1
+  - pytorch::pytorch=2.3
+  - pytorch::torchvision=0.18
+  - pytorch::torchaudio=2.3
+  - pip:
+      - -r ../../requirements.txt
