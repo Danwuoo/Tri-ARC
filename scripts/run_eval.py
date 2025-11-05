@@ -198,6 +198,10 @@ def main() -> int:
                 {"input": item.get("input"), "output": item.get("output")}
                 for item in sample_task.get("train", [])
             ],
+            "test_examples": [
+                {"input": item.get("input")}
+                for item in sample_task.get("test", [])
+            ],
             "metadata": {"source_split": args.split},
         }
 

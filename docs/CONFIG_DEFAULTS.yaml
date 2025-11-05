@@ -32,6 +32,9 @@ modules:
     device: ${global.device_map.llm}
     mock_class: arc.llm.mocks.MockLLMModule
     warm_start: false
+  arbitrator:
+    class: arc.arbitration.ArbitratorModule
+    enabled: true
 
 scheduler:
   feature_lookup: configs/scheduler/features.yaml
@@ -144,6 +147,16 @@ arbitrator:
   diversity_gap: 0.1
   runtime_penalty_weight: 0.05
   log_top_k: 5
+  default_prior: 0.5
+  diversity_bonus: 0.05
+  module_priors:
+    symbolic: 0.75
+    ttt: 0.5
+    llm: 0.45
+  outputs_dir: outputs
+  reports_dir: reports
+  logs_dir: logs/arbitrator
+  verification_batch_size: 1
 
 logging:
   level: INFO

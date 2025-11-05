@@ -45,13 +45,39 @@ class TTTModule(SolverModule):
             summary = {"lane": self.module_name, "reason": "module_disabled"}
             return ModuleResult(task_id=task_context.task_id, status=ModuleSolveStatus.SKIPPED, summary=summary)
 
+        train_examples = task_context.task_payload.get("train_examples", [])
+        candidate_grid = None
+        if train_examples:
+            candidate_grid = train_examples[0].get("output")
+
         summary = {
             "lane": self.module_name,
             "profile": self._profile,
             "message": "TTT stub execution; replace with full adaptation logic.",
         }
+        candidate_payload = []
+        if candidate_grid is not None:
+            candidate_payload.append(
+                {
+                    "candidate_id": f"ttt-stub-{task_context.task_id}",
+                    "type": "grid",
+                    "grid": candidate_grid,
+                    "metadata": {
+                        "confidence": 0.4,
+                        "strategy": "train_echo",
+                        "note": "Stub candidate mirroring first train output.",
+                    },
+                }
+            )
+
         task_context.cache_namespace["ttt_stub"] = summary
-        return ModuleResult(task_id=task_context.task_id, status=ModuleSolveStatus.PARTIAL, summary=summary)
+        task_context.cache_namespace["candidates"] = candidate_payload
+        return ModuleResult(
+            task_id=task_context.task_id,
+            status=ModuleSolveStatus.PARTIAL,
+            candidates=candidate_payload,
+            summary=summary,
+        )
 
     def _on_shutdown(self, context: ModuleContext) -> None:
         context.logger.debug("TTT module teardown complete.")

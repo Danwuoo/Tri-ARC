@@ -11,6 +11,7 @@ This playbook lists common Tri-ARC failure patterns, diagnostics, and remediatio
 - **Debug CLI** (`python tools/debug.py`): Inspect module state, replay tasks, view cached artefacts.
 - **Frontier inspector** (`python tools/inspect_frontier.py --log logs/symbolic/symbolic_frontier.log --task <id>`): Summarise frontier events and recent snapshots for a single task.
 - **Symbolic replay** (`python tools/replay_symbolic.py --task <id> --frontier-log logs/symbolic/symbolic_frontier.log --egraph-history logs/symbolic/egraph/egraph_history.jsonl`): Step through search timelines and rewrite histories.
+- **Arbitrator inspector** (`python tools/inspect_arbitrator.py --task <id>`): Replay decision rationale, candidate scores, and regenerate pass@2 payloads.
 
 ## Issue Matrix
 | Symptom | Likely cause | Diagnosis steps | Fix |
@@ -20,7 +21,14 @@ This playbook lists common Tri-ARC failure patterns, diagnostics, and remediatio
 | LLM candidates fail SMT en masse | Prompt drift or quantisation artifacts | Inspect `logs/smt/failed/*.json`; run `tools/llm_replay.py` with higher precision | Refresh prompt templates, lower temperature, regenerate quantised weights |
 | SMT solver returns unknown frequently | Constraint blow-up or unsupported primitives | Examine solver timeout entries; verify DSL primitive coverage | Simplify candidate programs, add missing primitive semantics in `docs/DSL_SPEC.md` |
 | Arbitrator emits duplicate answers | Diversity logic disabled or insufficient candidates | Check arbitrator decision logs; ensure score diversity thresholds | Raise LLM candidate count, adjust diversity bonus rules in `docs/ARBITRATOR_RULES.md` |
+| Arbitrator falls back too often | Upstream verifiers rejecting viable candidates or low priors | Inspect `logs/arbitrator/verification/*.json` for mismatches; review `metrics.jsonl` fallback rate | Improve module priors, fix module verification failures, widen diversity gap cautiously |
 | Scheduler overruns 12-hour budget | Inaccurate runtime estimates | Compare projected vs actual runtimes in `metrics.jsonl`; inspect per-task budgets | Update scheduler lookup tables, throttle lower-priority lanes, enable early exits |
+
+## Arbitrator Diagnostics
+- Read decision snapshots under `logs/arbitrator/decisions/<task>.json` to view emitted answers, rationale strings, and provenance.
+- Verification transcripts reside in `logs/arbitrator/verification/`; mismatches include counterexamples and execution error metadata for rapid triage.
+- Daily summaries (`reports/arbitration_summary_<date>.md`) capture per-task notes, while health dashboards (`reports/arbitrator_health_<date>.md`) aggregate fallback usage, low-confidence counts, and latency trends.
+- Use `python tools/inspect_arbitrator.py --task <id> --show-traces` to correlate decision records with verification logs, or `--regenerate` to rebuild `outputs/pass2.json` from archived decisions after incident triage.
 
 ## Workflow For Task Failures
 1. **Capture context**: Record task ID, module provenance, and elapsed time.

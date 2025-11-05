@@ -44,3 +44,5 @@ Scores are normalised to [0, 1] before ranking.
 - Every decision includes timestamps, candidate identifiers, score breakdown, and verification latency.
 - Logs feed `docs/PERF_BUDGET.md` dashboards and inform scheduler feedback loops.
 - Failure cases automatically enqueue for ARC-Forge adversarial task generation (see `docs/DATASETS.md`).
+- Structured decision summaries live under `logs/arbitrator/decisions/`, with verification traces in `logs/arbitrator/verification/` for counterexample replay.
+- Daily markdown reports (`reports/arbitration_summary_<date>.md`) and health dashboards (`reports/arbitrator_health_<date>.md`) track fallback usage, confidence distribution, and latency trends.

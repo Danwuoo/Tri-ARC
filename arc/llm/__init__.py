@@ -50,16 +50,26 @@ class LLMModule(SolverModule):
             "prompt_version": self._prompt_version,
             "message": "LLM stub execution; swap with offline inference pipeline.",
         }
+        train_examples = task_context.task_payload.get("train_examples", [])
+        grid_output = train_examples[0].get("output") if train_examples else None
         candidate = {
-            "program": "return grid",  # placeholder for generated program text
-            "metadata": {"mock": True, "prompt_version": self._prompt_version},
-            "verification_passed": False,
+            "candidate_id": f"llm-stub-{task_context.task_id}",
+            "type": "grid",
+            "grid": grid_output,
+            "metadata": {
+                "mock": True,
+                "prompt_version": self._prompt_version,
+                "confidence": 0.35,
+                "note": "Stub candidate mirroring first train output.",
+            },
+            "smt_token": "smt:mock-token-llm",
         }
         task_context.cache_namespace["llm_stub"] = summary
+        task_context.cache_namespace["candidates"] = [candidate] if grid_output is not None else []
         return ModuleResult(
             task_id=task_context.task_id,
             status=ModuleSolveStatus.PARTIAL,
-            candidates=[candidate],
+            candidates=[candidate] if grid_output is not None else [],
             summary=summary,
         )
 
