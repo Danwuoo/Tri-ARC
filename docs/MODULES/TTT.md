@@ -42,3 +42,9 @@ The TTT lane adapts a differentiable grid interpreter on-the-fly using the few I
 - Train a meta-learner that predicts adaptation hyperparameters from task descriptors.
 - Incorporate contrastive objectives that align latent representations of similar objects across examples.
 - Add explainability hooks that track which features shifted most during adaptation for downstream reporting.
+
+## SolverModule Contract Snapshot
+- `arc/ttt/__init__.py` now provides a `TTTModule` implementation derived from `SolverModule`. The current stub returns partial results while preserving cache namespaces and telemetry plumbing, allowing the scheduler to exercise the lane without full adaptation logic.
+- Module context wiring ensures each task receives a shared cache entry (`shared_cache["ttt"][task_id]`) where adaptation artefacts and diagnostics can be stored once the full optimizer lands.
+- Capability flags advertise GPU requirements so the registry can warn when the configured device map conflicts with runtime needs.
+- Mock variants (`arc/ttt/mocks.py`) emit deterministic records for CI smoke runs; toggle them via `--mock-modules ttt` or the `modules.ttt.mock_class` setting.

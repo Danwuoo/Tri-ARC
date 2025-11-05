@@ -2,6 +2,30 @@
 
 This change log captures spec, interpreter, and governance updates that require ratification before downstream consumers adopt them. Each entry records the proposal owner, reviewers, approvals, and validation artefacts.
 
+## 2025-11-05 - Module Lifecycle Contract v1.0
+- Introduced the shared `SolverModule` lifecycle (`arc/core/module_base.py`) with capability flags, structured telemetry, and a common result surface.
+- Added `ModuleRegistry` (`arc/core/registry.py`) plus CLI toggles in `scripts/run_eval.py` to declaratively enable, disable, or mock modules and enforce device affinity rules.
+- Migrated the symbolic lane onto the new contract and delivered stubbed TTT/LLM implementations (including mocks) so the scheduler can perform dry runs across all lanes.
+- Documented the lifecycle, telemetry expectations, and onboarding workflow across the module docs and debug playbook.
+
+**Proposed by:** Phase 4 Orchestration working group
+
+**Reviewed by:** Symbolic Solver, Scheduler, Dev Productivity
+
+**Approvals:** [approved] Symbolic Solver - [approved] Scheduler - [approved] Dev Productivity
+
+**Validation artefacts:**
+- `arc/core/module_base.py`
+- `arc/core/registry.py`
+- `tests/core/test_module_base.py`
+- `tests/core/test_registry.py`
+- `tests/symbolic/test_symbolic_module.py`
+- `tests/test_lane_stubs.py`
+- `scripts/run_eval.py`
+- `docs/MODULES/`
+
+---
+
 ## 2025-11-04 - DSL Specification v0.2.0
 - formalised grammar, typing rules, and primitive catalogue for the deterministic interpreter.
 - published canonical examples and fixtures backing the automated DSL tests.

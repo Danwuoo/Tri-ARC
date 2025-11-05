@@ -48,3 +48,10 @@ The symbolic lane is the precision backbone of Tri-ARC. It searches a domain-spe
 - Integrate scheduler feedback loops so failure analytics adjust rewrite priorities.
 - Expand the rewrite set with automatically learned equivalences mined from the e-graph corpus.
 - Explore symbolic-LLM co-design where the LLM proposes rewrite rules or heuristics for novel task families.
+
+## SolverModule Contract Integration
+- The symbolic lane now derives from the shared `SolverModule` base (`arc/core/module_base.py`), exposing lifecycle hooks (`initialize`, `prepare_task`, `solve`, `shutdown`) with structured telemetry. Instantiation is handled by `ModuleRegistry` (`arc/core/registry.py`), which injects the shared cache and metrics sink defined in `scripts/run_eval.py`.
+- Capability flags (`supports_partial_results`, `supports_resume`, `requires_gpu`) are declared on the class and enforced during registry bootstrap; mismatched device affinities emit warnings for quick triage.
+- `prepare_task` centralises cache hydration under `shared_cache["symbolic"][<task_id>]`, making per-task diagnostics and result summaries accessible to sibling lanes and the arbitrator without bespoke glue.
+- `solve` returns a standard `ModuleResult`, tagging lane metadata, summary counters, and telemetry snapshots so downstream consumers can reason about success / failure states uniformly.
+- Lifecycle events emit `module_start`, `module_stop`, and `module_error` records into the global metrics stream. These entries power the new observability dashboards and anchor the troubleshooting flows documented in `docs/DEBUG_PLAYBOOK.md`.

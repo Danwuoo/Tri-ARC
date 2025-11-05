@@ -13,6 +13,26 @@ global:
   cache_root: cache
   log_root: logs
 
+modules:
+  symbolic:
+    class: arc.symbolic.SymbolicModule
+    enabled: ${symbolic.enabled}
+    device: ${global.device_map.symbolic}
+    migration_log_path: reports/module_interface_migration.md
+    warm_start: true
+  ttt:
+    class: arc.ttt.TTTModule
+    enabled: ${ttt.enabled}
+    device: ${global.device_map.ttt}
+    mock_class: arc.ttt.mocks.MockTTTModule
+    warm_start: false
+  llm:
+    class: arc.llm.LLMModule
+    enabled: ${llm.enabled}
+    device: ${global.device_map.llm}
+    mock_class: arc.llm.mocks.MockLLMModule
+    warm_start: false
+
 scheduler:
   feature_lookup: configs/scheduler/features.yaml
   default_soft_timeout_s: 90

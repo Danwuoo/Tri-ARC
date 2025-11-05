@@ -293,6 +293,20 @@ class SymbolicSolver:
         if egraph is not None and candidates:
             egraph_payload = self._run_egraph(egraph, candidates, task_id)
 
+        if not frontier_recorder.snapshots:
+            try:
+                snapshot = strategy.frontier_snapshot(notes={"task": task_id, "phase": "final"})
+                frontier_recorder.record(snapshot)
+                self._log_event(
+                    trace_log_handle,
+                    events,
+                    event_type="frontier_snapshot",
+                    payload=snapshot.__dict__,
+                    task_id=task_id,
+                )
+            except Exception:  # pragma: no cover - strategies may not support snapshots after completion
+                LOGGER.debug("Frontier snapshot unavailable for task %s", task_id)
+
         final_payload: Dict[str, Any] = {
             "task_id": task_id,
             "elapsed_s": elapsed_s,
@@ -314,8 +328,6 @@ class SymbolicSolver:
 
         frontier_report = frontier_recorder.flush()
 
-        if egraph is not None and candidates:
-            self._run_egraph(egraph, candidates, task_id)
         self.enumerator.shutdown()
         self.heuristic.shutdown()
 

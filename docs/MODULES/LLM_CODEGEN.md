@@ -37,3 +37,8 @@ The LLM lane contributes creative program hypotheses that complement the structu
 - Integrate curriculum-learned prompts derived from historical failure clusters.
 - Add lightweight consistency models that pre-filter clearly invalid generations before SMT.
 - Explore LLM-to-symbolic feedback loops where high-quality generations propose new DSL abstractions directly.
+
+## SolverModule Contract Snapshot
+- `arc/llm/__init__.py` exposes the lane as a `SolverModule` stub. It prepares task-local cache slots, records prompt configuration, and surfaces partial results so orchestration paths can be exercised ahead of the full generation stack.
+- Module metadata and telemetry now flow through the shared logging pipeline, emitting lifecycle events (`module_start`, `module_stop`, `module_error`) and per-task summaries in `metrics.jsonl`.
+- Mock implementations (`arc/llm/mocks.py`) can be activated via CLI or configuration for deterministic smoke tests that validate scheduler, arbitrator, and logging behaviour without loading heavyweight checkpoints.

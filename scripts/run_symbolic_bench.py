@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
+from arc.core import ModuleContext, ModuleTaskContext
 from arc.config import load_config
 from arc.symbolic import SymbolicModule
 
@@ -16,7 +18,7 @@ def iter_task_files(directory: Path) -> Iterable[Path]:
             yield path
 
 
-def load_task(path: Path) -> Dict[str, object]:
+def load_task(path: Path) -> Dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     train_examples = payload.get("train", [])
     task_id = path.stem
@@ -36,7 +38,19 @@ def run_benchmark(
 ) -> Path:
     config = load_config(config_path)
     module = SymbolicModule(config=config)
-    module.initialise()
+    logger = logging.getLogger("arc.symbolic.bench")
+    logger.setLevel(logging.INFO)
+    shared_cache: Dict[str, Any] = {}
+    run_id = f"symbolic-bench-{time.strftime('%Y%m%d-%H%M%S')}"
+    context = ModuleContext(
+        module_name=SymbolicModule.module_name,
+        config=config,
+        shared_cache=shared_cache,
+        run_id=run_id,
+        logger=logger,
+        metrics_sink=None,
+    )
+    module.initialize(context)
 
     tasks = list(iter_task_files(input_dir))
     if limit is not None:
@@ -53,15 +67,16 @@ def run_benchmark(
     for index, path in enumerate(tasks, start=1):
         task = load_task(path)
         start = time.perf_counter()
-        result = module.solve(task)
+        prepared: ModuleTaskContext = module.prepare_task(task)
+        result = module.solve(prepared)
         elapsed = time.perf_counter() - start
         total_elapsed += elapsed
-        status = result.get("status", "unknown")
-        if status == "success" and any(candidate["verification_passed"] for candidate in result.get("candidates", [])):
+        status = result.status.value
+        if status == "success" and any(candidate["verification_passed"] for candidate in result.candidates):
             success += 1
-        summary = result.get("summary", {})
+        summary = result.summary
         record = {
-            "task_id": task["task_id"],
+            "task_id": task["task_id"],  # type: ignore[index]
             "status": status,
             "elapsed_s": summary.get("elapsed_s", elapsed),
             "expansions": summary.get("expansions", 0),
@@ -90,9 +105,10 @@ def run_benchmark(
             handle.write(
                 f"| {record['task_id']} | {record['status']} | {record['elapsed_s']:.2f} | "
                 f"{record['expansions']} | {record['nodes']} | {record['solutions']} |\n"
-            )
+        )
 
     print(f"[bench] Report written to {report_path}")
+    module.shutdown()
     return report_path
 
 

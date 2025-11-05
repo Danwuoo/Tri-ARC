@@ -1,0 +1,1 @@
+{"rule": "remove_identity", "source": "[[\"identity\", []]]", "target": "[]", "cost_delta": -1.0}
