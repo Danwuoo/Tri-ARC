@@ -40,6 +40,23 @@ scheduler:
   priority_threshold: 0.65
   donation_window_s: 15
   backlog_alert_threshold: 50
+  halt_threshold: 0.95
+  feature_cache:
+    max_items: 512
+    ttl_seconds: 43200
+    backing_store: cache/scheduler/features_cache.jsonl
+  descriptor_cache:
+    max_items: 256
+  warm_start_cache:
+    max_items: 128
+  logging:
+    ingest_log: logs/scheduler/ingest.log
+  diagnostics:
+    fingerprint_salt: scheduler_v1
+    snapshot_dir: reports
+  resource_pool:
+    gpu_capacity: 1.0
+    cpu_worker_capacity: 16
 
 symbolic:
   enabled: true

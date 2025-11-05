@@ -1,0 +1,43 @@
+version: 1
+default_weights:
+  symbolic: 1.0
+  ttt: 1.0
+  llm: 1.0
+rules:
+  - name: small_symmetry
+    description: Favour symbolic lane for compact grids with strong symmetry.
+    conditions:
+      grid.max_rows: "<=10"
+      grid.max_cols: "<=10"
+      symmetry.horizontal: ">=0.75"
+      symmetry.vertical: ">=0.75"
+    weights:
+      symbolic: 1.4
+      ttt: 0.8
+      llm: 0.6
+  - name: large_palette_noise
+    description: Bias toward TTT for high-entropy, large grids.
+    conditions:
+      grid.mean_cells: ">=160"
+      palette.entropy: ">=1.5"
+    weights:
+      symbolic: 0.8
+      ttt: 1.4
+      llm: 1.2
+  - name: sparse_palette_low_entropy
+    description: Encourage symbolic and LLM lanes for sparse colour tasks.
+    conditions:
+      palette.unique_colours: "<=3"
+      grid.sparsity: ">=0.6"
+    weights:
+      symbolic: 1.3
+      ttt: 0.7
+      llm: 1.1
+  - name: symbolic_underperforming
+    description: Promote adaptive lanes when symbolic success is low historically.
+    conditions:
+      history.symbolic_success_rate: "<=0.4"
+    weights:
+      symbolic: 0.7
+      ttt: 1.2
+      llm: 1.3

@@ -27,6 +27,14 @@ ARC task -> feature extractor -> shared cache
 ```
 Each lane consumes the shared cache, emits program hypotheses plus execution traces, and receives verifier feedback. When a lane fails to produce a consistent result within its budget, the scheduler can trigger bounded retries (e.g., deeper search, alternative prompts, or different augmentation seeds).
 
+### Scheduler Feature Extraction
+- The ingestion stage derives deterministic **grid statistics** (min/max rows and columns, mean cell count, sparsity) from every train example input/output pair so allocation rules can reason about scale quickly.
+- **Palette statistics** aggregate across the same examples, tracking the unique colour count, entropy, dominant colour, and a histogram that powers palette-aware heuristics.
+- **Symmetry metrics** compute horizontal, vertical, and rotational overlap scores (0–1 range) to identify tasks that favour symbolic solvers versus adaptive pipelines.
+- Lightweight **object descriptors** estimate connected components, average component size, and the largest component footprint to approximate structural complexity without invoking the full DSL toolchain.
+- Historical success rates per lane (`scheduler_history` metadata) are normalised into 0–1 signals so the feedback loop can bias allocations toward the most promising modules without bespoke per-task overrides.
+- Features are cached under `cache/scheduler/features_cache.jsonl` via an LRU with TTL to guarantee reproducible reuse between runs while keeping within the performance budgets outlined in `docs/PERF_BUDGET.md`.
+
 ## Concurrency Model And Scheduling
 - **Static partitioning** assigns GPUs 0-2 to symbolic, TTT, and LLM lanes respectively; GPU 3 remains a flex slot for SMT bursts or large-batch TTT updates. SMT solving and e-graph operations primarily use CPU threads.
 - **Dynamic scheduler** scores task difficulty from metadata and allocates time slices per module; symmetry-heavy tasks bias toward symbolic time, while color-dense grids grant more budget to TTT and LLM lanes.

@@ -1,0 +1,103 @@
+{
+  "task": {
+    "task_id": "symmetry-task",
+    "train_examples": [
+      {
+        "input": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "output": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "input": [
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "output": [
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ]
+      }
+    ],
+    "metadata": {}
+  },
+  "expected_features": {
+    "task_id": "symmetry-task",
+    "grid": {
+      "min_rows": 2,
+      "max_rows": 3,
+      "min_cols": 2,
+      "max_cols": 3,
+      "mean_cells": 6.5,
+      "sparsity": 0.2222222222222222,
+      "example_count": 4
+    },
+    "palette": {
+      "unique_colours": 3,
+      "entropy": 1.5766212201074912,
+      "dominant_colour": 2,
+      "palette_histogram": {
+        "0": 8,
+        "1": 8,
+        "2": 10
+      }
+    },
+    "symmetry": {
+      "horizontal": 1.0,
+      "vertical": 1.0,
+      "rotational": 1.0
+    },
+    "objects": {
+      "average_components": 2.0,
+      "average_component_size": 1.0,
+      "max_component_size": 1
+    },
+    "history": {
+      "symbolic_success_rate": 0.5,
+      "ttt_success_rate": 0.5,
+      "llm_success_rate": 0.5
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "task": {
+    "task_id": "palette-task",
+    "train_examples": [
+      {
+        "input": [
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            0,
+            1
+          ],
+          [
+            2,
+            3,
+            4,
+            5
+          ]
+        ],
+        "output": [
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            0,
+            1
+          ],
+          [
+            2,
+            3,
+            4,
+            5
+          ]
+        ]
+      }
+    ],
+    "metadata": {
+      "scheduler_history": {
+        "symbolic_success_rate": 0.2,
+        "ttt_success_rate": 0.6,
+        "llm_success_rate": 0.7
+      }
+    }
+  },
+  "expected_features": {
+    "task_id": "palette-task",
+    "grid": {
+      "min_rows": 4,
+      "max_rows": 4,
+      "min_cols": 4,
+      "max_cols": 4,
+      "mean_cells": 16.0,
+      "sparsity": 0.125,
+      "example_count": 2
+    },
+    "palette": {
+      "unique_colours": 10,
+      "entropy": 3.25,
+      "dominant_colour": 0,
+      "palette_histogram": {
+        "0": 4,
+        "1": 4,
+        "2": 4,
+        "3": 4,
+        "4": 4,
+        "5": 4,
+        "6": 2,
+        "7": 2,
+        "8": 2,
+        "9": 2
+      }
+    },
+    "symmetry": {
+      "horizontal": 0.0,
+      "vertical": 0.0,
+      "rotational": 0.0
+    },
+    "objects": {
+      "average_components": 14.0,
+      "average_component_size": 1.0,
+      "max_component_size": 1
+    },
+    "history": {
+      "symbolic_success_rate": 0.2,
+      "ttt_success_rate": 0.6,
+      "llm_success_rate": 0.7
+    }
+  }
+}

@@ -354,3 +354,43 @@
 {"event": "dsl_stage", "operator": "detect_objects", "stage_path": "0", "duration_ms": 0.1629999997021514, "result_type": "region_list", "metadata": {"count": 2, "connectivity": 4, "min_size": 1}}
 {"event": "dsl_stage", "operator": "select_object", "stage_path": "1", "duration_ms": 0.026300000172341242, "result_type": "region", "metadata": {"selector": "largest", "index": 0, "colour": 3, "area": 4}}
 {"event": "dsl_stage", "operator": "transpose", "stage_path": "0", "duration_ms": 0.014100000043981709, "result_type": "grid"}
+{"event": "dsl_stage", "operator": "rotate", "stage_path": "0.0", "duration_ms": 0.10010000005422626, "result_type": "grid", "metadata": {"steps": 1}}
+{"event": "dsl_stage", "operator": "replace_colour", "stage_path": "0.1", "duration_ms": 0.08970000089902896, "result_type": "grid", "metadata": {"src": 1, "dst": 3}}
+{"event": "dsl_stage", "operator": "compose", "stage_path": "0", "duration_ms": 1.551100000142469, "result_type": "grid", "metadata": {"stages": 2}}
+{"event": "dsl_stage", "operator": "region_from_bbox", "stage_path": "0", "duration_ms": 0.04690000059781596, "result_type": "region", "metadata": {"bounding_box": [0, 0, 1, 2]}}
+{"event": "dsl_stage", "operator": "count_cells", "stage_path": "1", "duration_ms": 0.06929999835847411, "result_type": "int", "metadata": {"cells": 6}, "value": 6}
+{"event": "dsl_stage", "operator": "detect_objects", "stage_path": "0", "duration_ms": 0.28139999994891696, "result_type": "region_list", "metadata": {"count": 2, "connectivity": 4, "min_size": 1}}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.07130000085453503, "result_type": "region", "metadata": {"area": 3, "colour": 2}}
+{"event": "dsl_stage", "operator": "extract_region", "stage_path": "1", "duration_ms": 0.10840000140888151, "result_type": "grid", "metadata": {"bounding_box": [0, 0, 1, 1], "pad": 0}}
+{"event": "dsl_stage", "operator": "flood_fill", "stage_path": "0", "duration_ms": 0.08600000001024455, "result_type": "grid", "metadata": {"seed": [0, 0], "colour": 5}}
+{"event": "dsl_stage", "operator": "identity", "stage_path": "0", "duration_ms": 0.009100000170292333, "result_type": "grid"}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.02879999919969123, "result_type": "region", "metadata": {"area": 4, "colour": 1}}
+{"event": "dsl_stage", "operator": "count_cells", "stage_path": "1", "duration_ms": 0.03389999983482994, "result_type": "int", "metadata": {"cells": 4}, "value": 4}
+{"event": "dsl_stage", "operator": "replace_colour", "stage_path": "2.0", "duration_ms": 0.04129999979340937, "result_type": "grid", "metadata": {"src": 1, "dst": 3}}
+{"event": "dsl_stage", "operator": "if_equal", "stage_path": "2", "duration_ms": 0.38219999987632036, "result_type": "grid", "metadata": {"branch": "then"}}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.023799999326001853, "result_type": "region", "metadata": {"area": 5, "colour": 1}}
+{"event": "dsl_stage", "operator": "majority_colour", "stage_path": "1", "duration_ms": 0.05990000136080198, "result_type": "colour", "metadata": {"colour": 1}, "value": 1}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.02330000097572338, "result_type": "region", "metadata": {"area": 5, "colour": 1}}
+{"event": "dsl_stage", "operator": "map_cells", "stage_path": "1", "duration_ms": 0.08759999946050812, "result_type": "grid", "metadata": {"updated_cells": 5}}
+{"event": "dsl_stage", "operator": "region_from_bbox", "stage_path": "0", "duration_ms": 0.023100001271814108, "result_type": "region", "metadata": {"bounding_box": [0, 0, 1, 1]}}
+{"event": "dsl_stage", "operator": "paint_region", "stage_path": "1", "duration_ms": 0.046299999667098746, "result_type": "grid", "metadata": {"colour": 4, "pixels": 4}}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.022999998691375367, "result_type": "region", "metadata": {"area": 4, "colour": 2}}
+{"event": "dsl_stage", "operator": "extract_region", "stage_path": "1", "duration_ms": 0.08820000039122533, "result_type": "grid", "metadata": {"bounding_box": [1, 1, 2, 2], "pad": 0}}
+{"event": "dsl_stage", "operator": "place", "stage_path": "2", "duration_ms": 0.043999998524668626, "result_type": "grid", "metadata": {"position": [0, 2], "mode": "overwrite", "source_shape": [2, 2]}}
+{"event": "dsl_stage", "operator": "region_from_bbox", "stage_path": "0", "duration_ms": 0.019999999494757503, "result_type": "region", "metadata": {"bounding_box": [0, 0, 1, 1]}}
+{"event": "dsl_stage", "operator": "push_region", "stage_path": "1", "duration_ms": 0.03469999865046702, "result_type": "region_list", "metadata": {"stack_size": 2}}
+{"event": "dsl_stage", "operator": "pop_region", "stage_path": "2", "duration_ms": 0.024700000722077675, "result_type": "region", "metadata": {"stack_size": 1}}
+{"event": "dsl_stage", "operator": "region_from_bbox", "stage_path": "0", "duration_ms": 0.019400000383029692, "result_type": "region", "metadata": {"bounding_box": [0, 0, 1, 1]}}
+{"event": "dsl_stage", "operator": "push_region", "stage_path": "1", "duration_ms": 0.05140000030223746, "result_type": "region_list", "metadata": {"stack_size": 2}}
+{"event": "dsl_stage", "operator": "reflect", "stage_path": "0", "duration_ms": 0.026399999114801176, "result_type": "grid", "metadata": {"axis": "vertical"}}
+{"event": "dsl_stage", "operator": "region_all", "stage_path": "0", "duration_ms": 0.032899999496294186, "result_type": "region", "metadata": {"area": 4}}
+{"event": "dsl_stage", "operator": "region_from_bbox", "stage_path": "0", "duration_ms": 0.019400000383029692, "result_type": "region", "metadata": {"bounding_box": [0, 1, 1, 2]}}
+{"event": "dsl_stage", "operator": "region_where_colour", "stage_path": "0", "duration_ms": 0.03429999924264848, "result_type": "region", "metadata": {"area": 4, "colour": 1}}
+{"event": "dsl_stage", "operator": "rotate", "stage_path": "0.0", "duration_ms": 0.11839999933727086, "result_type": "grid", "metadata": {"steps": 1}}
+{"event": "dsl_stage", "operator": "rotate", "stage_path": "0.1", "duration_ms": 0.10959999963233713, "result_type": "grid", "metadata": {"steps": 1}}
+{"event": "dsl_stage", "operator": "repeat", "stage_path": "0", "duration_ms": 1.5003000007709488, "result_type": "grid", "metadata": {"iterations": 2}}
+{"event": "dsl_stage", "operator": "replace_colour", "stage_path": "0", "duration_ms": 0.030299999707494862, "result_type": "grid", "metadata": {"src": 1, "dst": 3}}
+{"event": "dsl_stage", "operator": "rotate", "stage_path": "0", "duration_ms": 0.04979999903298449, "result_type": "grid", "metadata": {"steps": 1}}
+{"event": "dsl_stage", "operator": "detect_objects", "stage_path": "0", "duration_ms": 0.17470000057073776, "result_type": "region_list", "metadata": {"count": 2, "connectivity": 4, "min_size": 1}}
+{"event": "dsl_stage", "operator": "select_object", "stage_path": "1", "duration_ms": 0.028399999791872688, "result_type": "region", "metadata": {"selector": "largest", "index": 0, "colour": 3, "area": 4}}
+{"event": "dsl_stage", "operator": "transpose", "stage_path": "0", "duration_ms": 0.01449999945180025, "result_type": "grid"}
