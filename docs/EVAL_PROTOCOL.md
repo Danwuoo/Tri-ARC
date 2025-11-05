@@ -28,18 +28,23 @@ Tri-ARC evaluation mirrors ARC-AGI-2 competition constraints: offline execution,
    - Verify data directories as described in `docs/DATASETS.md`.
    - Install dependencies from `environment.yml` or `requirements.txt`.
 2. **Launch evaluation**:
-   - Execute `python scripts/run_eval.py --split evaluation --max_hours 12`.
-   - The script initialises scheduler, modules, SMT gatekeeper, and arbitrator.
+   - Execute `python scripts/run_eval.py --preset evaluation --split evaluation --run-id eval-<tag>`.
+   - Use `--preset smoke` for quick sanity checks or `--resume-from <run_dir>` to continue an interrupted run.
+   - The harness initialises scheduler, modules, the SMT gatekeeper, and the arbitrator, creating a dedicated run directory under `reports/eval_runs/<tag>`.
 3. **Monitor progress**:
-   - Tail `logs/runtime.log` for module allocation and arbitrator decisions.
-   - Inspect `metrics.jsonl` for rolling accuracy and budget usage.
+   - Tail `<run_dir>/logs/runtime.log` for scheduler allocations and arbitrator decisions.
+   - Watch `<run_dir>/metrics.jsonl` (and the consolidated `reports/eval_summary.md`) for rolling accuracy, fallback usage, and latency.
+   - Inspect `<run_dir>/run_state.json` for resumable checkpoints.
 4. **Collect results**:
-   - Final outputs stored under `outputs/pass2.json`.
-   - Summary stats in `reports/eval_summary.md`.
+   - Kaggle-ready outputs are written to `<run_dir>/outputs/pass2.json`.
+   - Reproducibility metadata lives in `<run_dir>/reports/eval_manifest_<tag>.md` alongside the copied `eval_summary.md` and `eval_history.md` snapshots.
+   - Packaged artefacts (logs, metrics, outputs) are assembled automatically at `<run_dir>/archives/<run_id>_artefacts.zip`.
 5. **Validate reproducibility**:
    - Re-run with identical seeds and confirm metric parity (difference <=0.1%).
+   - Compare successive runs with `python tools/compare_runs.py <run_a> <run_b>`; deltas are also recorded in `reports/eval_delta_<run_id>.md`.
 
 ## Post-Evaluation Checks
-- Run ablation scripts (`python tools/ablate.py`) to attribute performance to individual modules.
-- Archive logs and metrics with timestamped hashes for future comparison.
-- Feed unsolved tasks into the ARC-Forge generator pipeline (see `docs/DATASETS.md`) to expand adversarial training.
+- Run ablation suites with `python tools/ablate.py --preset smoke --split smoke` to isolate module contributions; consolidated results are written to `reports/ablations/`.
+- Review `reports/eval_history.md` (rendered from the JSONL ledger) for trends across nightly smoke and weekly full runs.
+- Generate side-by-side comparisons with `tools/compare_runs.py`, especially before shipping new configs.
+- Feed unsolved tasks (listed in each run manifest) into the ARC-Forge generator pipeline (see `docs/DATASETS.md`) to expand adversarial training datasets.

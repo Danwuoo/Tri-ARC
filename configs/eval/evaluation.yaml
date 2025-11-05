@@ -1,0 +1,24 @@
+evaluation:
+  runs_dir: reports/eval_runs/full
+
+global:
+  max_wall_clock_hours: 12
+
+scheduler:
+  default_soft_timeout_s: 90
+  default_hard_timeout_s: 150
+  donation_window_s: 20
+
+modules:
+  symbolic:
+    enabled: true
+  ttt:
+    enabled: true
+  llm:
+    enabled: true
+
+logging:
+  level: INFO
+  log_max_bytes_mb: 10
+  log_backup_count: 3
+

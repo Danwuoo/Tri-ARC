@@ -1,0 +1,22 @@
+evaluation:
+  runs_dir: reports/eval_runs/smoke
+
+global:
+  max_wall_clock_hours: 0.5
+
+modules:
+  ttt:
+    enabled: false
+  llm:
+    enabled: false
+
+scheduler:
+  default_soft_timeout_s: 30
+  default_hard_timeout_s: 60
+  donation_window_s: 5
+
+logging:
+  level: INFO
+  log_max_bytes_mb: 1
+  log_backup_count: 1
+

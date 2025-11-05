@@ -17,11 +17,10 @@ Tri-ARC consumes three primary data sources: the official ARC-AGI-2 training set
 - **Metadata cache**: During preprocessing, the coordinator writes per-task metadata (grid size, palette stats, object metrics) to `cache/meta/<task_id>.json` to avoid repeated parsing.
 
 ## Data Loading Interface
-- Use the dataset loader in `arc/data/loader.py` (planned) that exposes:
-  - `load_task(task_id)` returning structured tensors and metadata.
-  - `iter_split(split="train")` yielding batches compatible with the scheduler.
-- Loader guarantees deterministic ordering and sets numpy/torch seeds.
-- Supports lazy loading with caching to minimise disk IO during the 12-hour run.
+- Use `arc.data.DatasetLoader` to iterate deterministic task streams and materialise scheduler-ready payloads.
+  - `iter_split(split="train")` yields dictionaries with `train_examples`, `test_examples`, and provenance metadata (split, checksum, relative path).
+  - `load_task(split, task_id)` retrieves a single task with identical structuring.
+- The loader calculates optional SHA-256 checksums, normalises example shapes, and preserves lazy file access to minimise disk I/O during long runs.
 - Augmentations for TTT (symmetry flips, colour remaps) are defined in `arc/data/augment.py` to keep training logic separate from dataset parsing.
 
 ## ARC-Forge Generation Pipeline

@@ -47,8 +47,10 @@ Each lane consumes the shared cache, emits program hypotheses plus execution tra
 - **Fault tolerance** ensures module timeouts or crashes fall back to simplified heuristics, guaranteeing that two answers are always produced within pass@2 allowances.
 
 ## Coordination With Evaluation And Analytics
-- Module outputs, verifier logs, and runtimes feed an experiment ledger that powers ablations and failure categorisation.
-- Scheduler decisions and arbitrator choices are persisted so analysts can trace why specific answers were selected.
+- `scripts/run_eval.py` orchestrates end-to-end batches, creating run-specific sandboxes under `reports/eval_runs/<run_id>` with resumable state, manifests, and Kaggle-ready artefact bundles.
+- Metrics stream into `metrics.jsonl` with run context (split, fingerprint, commit) and are summarised into `reports/eval_summary.md`, `reports/eval_delta_<run_id>.md`, and the rolling `reports/eval_history.md`.
+- Nightly smoke and weekly full suites append to a JSONL ledger that downstream dashboards (and `tools/compare_runs.py`) consume to highlight regressions.
+- `tools/ablate.py` provides one-click module toggles for controlled experiments, while the shared `tasks/` snapshots enable fine-grained failure categorisation.
 - Clear module boundaries make it straightforward to swap in future upgrades (dynamic scheduler, curriculum policies, richer explanations) without changing the overall pipeline.
 
 Together, these architectural choices deliver a reproducible, multi-paradigm solver that balances symbolic precision, adaptive learning, and generative exploration while staying squarely inside ARC-AGI-2's operational envelope.
