@@ -23,13 +23,48 @@ scheduler:
 
 symbolic:
   enabled: true
+  seed: 1337
+  search_strategy: beam
   max_depth: 12
+  max_expansions: 5000
+  max_nodes: 20000
   beam_width: 64
+  soft_timeout_s: 90
+  hard_timeout_s: 150
   heuristics_model_path: models/symbolic/heuristic.pt
+  heuristics:
+    rule_based:
+      enabled: true
+      weight: 1.0
+      weights:
+        coverage: 2.0
+        consistency: 1.5
+        progress: 1.0
+        novelty: 0.5
+        depth_penalty: 1.0
+        cost_penalty: 0.2
+        stagnation_penalty: 0.5
+        normalise_scale: 1.0
+    neural:
+      enabled: true
+      weight: 1.0
+      model_path: models/symbolic/heuristic.pt
+      checksum_path: models/symbolic/heuristic.sha256
+      requires_checksum: false
   egraph:
     enabled: true
     rewrite_limit: 5000
     cost_metric: min_nodes
+    max_iterations: 50
+    history_dir: logs/symbolic/egraph
+  frontier:
+    report_dir: reports/symbolic
+    log_path: logs/symbolic/symbolic_frontier.log
+    snapshot_interval_s: 5.0
+  telemetry:
+    progress_file: logs/symbolic/solve_progress.jsonl
+    diagnostics_dir: logs/symbolic/diagnostics
+    checkpoint_dir: cache/symbolic/checkpoints
   library_path: dsl/library.json
 
 ttt:

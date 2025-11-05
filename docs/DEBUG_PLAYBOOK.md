@@ -8,6 +8,8 @@ This playbook lists common Tri-ARC failure patterns, diagnostics, and remediatio
 - **Profiler traces** (`profiles/`): Torch profiler exports, Nsight GPU samples.
 - **SMT dumps** (`logs/smt/`): Constraint snapshots and solver outcomes.
 - **Debug CLI** (`python tools/debug.py`): Inspect module state, replay tasks, view cached artefacts.
+- **Frontier inspector** (`python tools/inspect_frontier.py --log logs/symbolic/symbolic_frontier.log --task <id>`): Summarise frontier events and recent snapshots for a single task.
+- **Symbolic replay** (`python tools/replay_symbolic.py --task <id> --frontier-log logs/symbolic/symbolic_frontier.log --egraph-history logs/symbolic/egraph/egraph_history.jsonl`): Step through search timelines and rewrite histories.
 
 ## Issue Matrix
 | Symptom | Likely cause | Diagnosis steps | Fix |

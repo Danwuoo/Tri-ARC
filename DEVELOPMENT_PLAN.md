@@ -158,149 +158,326 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 ---
 
 ## Phase 3 - Core Symbolic Solver
-**Goals**
-- Build enumerative / heuristic search that discovers DSL programs solving easy-to-medium tasks within ~90 s.
-- Integrate optional neural guidance using local weights, respecting offline constraints.
+**Objectives**
+- Engineer the enumerative and heuristic search pipeline described in `docs/MODULES/SYMBOLIC.md` so Config A consistently solves easy-to-medium ARC tasks within the budget envelope codified in `docs/PERF_BUDGET.md`.
+- Operationalise neural guidance, e-graph rewriting, and DreamCoder-style compression without violating offline packaging or deterministic requirements from `docs/ENV_SETUP.md` and `docs/CONFIG_DEFAULTS.yaml`.
+- Expose scheduler- and arbitrator-friendly telemetry (frontier metrics, checkpoints, partial programs) that downstream phases can consume without additional integration debt.
 
-**Key Tasks**
-- Implement search loop (DFS/IDDFS/beam) with pruning hooks; modularise heuristics per `docs/MODULES/SYMBOLIC.md`.
-- Load heuristic model from `models/symbolic/heuristic.pt`, ensuring inference sticks to GPU0 (see `docs/CONFIG_DEFAULTS.yaml`).
-- Instrument search frontier statistics and backtracking events for debugging.
-- Validate solver on representative ARC tasks; document solve time, depth, and program cost.
+**Scope And Interfaces**
+- Builds on the Phase 2 interpreter (`arc/symbolic/dsl/interpreter.py`, `arc/symbolic/dsl/verify.py`) and Phase 1 logging scaffold (`logs/runtime.log`, `metrics.jsonl`).
+- Touches `arc/symbolic/search/`, `arc/symbolic/egraph/`, `models/symbolic/`, and configuration defaults for GPU affinity and budget knobs.
+- Publishes candidate programs, progress updates, and diagnostics via the interfaces declared in `docs/ARCHITECTURE.md` and scheduler hooks from `docs/SCHEDULER_POLICY.md`.
 
-**Dependencies**
-- Phase 2 interpreter + verification; environment devices from Phase 1.
+### Workstream A - Search Architecture And Frontier Management
+- Implement modular enumerators (DFS, IDDFS, beam) with consistent interfaces so heuristics and cutoffs are swappable per `docs/MODULES/SYMBOLIC.md`.
+- Encode pruning heuristics, depth/width caps, and solver budgets drawn from `docs/PERF_BUDGET.md`, ensuring soft and hard stop conditions surface structured statuses to the scheduler.
+- Persist frontier snapshots, explored program counts, and search seeds to `reports/symbolic/frontier_*.md` so debugging and replay match `docs/DEBUG_PLAYBOOK.md`.
+- Integrate deterministic seeding, resume checkpoints, and pause/resume hooks to satisfy scheduler cooperative multitasking requirements.
 
-**Deliverables / Exit Criteria**
-- Solve >50% of chosen smoke tasks in <120 s, emitting verified programs.
-- Frontier pruning proven sound (no known solutions skipped in tests).
-- Search exposes hooks for scheduler (pause/resume, progress metrics).
+### Workstream B - Neural Guidance And Rewrite Systems
+- Package heuristic models (`models/symbolic/heuristic.pt`) with integrity checksums and load-time validation referenced in `docs/ENV_SETUP.md`; ensure inference pinning to GPU0 follows `docs/CONFIG_DEFAULTS.yaml`.
+- Blend neural scoring with rule-based priors, calibrating beam ordering against evaluation fixtures and logging deltas for later ablations (`reports/heuristic_comparison_<date>.md`).
+- Stand up the e-graph rewrite engine (pattern library, cost functions, saturation controls) described in `docs/MODULES/SYMBOLIC.md`, gating aggressive rewrites behind configuration flags.
+- Automate DreamCoder-inspired compression runs that mine frequent fragments, file promotion requests under `docs/changelog.md`, and notify the DSL governance board before merging new primitives.
+
+### Workstream C - Verification And Scheduler Integration
+- Wrap Phase 2 verification (`arc/symbolic/dsl/verify.py`) into the solver loop so every emitted candidate carries pass/fail metadata in the schema expected by `docs/ARBITRATOR_RULES.md`.
+- Implement incremental progress reporting (`solve_progress.jsonl`, gRPC/local queue) that the scheduler consumes for dynamic budget recalibration.
+- Provide cooperative cancellation checkpoints and state export so the scheduler can suspend/resume search mid-task without violating determinism.
+- Ensure failure diagnostics (counterexamples, first-difference coordinates) are serialised to `logs/symbolic/diagnostics/` for Phase 6 fallbacks and ARC-Forge ingestion (`docs/DATASETS.md`).
+
+### Workstream D - Tooling And Operational Diagnostics
+- Author CLI tooling (`tools/inspect_frontier.py`, `tools/replay_symbolic.py`) that replays search sessions, visualises e-graph rewrites, and conforms to `docs/DEBUG_PLAYBOOK.md` workflows.
+- Extend `scripts/run_symbolic_bench.py` to execute curated smoke suites, storing timing curves and solution quality in `reports/symbolic_benchmark_<date>.md`.
+- Add log parsers that condense `symbolic_frontier.log` into incident-ready summaries, integrating with the Issue Matrix templates.
+- Update `docs/MODULES/SYMBOLIC.md` with operating modes, configuration tables, and troubleshooting notes after each milestone.
+
+**Risks And Mitigations**
+- Frontier or e-graph explosion exceeding memory budgets: enforce adaptive pruning thresholds, surface early warnings into scheduler telemetry, and run frequent stress tests with large-grid fixtures.
+- Neural heuristic drift or offline weight corruption: freeze model hashes, add load-time validation tests, and maintain a rollback catalogue of previous heuristics.
+- Determinism regressions when pausing/resuming search: instrument RNG seeding and include property-based tests that compare resumed vs fresh runs.
+- Rewrite library regressions overriding correct programs: gate new rewrites behind feature flags, run ablation comparisons, and require arbitrator acceptance tests before activation.
+
+**Exit Criteria**
+- Symbolic solver clears >50% of the smoke suite within 120 seconds per task, logging verified DSL programs and counterexamples for failures.
+- Search exposes pause/resume, budget consumption, and progress metrics compatible with Phase 5 scheduler integration.
+- Neural guidance and rewrite systems are optional but shippable; toggling them on/off yields predictable performance differences recorded in benchmark reports.
+- Tooling (`tools/inspect_frontier.py`, `scripts/run_symbolic_bench.py`) is documented and incorporated into daily/weekly reporting.
 
 **Instrumentation & Observability**
-- Emit `symbolic_frontier.log` and candidate statistics feeding the Issue Matrix in `docs/DEBUG_PLAYBOOK.md`.
-- Record per-task search depth, branch factor in `metrics.jsonl`.
+- Emit structured search traces to `symbolic_frontier.log`, including frontier depth, beam width, and prune counts per tick.
+- Append solver-level metrics (expansions per second, verified solutions, cache hit rates) to `metrics.jsonl` with module provenance tags.
+- Upload replayable artefacts (checkpoints, e-graph dumps, heuristic deltas) under `logs/symbolic/` and archive according to `docs/DEBUG_PLAYBOOK.md`.
 
 ---
 
 ## Phase 4 - Modular Interfaces And Codebase Structure
-**Goals**
-- Define stable module contracts so symbolic, TTT, and LLM lanes share lifecycle patterns.
-- Centralise task context, caching, and result packaging.
+**Objectives**
+- Define the `SolverModule` lifecycle and shared contracts so symbolic, TTT, and LLM lanes follow the orchestration patterns outlined in `docs/ARCHITECTURE.md`.
+- Centralise task context hand-off, caching, and result packaging to minimise bespoke glue across modules.
+- Provide configuration toggles and documentation that let future Configs (B–E) slot in without refactoring Config A.
 
-**Key Tasks**
-- Introduce `SolverModule` base class with `initialize(task_ctx)`, `solve(budget)`, `status()` signatures aligned with `docs/ARCHITECTURE.md`.
-- Refactor symbolic solver to implement the interface without regressions.
-- Stub TTT and LLM classes returning "not implemented" while exercising scheduler hooks.
-- Extend configuration system (`hydra` or YAML) to toggle modules and budgets (`docs/CONFIG_DEFAULTS.yaml`).
+**Scope And Interfaces**
+- Introduces base interfaces in `arc/core/module_base.py` (or equivalent), updates `docs/MODULES/*.md`, and wires module registration into `scripts/run_eval.py`.
+- Depends on Phase 3 symbolic implementation and prepares the surface area for upcoming TTT/LLM modules while respecting defaults in `docs/CONFIG_DEFAULTS.yaml`.
+- Touches orchestration utilities (`arc/core/context.py`, `arc/core/results.py`), scheduler/albitrator adapters, and logging hooks shared with Phase 1 infrastructure.
 
-**Dependencies**
-- Working symbolic solver (Phase 3); knowledge of upcoming modules from architecture doc.
+### Workstream A - Contract Definition And Base Class
+- Draft lifecycle diagrams and method signatures (`initialize`, `prepare_task`, `solve`, `shutdown`) cross-checked with `docs/ARCHITECTURE.md` and reviewed with module owners.
+- Implement base telemetry hooks (start/stop timestamps, status enums, error channels) that write to the shared logging sinks defined earlier.
+- Provide capability flags (supports_partial_results, supports_resume, requires_gpu) so scheduler policies adapt at runtime.
+- Write contract-focused unit tests ensuring subclasses raising `NotImplementedError` fail fast with actionable error messages.
 
-**Deliverables / Exit Criteria**
-- Symbolic module runs end-to-end through new interface and maintains baseline performance.
-- Dummy modules integrate cleanly, enabling multi-lane orchestration tests.
-- Config toggles allow enabling/disabling modules without code edits.
+### Workstream B - Symbolic Module Migration
+- Wrap the Phase 3 solver inside the new base class, mapping progress callbacks, checkpoints, and diagnostics onto standardised events.
+- Maintain feature parity by running the symbolic smoke suite before/after migration, logging diffs to `reports/module_interface_migration.md`.
+- Stub adapters that let legacy entry points call into the new interface while deprecating older paths on a controlled timeline.
+- Ensure configuration overrides (beam width, rewrite limit, heuristic flags) are exposed via module kwargs rather than global variables.
+
+### Workstream C - Configuration Surface And Dependency Injection
+- Extend the configuration system (Hydra or YAML) so modules register via declarative config blocks with validation against `docs/CONFIG_DEFAULTS.yaml`.
+- Implement module registry discovery that instantiates modules, wires dependencies (e.g., interpreter handles), and enforces device affinity rules.
+- Add CLI flags/env vars for enabling/disabling modules, adjusting budgets, and selecting mock implementations for CI smoke runs.
+- Create schema validation tests to prevent misconfigured deployments from starting (missing weights, mismatched devices).
+
+### Workstream D - Documentation And Onboarding
+- Update `docs/MODULES/` with interface reference tables, lifecycle diagrams, and quick-start guides for new module authors.
+- Publish onboarding walkthroughs showing how to implement a module against the base contract, including sample code snippets.
+- Synchronise `docs/DEBUG_PLAYBOOK.md` with new module lifecycle events so operators know where to inspect hangs.
+- Capture lessons learned in `docs/changelog.md`, noting required adjustments for future Config revisions.
+
+**Risks And Mitigations**
+- Interface churn causing merge conflicts: stabilise method signatures via lightweight RFCs and semantic versioning captured in `docs/changelog.md`.
+- Hidden coupling to legacy globals: add integration tests that instantiate modules in isolation and fail if disallowed globals are accessed.
+- Configuration sprawl: enforce schema validation, ship example configs with doc references, and gate merges on configuration lint.
+- Documentation drift: pair doc updates with code changes via PR checklist items and reviewer sign-off.
+
+**Exit Criteria**
+- Symbolic solver runs end-to-end through the base interface with no regression in solve rate or telemetry.
+- Dummy TTT/LLM modules implement the contract (returning stub results) and participate in scheduler dry runs.
+- Configuration toggles enable/disable modules without code changes; misconfigurations fail fast with actionable logs.
+- Updated documentation and onboarding assets are published and cross-linked from `docs/ARCHITECTURE.md`.
 
 **Instrumentation & Observability**
-- Ensure module lifecycle events are logged with provenance tags for arbitrator and scheduler.
-- Update documentation in `docs/MODULES/` to reflect interface contract.
+- Module lifecycle events emit structured logs (`module_start`, `module_stop`, `module_error`) tagged with module and task IDs.
+- `metrics.jsonl` includes per-module counters (invocations, successes, runtime) feeding scheduler and performance dashboards.
+- Health checks and heartbeat events surface to the Issue Matrix templates for early detection of stalled modules.
 
 ---
 
 ## Phase 5 - Shared Scheduler Implementation
-**Goals**
-- Coordinate module execution, enforce time budgets, and expose shared preprocessing cache.
-- Prepare concurrency model for future multi-lane execution while supporting Config A' s single lane.
+**Objectives**
+- Build the scheduler described in `docs/SCHEDULER_POLICY.md` that coordinates module execution, enforces the time budgets from `docs/PERF_BUDGET.md`, and prepares for multi-lane expansion.
+- Deliver reproducible feature extraction, caching, and prioritisation pipelines so Config A stays within the 12-hour evaluation limit.
+- Provide inspection tooling and configuration levers so operators can audit scheduling decisions quickly.
 
-**Key Tasks**
-- Implement task ingestion + feature extraction pipeline informed by `docs/SCHEDULER_POLICY.md`.
-- Create preprocessing cache (grid tensors, symmetry descriptors) reusable across modules.
-- Enforce soft/hard timeouts (90 s / 150 s) via cooperative checks; add cancellation hooks.
-- Simulate multi-lane scheduling with dummy modules to validate priority queues and donations.
+**Scope And Interfaces**
+- Extends preprocessing pipelines (`arc/scheduler/ingest.py`, `arc/scheduler/features.py`), the scheduling core (`arc/scheduler/core.py`), and shared caches.
+- Consumes module contracts from Phase 4 and publishes allocation events to `logs/runtime.log`, `metrics.jsonl`, and arbitrator hooks.
+- Coordinates with the SMT gatekeeper, performance budgets, and profiling guidance from `docs/PERF_BUDGET.md` and `docs/DEBUG_PLAYBOOK.md`.
 
-**Dependencies**
-- Module interfaces (Phase 4), feature extraction details from `docs/ARCHITECTURE.md`.
+### Workstream A - Ingestion And Feature Extraction
+- Implement the feature extraction map (grid sizes, palette entropy, symmetry metrics) detailed in `docs/SCHEDULER_POLICY.md`, storing results in a reusable cache.
+- Validate derived features against golden fixtures (`fixtures/scheduler/features/*.json`) and document their definitions in `docs/ARCHITECTURE.md`.
+- Ensure ingestion respects determinism (consistent ordering, seeded randomness) and logs anomalies to `logs/scheduler/ingest.log`.
+- Integrate data checks that abort scheduling if required task metadata is missing or malformed.
 
-**Deliverables / Exit Criteria**
-- Scheduler processes task batches sequentially with accurate timing and logging.
-- Timeout scenarios handled gracefully (solver stops, fallback triggered).
-- Shared cache accessible and released between tasks.
+### Workstream B - Budget Allocation And Feedback Loops
+- Encode initial budget lookup tables, soft/hard timeout ladders, and donation rules per `docs/SCHEDULER_POLICY.md`.
+- Implement runtime feedback (success rates, runtime deltas) that adjusts future allocations, persisting snapshots to `reports/scheduler_budget_<date>.md`.
+- Surface cooperative pause/resume requests to modules and ensure they honour budget expirations cleanly.
+- Add safeguard logic that halts new tasks if the 12-hour global budget is at risk, alerting operators through the logging pipeline.
+
+### Workstream C - Shared Cache And Resource Pools
+- Build caching layers for preprocessed grids, symmetry descriptors, and module-specific warm starts, respecting memory ceilings from `docs/PERF_BUDGET.md`.
+- Manage GPU/CPU worker pools, tracking utilisation and enforcing affinity rules encoded in `docs/CONFIG_DEFAULTS.yaml`.
+- Establish cache eviction and invalidation policies when DSL libraries or models update, propagating changes to dependent modules.
+- Provide instrumentation summarising cache hit rates and resource contention for performance audits.
+
+### Workstream D - Simulation, Testing, And Tooling
+- Develop scheduler smoke tests that simulate multi-lane execution with stub modules, asserting queue fairness, donation behaviour, and timeout handling.
+- Create replay tooling (`tools/inspect_schedule.py`) that visualises allocations and routing decisions for specific tasks.
+- Run scenario tests covering risk cases (long-running symbolic solve, simultaneous module completion, SMT backlog) and document outcomes in `reports/scheduler_simulations.md`.
+- Integrate scheduler unit/integration tests into CI, blocking merges on regressions.
+
+**Risks And Mitigations**
+- Mis-calibrated budgets starving successful modules: leverage feedback loops and weekly profiling reviews to tune lookup tables.
+- Cache invalidation bugs causing stale features: add versioned cache keys tied to DSL/library hashes and automate purge routines triggered by migrations.
+- Pre-emption deadlocks or race conditions: adopt cooperative concurrency primitives, add fuzz tests that randomise event ordering, and instrument thread pools.
+- Overhead from excessive telemetry: batch scheduler metrics, allow configurable sampling, and compress historical logs.
+
+**Exit Criteria**
+- Scheduler processes smoke and adversarial task batches, maintaining timing accuracy within ±5% of actual runtime.
+- Budget donation, pre-emption, and cancellation paths are validated through automated tests and documented drills.
+- Shared caches demonstrate measurable hit rates and stay within the memory ceilings defined in `docs/PERF_BUDGET.md`.
+- Operators can inspect and explain allocation decisions using shipped tooling within minutes.
 
 **Instrumentation & Observability**
-- Log allocation decisions, queue states, and budget donations in `logs/runtime.log`.
-- Capture scheduler metrics (queue backlog, elapsed time) into `metrics.jsonl` for perf feedback loops.
+- Scheduler appends structured events (allocation, donation, timeout, resume) to `logs/runtime.log` and dedicated JSONL streams.
+- Metrics capture queue depth, per-module wait times, cache hits, and global budget consumption for dashboards.
+- Simulation outputs and budget snapshots are archived to `reports/` for retrospective analysis.
 
 ---
 
 ## Phase 6 - Arbitration And Solution Verification
-**Goals**
-- Validate candidate outputs independently, manage pass@2 submissions, and ensure fallbacks.
+**Objectives**
+- Implement the arbitrator blueprint from `docs/ARBITRATOR_RULES.md`, ensuring every candidate passes deterministic verification before inclusion in pass@2 submissions.
+- Coordinate provenance tracking, scoring, and fallback pathways so Config A never emits more than two answers and always logs rationale.
+- Provide tooling and documentation so operators can audit decisions and triage low-confidence tasks rapidly.
 
-**Key Tasks**
-- Implement arbitrator per `docs/ARBITRATOR_RULES.md`: candidate intake, consistency verification, scoring, and diversity checks.
-- Integrate fallback answer generation when no consistent candidate exists.
-- Serialize final answers (JSON) matching `docs/EVAL_PROTOCOL.md` submission format.
-- Log provenance, scores, and verification latency for each task.
+**Scope And Interfaces**
+- Builds `arc/arbitration/` modules, integrates with the shared interpreter, scheduler outputs, SMT gatekeeper, and evaluation harness.
+- Consumes module metadata and progress events from Phases 3–5 while emitting final answers in the format mandated by `docs/EVAL_PROTOCOL.md`.
+- Updates documentation and playbooks for verification workflows, failure handling, and incident escalation.
 
-**Dependencies**
-- Interpreter/verifier (Phase 2), scheduler hand-off (Phase 5), scoring priors from config.
+### Workstream A - Verification Pipeline And Gatekeeping
+- Wrap interpreter executions in sandboxed runners that validate every candidate across all examples, logging failure traces per `docs/ARBITRATOR_RULES.md`.
+- Integrate SMT attestation for LLM programs, verifying tokens from `docs/SMT_GATEKEEPER.md` and rejecting candidates without proof.
+- Support batched verification to control throughput while respecting CPU and memory budgets.
+- Emit structured rejection reasons and counterexamples to `logs/arbitrator/verification/` for module feedback loops.
 
-**Deliverables / Exit Criteria**
-- Arbitrator double-checks symbolic solutions and rejects corrupted candidates reliably.
-- Pass@2 emission produces one or two outputs for every task, never exceeding two.
-- Fallback pathway documented and exercised in tests.
+### Workstream B - Scoring, Voting, And Diversity
+- Implement scoring calculators blending module priors, confidence signals, runtime penalties, and diversity bonuses as specified in `docs/ARBITRATOR_RULES.md`.
+- Encode tie-breaking rules, low-confidence thresholds, and diversity heuristics that request alternates when necessary.
+- Maintain a rolling success rate ledger feeding back into scheduler budgets and weekly reporting.
+- Add regression tests that simulate conflicting candidates to ensure deterministic selection.
+
+### Workstream C - Fallbacks, Packaging, And Compliance
+- Build fallback strategies (template solvers, conservative guesses) triggered when no consistent candidate survives verification.
+- Serialize outputs into `outputs/pass2.json` with metadata (module provenance, scores) required by `docs/EVAL_PROTOCOL.md`.
+- Record run manifests (`reports/arbitration_summary_<date>.md`) detailing answers, fallbacks, and unresolved tasks for ARC-Forge escalation.
+- Validate JSON schema and pass Kaggle submission dry runs to guarantee compliance.
+
+### Workstream D - Telemetry, Tooling, And Incident Response
+- Extend `docs/DEBUG_PLAYBOOK.md` with arbitrator-specific diagnostics and failure checklists.
+- Provide CLI utilities (`tools/inspect_arbitrator.py`) to replay decision logs, inspect candidate scores, and regenerate submissions.
+- Automate alerts for high rejection rates, fallback usage spikes, or verification latency breaches, surfacing notifications to runtime logs.
+- Document escalation procedures and integrate with incident templates to track arbitration-related bugs.
+
+**Risks And Mitigations**
+- Verification bottlenecks causing backlog: parallelise executor pools, cache intermediate results, and tune SMT batch sizes.
+- Score calibration errors leading to suboptimal pass@2 outputs: run controlled experiments, recalibrate thresholds, and review weekly with module owners.
+- Fallback overuse masking upstream issues: instrument fallback triggers, require follow-up tickets, and add dashboards that highlight rising trends.
+- Logging gaps hindering audits: enforce schema validation on decision logs and integrate checks into CI.
+
+**Exit Criteria**
+- Arbitrator processes smoke suite tasks, producing at most two outputs with full provenance and zero unchecked candidates.
+- Decision logs can be replayed end-to-end to reconstruct scoring and selection steps within `tools/inspect_arbitrator.py`.
+- Fallback pathways are exercised in tests, and incident playbooks capture remediation steps.
+- Submission artefacts pass offline validation and align with `docs/EVAL_PROTOCOL.md` expectations.
 
 **Instrumentation & Observability**
-- Append arbitration summaries to `metrics.jsonl`; store detailed decisions under `logs/arbitrator/`.
-- Flag low-confidence tasks for follow-up, feeding workflows in `docs/DEBUG_PLAYBOOK.md`.
+- Append arbitration summaries (scores, provenance, decision rationale) to `metrics.jsonl` with consistent schema.
+- Store verification transcripts, SMT attestations, and fallback traces under `logs/arbitrator/` with daily rotation.
+- Generate periodic dashboards (`reports/arbitrator_health_<date>.md`) summarising accuracy, fallback rates, and latency.
 
 ---
 
 ## Phase 7 - Performance Profiling And Safeguards
-**Goals**
-- Confirm runtime, memory, and logging adhere to `docs/PERF_BUDGET.md`; implement caches and guardrails.
+**Objectives**
+- Validate runtime, memory, and logging adherence to the constraints in `docs/PERF_BUDGET.md`, instrumenting the entire pipeline for bottleneck diagnosis.
+- Implement caches, guardrails, and hygiene routines that keep Config A comfortably inside the 12-hour and memory envelopes.
+- Establish continuous profiling and alerting so regressions surface before evaluation runs.
 
-**Key Tasks**
-- Profile representative task batches (>=20) capturing per-module timing, GPU/CPU utilisation, and memory snapshots.
-- Add feature, SMT clause, and interpreter result caches where profitable without breaking determinism.
-- Implement memory hygiene (clear search structures, call `torch.cuda.empty_cache()`), and enforce global time tracking.
-- Integrate alerting thresholds (timeout rate, SMT backlog) tied to scheduler adjustments.
+**Scope And Interfaces**
+- Exercises full-pipeline runs across representative task sets, leveraging scheduler telemetry, module metrics, and profiling tools enumerated in `docs/DEBUG_PLAYBOOK.md`.
+- Introduces caching layers, resource throttles, and guardrails in modules and scheduler components without breaking determinism.
+- Coordinates with logging infrastructure to ensure traces and metrics are collected, rotated, and archived efficiently.
 
-**Dependencies**
-- Full pipeline operational (Phases 1-6).
+### Workstream A - Baseline Profiling And Instrumentation
+- Capture baseline performance using Nsight, PyTorch profiler, and custom timers; store reports in `profiles/` and `reports/perf_notes.md`.
+- Instrument per-module timing, memory, and I/O metrics, ensuring consistent tags across `metrics.jsonl`.
+- Benchmark solver variants (with/without heuristics, caching) and summarise findings for scheduler calibration.
+- Validate profiling overhead stays within acceptable limits via smoke runs.
 
-**Deliverables / Exit Criteria**
-- Profiling report (`reports/perf_notes.md`) highlighting hotspots and resolutions.
-- Average symbolic solve time <=120 s; peak GPU0 usage <=12 GB.
-- Global run ETA estimate stays under 12-hour cap with buffer.
+### Workstream B - Optimisation And Caching
+- Introduce caches for interpreter results, symmetry descriptors, and SMT clauses, measuring hit rates and verifying determinism.
+- Identify hotspots (rewrite evaluation, feature extraction) and implement targeted optimisations, documenting before/after metrics.
+- Tune GPU/CPU resource allocation (stream priorities, batch sizes) in line with `docs/PERF_BUDGET.md`.
+- Add adaptive logging levels to reduce I/O pressure in production runs.
+
+### Workstream C - Guardrails, Alerts, And Hygiene
+- Implement watchdog timers, timeout escalations, and memory guards that trigger graceful degradation instead of crashes.
+- Automate log rotation, compression, and retention policies described in `docs/DEBUG_PLAYBOOK.md`.
+- Configure alerts for KPI breaches (timeout rate, SMT backlog, cache miss spikes) and route them to operator dashboards.
+- Ensure all guardrails respect deterministic execution by covering them with regression tests.
+
+### Workstream D - Reliability Drills And Regression Testing
+- Run stress scenarios (extended evaluation loops, worst-case tasks) weekly, capturing deviations in `reports/perf_regression_<date>.md`.
+- Maintain a regression suite that compares current metrics against baselines, failing CI when thresholds regress.
+- Coordinate with module owners to triage regressions, open follow-up issues, and document mitigations.
+- Feed insights back into scheduler policies and module configs, keeping `docs/PERF_BUDGET.md` updated.
+
+**Risks And Mitigations**
+- Profiling noise leading to false positives: standardise task subsets, use statistical smoothing, and document measurement variance.
+- Optimisations breaking determinism: gate changes behind feature flags and validate with repeat runs.
+- Alert fatigue from noisy thresholds: calibrate detection logic, aggregate metrics, and review weekly with ops leads.
+- Cache-induced memory leaks: instrument usage, add eviction policies, and include leak tests in CI.
+
+**Exit Criteria**
+- Comprehensive profiling reports identify hotspots with actionable remediation steps; follow-up fixes land or are tracked.
+- Average runtime and memory metrics meet or beat budgets with a 10% buffer; alerts remain within configured thresholds.
+- Guardrail mechanisms are tested and proven to prevent catastrophic failures during extended runs.
+- Regression dashboards show stable or improving trends across the monitored KPIs.
 
 **Instrumentation & Observability**
-- Persist profiler traces under `profiles/`; rotate logs per `docs/DEBUG_PLAYBOOK.md`.
-- Update performance dashboards pulling from `metrics.jsonl`.
+- Persist profiler artefacts and regression snapshots under `profiles/` and `reports/`, tagging them with commit hashes.
+- Expand `metrics.jsonl` schema to include cache stats, alert counts, and guardrail activations.
+- Provide weekly roll-ups summarising performance health to stakeholders.
 
 ---
 
 ## Phase 8 - Experimentation And Evaluation Harness
-**Goals**
-- Automate batch evaluation, collect metrics, and guarantee reproducibility baselines.
+**Objectives**
+- Ship the evaluation and experimentation harness defined in `docs/EVAL_PROTOCOL.md`, enabling deterministic batch runs, ablations, and reproducibility checks.
+- Automate artefact management (metrics, logs, submissions) so Config A prepares Kaggle-compliant deliverables with minimal manual effort.
+- Provide tools for comparative studies (module on/off, heuristic variants) to guide future Config development.
 
-**Key Tasks**
-- Implement evaluation runner (`scripts/run_eval.py`) iterating over splits with configurable module sets (Config A default).
-- Capture per-task metrics (pass@2 success, runtime, memory) and aggregate summaries aligned with `docs/EVAL_PROTOCOL.md`.
-- Store artefacts: `outputs/pass2.json`, `reports/eval_summary.md`, `metrics.jsonl`, and run metadata (seeds, configs).
-- Add scripts for ablations and regression (e.g., `tools/ablate.py`, smoke suites).
+**Scope And Interfaces**
+- Enhances `scripts/run_eval.py`, adds tooling under `tools/` for ablations and regression comparisons, and integrates with module/scheduler/arbitrator APIs.
+- Leverages logging, metrics, and artefact storage conventions from prior phases to produce reproducible run folders.
+- Coordinates with dataset management (`docs/DATASETS.md`) to schedule nightly/weekly evaluation suites.
 
-**Dependencies**
-- Stable pipeline and logging (Phases 1-7).
+### Workstream A - Evaluation Runner And Batch Orchestration
+- Implement CLI and configuration plumbing that selects splits, task subsets, and module configurations per `docs/EVAL_PROTOCOL.md`.
+- Support resumable runs by checkpointing progress, storing partial outputs, and respecting global time limits.
+- Expose hooks for scheduler warm-ups, module preloading, and log directory initialisation.
+- Add smoke and evaluation presets (`configs/eval/*.yaml`) with documented defaults in `docs/ARCHITECTURE.md`.
 
-**Deliverables / Exit Criteria**
-- End-to-end run over evaluation split completes <12 hours with deterministic repeatability.
-- Summary report includes accuracy, timeout rate, resource usage, and unresolved tasks list.
-- Harness supports toggling modules (for future Configs B-E) without code changes.
+### Workstream B - Metrics, Reporting, And Dashboards
+- Aggregate per-task metrics into summary reports (`reports/eval_summary.md`, `reports/eval_delta_<date>.md`) covering accuracy, runtime, resource usage, and fallback frequency.
+- Generate comparative dashboards that show module contributions, solver variants, and trend lines across runs.
+- Ensure `metrics.jsonl` entries are annotated with evaluation context (split, config version) for downstream analytics.
+- Publish quick-look notebooks or scripts that plot pass@2 trajectories and highlight regressions.
+
+### Workstream C - Reproducibility, Artefact Management, And Compliance
+- Record run metadata (commit hash, config fingerprint, seeds, environment manifest) in `reports/eval_manifest_<date>.md`.
+- Automate packaging of outputs (`outputs/pass2.json`), logs, and metrics into timestamped archives ready for Kaggle submission.
+- Verify offline compliance by running dry runs with network disabled and comparing checksums against stored wheel/dataset manifests.
+- Document the full reproduction script in `docs/EVAL_PROTOCOL.md`, ensuring newcomers can replicate results end-to-end.
+
+### Workstream D - Regression Suites And Ablations
+- Develop ablation tooling (`tools/ablate.py`, `tools/compare_runs.py`) that toggles modules, heuristics, and scheduler policies for controlled experiments.
+- Schedule nightly smoke runs and weekly full evaluations, capturing trends in `reports/eval_history.md`.
+- Integrate evaluation suites into CI (as optional long-running jobs) to detect regressions before releases.
+- Feed unresolved tasks and failure cases into the ARC-Forge pipeline or module backlogs.
+
+**Risks And Mitigations**
+- Evaluation drift due to configuration changes: pin configs, version manifests, and alert when defaults change.
+- Offline incompatibilities slipping through: run regular Kaggle notebook simulations and maintain a checklist tied to `docs/ENV_SETUP.md`.
+- Artefact sprawl overwhelming storage: enforce retention policies, compress archives, and mirror critical artefacts to long-term storage.
+- Metric misinterpretation: include definitions, confidence intervals, and context in reports to avoid erroneous conclusions.
+
+**Exit Criteria**
+- Full evaluation split completes within 12 hours, produces reproducible metrics, and generates Kaggle-ready submission files.
+- Smoke, nightly, and weekly run cadences are automated with alerts on failure.
+- Ablation tooling delivers clear comparative insights logged in `reports/eval_history.md`.
+- Documentation and manifests enable another developer to reproduce a run without oral history.
 
 **Instrumentation & Observability**
-- Finalise log rotation and archival strategy; compress runs older than 24 h.
-- Feed unresolved tasks into ARC-Forge pipeline per `docs/DATASETS.md`.
+- Evaluation runs emit structured phase markers (ingest, scheduler, arbitration, wrap-up) to `logs/runtime.log`.
+- Metadata, run manifests, and summaries are archived per run with checksums and retention tags.
+- Dashboards and history reports track accuracy, runtime, and resource trends over time, flagging regressions proactively.
 
 ---
 
