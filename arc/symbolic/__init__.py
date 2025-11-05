@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 import warnings
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 from arc.core import (
     ModuleCapabilities,
@@ -14,7 +14,9 @@ from arc.core import (
     ModuleTaskContext,
     SolverModule,
 )
-from arc.symbolic.solver import SolverResult, SymbolicSolver
+
+if TYPE_CHECKING:
+    from arc.symbolic.solver import SolverResult, SymbolicSolver
 
 LOGGER = logging.getLogger("arc.module.symbolic")
 
@@ -45,11 +47,16 @@ class SymbolicModule(SolverModule):
         self,
         config: Dict[str, Any],
         *,
-        solver_factory: Optional[Callable[[Dict[str, Any]], SymbolicSolver]] = None,
+        solver_factory: Optional[Callable[[Dict[str, Any]], "SymbolicSolver"]] = None,
     ) -> None:
         super().__init__(config)
-        self._solver_factory = solver_factory or SymbolicSolver
-        self._solver: Optional[SymbolicSolver] = None
+        if solver_factory is None:
+            from arc.symbolic.solver import SymbolicSolver as _SymbolicSolver
+
+            self._solver_factory = _SymbolicSolver
+        else:
+            self._solver_factory = solver_factory
+        self._solver: Optional["SymbolicSolver"] = None
         self._enabled = bool(config.get("symbolic", {}).get("enabled", True))
 
     # ------------------------------------------------------------------ #
@@ -108,7 +115,7 @@ class SymbolicModule(SolverModule):
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #
-    def _build_module_result(self, task_context: ModuleTaskContext, solver_result: SolverResult) -> ModuleResult:
+    def _build_module_result(self, task_context: ModuleTaskContext, solver_result: "SolverResult") -> ModuleResult:
         status = _normalise_status(solver_result.status)
         candidates = [
             {

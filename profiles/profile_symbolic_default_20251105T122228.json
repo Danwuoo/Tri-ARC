@@ -1,0 +1,245 @@
+{
+  "timestamp": "2025-11-05T12:22:28.096570+00:00",
+  "module": "symbolic",
+  "variant": "default",
+  "run_id": "profile-symbolic-default-20251105T122228Z",
+  "elapsed_s": 0.0103,
+  "perf_delta": {
+    "duration_s": 0.0129,
+    "cpu": {
+      "rss_mb": 192.6094,
+      "rss_delta_mb": 0.1446,
+      "vms_mb": 722.3398,
+      "vms_delta_mb": 0.0
+    },
+    "io": {
+      "read_mb": 20.6687,
+      "write_mb": 0.0039,
+      "read_delta_mb": 0.0,
+      "write_delta_mb": 0.0037
+    },
+    "metadata": {
+      "pid": 17180,
+      "num_threads": 24
+    }
+  },
+  "metrics_events": [
+    {
+      "event": "module_start",
+      "module": "symbolic",
+      "stage": "initialize",
+      "status": "running",
+      "timestamp": 1762345348.0640361,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.0
+    },
+    {
+      "event": "module_stop",
+      "module": "symbolic",
+      "stage": "initialize",
+      "status": "completed",
+      "timestamp": 1762345348.0678277,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.007469892501831055,
+      "extras": {
+        "perf": {
+          "duration_s": 0.0044,
+          "cpu": {
+            "rss_mb": 192.4648,
+            "rss_delta_mb": 0.4414,
+            "vms_mb": 722.3398,
+            "vms_delta_mb": 0.4414
+          },
+          "io": {
+            "read_mb": 20.6687,
+            "write_mb": 0.0002,
+            "read_delta_mb": 0.0,
+            "write_delta_mb": 0.0
+          },
+          "metadata": {
+            "pid": 17180,
+            "num_threads": 24
+          }
+        }
+      }
+    },
+    {
+      "event": "module_start",
+      "module": "symbolic",
+      "stage": "prepare_task",
+      "status": "running",
+      "timestamp": 1762345348.0706089,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.0
+    },
+    {
+      "event": "module_stop",
+      "module": "symbolic",
+      "stage": "prepare_task",
+      "status": "completed",
+      "timestamp": 1762345348.073279,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.005408287048339844,
+      "extras": {
+        "perf": {
+          "duration_s": 0.0028,
+          "cpu": {
+            "rss_mb": 192.4648,
+            "rss_delta_mb": 0.0,
+            "vms_mb": 722.3398,
+            "vms_delta_mb": 0.0
+          },
+          "io": {
+            "read_mb": 20.6687,
+            "write_mb": 0.0002,
+            "read_delta_mb": 0.0,
+            "write_delta_mb": 0.0
+          },
+          "metadata": {
+            "pid": 17180,
+            "num_threads": 24
+          }
+        }
+      }
+    },
+    {
+      "event": "module_start",
+      "module": "symbolic",
+      "stage": "solve",
+      "status": "running",
+      "timestamp": 1762345348.0784717,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.0
+    },
+    {
+      "event": "module_stop",
+      "module": "symbolic",
+      "stage": "solve",
+      "status": "completed",
+      "timestamp": 1762345348.0862017,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.01030874252319336,
+      "extras": {
+        "perf": {
+          "duration_s": 0.0068,
+          "cpu": {
+            "rss_mb": 192.6094,
+            "rss_delta_mb": 0.1446,
+            "vms_mb": 722.3398,
+            "vms_delta_mb": 0.0
+          },
+          "io": {
+            "read_mb": 20.6687,
+            "write_mb": 0.0039,
+            "read_delta_mb": 0.0,
+            "write_delta_mb": 0.0037
+          },
+          "metadata": {
+            "pid": 17180,
+            "num_threads": 24
+          }
+        }
+      }
+    },
+    {
+      "event": "module_start",
+      "module": "symbolic",
+      "stage": "shutdown",
+      "status": "running",
+      "timestamp": 1762345348.0931451,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.0
+    },
+    {
+      "event": "module_stop",
+      "module": "symbolic",
+      "stage": "shutdown",
+      "status": "completed",
+      "timestamp": 1762345348.0965314,
+      "run_id": "profile-symbolic-default-20251105T122228Z",
+      "duration_s": 0.006854057312011719,
+      "extras": {
+        "perf": {
+          "duration_s": 0.0035,
+          "cpu": {
+            "rss_mb": 192.6094,
+            "rss_delta_mb": 0.0,
+            "vms_mb": 722.3398,
+            "vms_delta_mb": 0.0
+          },
+          "io": {
+            "read_mb": 20.6687,
+            "write_mb": 0.0039,
+            "read_delta_mb": 0.0,
+            "write_delta_mb": 0.0
+          },
+          "metadata": {
+            "pid": 17180,
+            "num_threads": 24
+          }
+        }
+      }
+    }
+  ],
+  "result": {
+    "status": "success",
+    "summary": {
+      "task_id": "profile_task",
+      "status": "success",
+      "elapsed_s": 0.0016049000005295966,
+      "expansions": 1,
+      "nodes": 2,
+      "solutions": 0,
+      "egraph": {
+        "task_id": "profile_task",
+        "iterations": 2,
+        "rewrites": 1,
+        "unique_programs": 2,
+        "best_cost": 0.0,
+        "history_path": "logs\\symbolic\\egraph\\egraph_history.jsonl",
+        "best_program": []
+      },
+      "lane": "symbolic",
+      "candidate_count": 1,
+      "telemetry_snapshot": {
+        "frontier_report": "reports\\symbolic\\frontier_profile_task_20251105_202228.md",
+        "frontier_log": "logs\\symbolic\\symbolic_frontier.log",
+        "diagnostics": [
+          "logs\\symbolic\\diagnostics\\profile_task_diag_20251105_202228.json"
+        ],
+        "progress_path": "logs\\symbolic\\solve_progress.jsonl",
+        "elapsed_s": 0.0016049000005295966,
+        "expansions": 1,
+        "generated_nodes": 2
+      }
+    },
+    "telemetry": {
+      "perf": {
+        "duration_s": 0.0068,
+        "cpu": {
+          "rss_mb": 192.6094,
+          "rss_delta_mb": 0.1446,
+          "vms_mb": 722.3398,
+          "vms_delta_mb": 0.0
+        },
+        "io": {
+          "read_mb": 20.6687,
+          "write_mb": 0.0039,
+          "read_delta_mb": 0.0,
+          "write_delta_mb": 0.0037
+        },
+        "metadata": {
+          "pid": 17180,
+          "num_threads": 24
+        }
+      }
+    }
+  },
+  "profiler_trace": null,
+  "notes": [],
+  "disabled_modules": [
+    "ttt",
+    "llm",
+    "arbitrator"
+  ]
+}

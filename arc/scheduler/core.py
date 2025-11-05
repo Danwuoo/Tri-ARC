@@ -171,7 +171,12 @@ class SchedulerCore:
         self._version_token = self._compute_version_token()
         self.feature_cache = feature_cache or configure_feature_cache(config, version=self._version_token)
         self.metrics_sink = metrics_sink
-        self.ingestor = SchedulerIngestor(config, feature_cache=self.feature_cache, logger=self.logger.getChild("ingest"))
+        self.ingestor = SchedulerIngestor(
+            config,
+            feature_cache=self.feature_cache,
+            logger=self.logger.getChild("ingest"),
+            metrics_sink=self.metrics_sink,
+        )
 
         self.policy = self._load_policy(policy_path)
         self.feedback: Dict[str, ModuleFeedback] = {module: ModuleFeedback() for module in MODULES}
@@ -355,7 +360,38 @@ class SchedulerCore:
             },
             "resources": self.resource_tracker.snapshot(),
         }
+        self._evaluate_scheduler_guardrails(payload["cache"])
         self._emit_metrics("scheduler_allocate", payload)
+
+    def _evaluate_scheduler_guardrails(self, cache_stats: Dict[str, Any]) -> None:
+        guardrails = self.config.get("guardrails", {}).get("scheduler", {})
+        if not guardrails:
+            return
+        alerts: list[Dict[str, Any]] = []
+
+        feature_stats = cache_stats.get("feature", {}) if isinstance(cache_stats, dict) else {}
+        feature_hit = feature_stats.get("hit_rate") if isinstance(feature_stats, dict) else None
+        threshold = guardrails.get("feature_cache_min_hit_rate")
+        if threshold is not None and feature_hit is not None and feature_hit < float(threshold):
+            alerts.append({
+                "type": "feature_cache_hit_rate",
+                "limit": float(threshold),
+                "observed": feature_hit,
+            })
+
+        descriptor_stats = cache_stats.get("descriptor", {}) if isinstance(cache_stats, dict) else {}
+        descriptor_overall = descriptor_stats.get("overall", {}) if isinstance(descriptor_stats, dict) else {}
+        descriptor_hit = descriptor_overall.get("hit_rate") if isinstance(descriptor_overall, dict) else None
+        descriptor_threshold = guardrails.get("descriptor_cache_min_hit_rate")
+        if descriptor_threshold is not None and descriptor_hit is not None and descriptor_hit < float(descriptor_threshold):
+            alerts.append({
+                "type": "descriptor_cache_hit_rate",
+                "limit": float(descriptor_threshold),
+                "observed": descriptor_hit,
+            })
+
+        if alerts:
+            self._emit_metrics("scheduler_guardrail", {"alerts": alerts})
 
     def _emit_metrics(self, event: str, payload: Dict[str, Any]) -> None:
         if not self.metrics_sink:
@@ -588,3 +624,4 @@ def _evaluate_condition(value: Any, condition: str) -> bool:
     except Exception:
         pass
     return str(value) == condition
+

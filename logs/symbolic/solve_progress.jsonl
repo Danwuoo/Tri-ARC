@@ -1,0 +1,4 @@
+{"event": "egraph_saturation", "task_id": "profile_task", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs\\symbolic\\egraph\\egraph_history.jsonl", "best_program": []}
+{"task_id": "profile_task", "status": "success", "elapsed_s": 0.0016049000005295966, "expansions": 1, "nodes": 2, "timestamp": 1762345348.0821924}
+{"event": "egraph_saturation", "task_id": "sample_task", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs\\symbolic\\egraph\\egraph_history.jsonl", "best_program": []}
+{"task_id": "sample_task", "status": "success", "elapsed_s": 0.002054399999906309, "expansions": 1, "nodes": 2, "timestamp": 1762345440.4682722}

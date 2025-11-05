@@ -1,0 +1,163 @@
+{
+  "task_id": "sample_task",
+  "candidate_id": "llm-stub-sample_task",
+  "module": "llm",
+  "status": "failed",
+  "duration_ms": 0.10489999840501696,
+  "failure_reason": "output_mismatch",
+  "score": null,
+  "metadata": {
+    "mock": true,
+    "prompt_version": "v1",
+    "confidence": 0.35,
+    "note": "Stub candidate mirroring first train output."
+  },
+  "provenance": {
+    "module": "llm",
+    "source": "llm",
+    "raw_index": 0
+  },
+  "traces": [
+    {
+      "example_index": 1,
+      "input_grid": [
+        [
+          8,
+          6
+        ],
+        [
+          6,
+          4
+        ]
+      ],
+      "expected_output": [
+        [
+          8,
+          6,
+          8,
+          6,
+          8,
+          6
+        ],
+        [
+          6,
+          4,
+          6,
+          4,
+          6,
+          4
+        ],
+        [
+          6,
+          8,
+          6,
+          8,
+          6,
+          8
+        ],
+        [
+          4,
+          6,
+          4,
+          6,
+          4,
+          6
+        ],
+        [
+          8,
+          6,
+          8,
+          6,
+          8,
+          6
+        ],
+        [
+          6,
+          4,
+          6,
+          4,
+          6,
+          4
+        ]
+      ],
+      "produced_output": [
+        [
+          7,
+          9,
+          7,
+          9,
+          7,
+          9
+        ],
+        [
+          4,
+          3,
+          4,
+          3,
+          4,
+          3
+        ],
+        [
+          9,
+          7,
+          9,
+          7,
+          9,
+          7
+        ],
+        [
+          3,
+          4,
+          3,
+          4,
+          3,
+          4
+        ],
+        [
+          7,
+          9,
+          7,
+          9,
+          7,
+          9
+        ],
+        [
+          4,
+          3,
+          4,
+          3,
+          4,
+          3
+        ]
+      ],
+      "notes": {
+        "reason": "mismatch",
+        "difference": {
+          "type": "value_mismatch",
+          "first_positions": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, MutableMapping, Optional
+import datetime as dt
+from typing import Any, Callable, Dict, Iterable, List, Mapping, MutableMapping, Optional
 
 from arc.scheduler.cache import FeatureCache, configure_feature_cache
 from arc.scheduler.features import (
@@ -55,10 +56,12 @@ class SchedulerIngestor:
         *,
         feature_cache: FeatureCache | None = None,
         logger: Optional[logging.Logger] = None,
+        metrics_sink: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> None:
         self.config = config
         self.logger = _ensure_logger(config, logger=logger)
         self.feature_cache = feature_cache if feature_cache is not None else configure_feature_cache(config)
+        self.metrics_sink = metrics_sink
 
     def ingest(
         self,
@@ -85,13 +88,24 @@ class SchedulerIngestor:
         train_examples = list(task.get("train_examples") or [])
 
         cached = None if force_refresh else self.feature_cache.get(task_id)
-        if cached is not None:
+        cache_hit = cached is not None
+        if cache_hit:
             features = _deserialise_features(cached)
             self.logger.debug("Reused cached features for task_id=%s", task_id)
         else:
             features = compute_task_features(task_id, train_examples, history=history)
             self.feature_cache.set(task_id, features.to_dict(), metadata={"task_id": task_id})
             self.logger.info("Computed features for task_id=%s", task_id)
+
+        self._emit_metric(
+            "scheduler_feature_cache",
+            {
+                "task_id": task_id,
+                "cache_hit": cache_hit,
+                "force_refresh": force_refresh,
+                "stats": self.feature_cache.stats(),
+            },
+        )
 
         return IngestedTask(
             task_id=task_id,
@@ -100,6 +114,15 @@ class SchedulerIngestor:
             metadata=metadata if isinstance(metadata, Mapping) else {},
         )
 
+    def _emit_metric(self, event: str, payload: Dict[str, Any]) -> None:
+        if not self.metrics_sink:
+            return
+        record: Dict[str, Any] = {"event": event, "timestamp": dt.datetime.now(dt.timezone.utc).isoformat()}
+        record.update(payload)
+        try:
+            self.metrics_sink(record)
+        except Exception as exc:  # pragma: no cover - metrics sink failures should not raise
+            self.logger.debug("Failed to emit scheduler metric %s: %s", event, exc)
     def _validate_task(self, task: Mapping[str, Any]) -> None:
         if "task_id" not in task:
             self.logger.error("Encountered task without task_id; aborting ingestion.")
@@ -139,3 +162,4 @@ def _deserialise_features(payload: Mapping[str, Any]) -> TaskFeatures:
         objects=ObjectStats(**objects),
         history=dict(history) if isinstance(history, Mapping) else {},
     )
+

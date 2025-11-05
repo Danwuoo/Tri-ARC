@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import datetime as dt
+import hashlib
+import json
 import logging
 import time
 from pathlib import Path
@@ -7,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from arc.config import load_config
 from arc.logging_utils import append_metric
+from arc.scheduler.cache import LRUCache
 from arc.symbolic.dsl.types import ExecutionState, ExecutionTrace, Grid, Program, Stage, StageResult
 
 from arc.common.grid import ensure_palette, normalise_grid
@@ -35,6 +39,18 @@ class DSLInterpreter:
         self.metrics_path.parent.mkdir(parents=True, exist_ok=True)
         self.runtime_log_path.parent.mkdir(parents=True, exist_ok=True)
 
+        cache_cfg = raw_config.get("symbolic", {}).get("interpreter_cache", {}) or {}
+        self._cache_enabled = bool(cache_cfg.get("enabled", True))
+        self._cache_namespace = str(cache_cfg.get("namespace", "dsl_interpreter"))
+        self._result_cache: Optional[LRUCache] = None
+        self._cache_hits = 0
+        self._cache_misses = 0
+        if self._cache_enabled:
+            max_items = int(cache_cfg.get("max_items", 512))
+            ttl_seconds = cache_cfg.get("ttl_seconds")
+            ttl_value = float(ttl_seconds) if ttl_seconds is not None else None
+            self._result_cache = LRUCache(max_items, ttl_seconds=ttl_value)
+
     def run(
         self,
         program: Program,
@@ -50,13 +66,24 @@ class DSLInterpreter:
                 details={"issues": issues},
             )
 
-        initial_grid = normalise_grid(grid).copy()
-        ensure_palette(initial_grid)
-        state = self._make_initial_state(initial_grid)
-        trace = ExecutionTrace(initial_grid=initial_grid.copy())
         base_metadata = dict(metadata or {})
         if run_id is not None:
             base_metadata["run_id"] = run_id
+
+        initial_grid = normalise_grid(grid).copy()
+        ensure_palette(initial_grid)
+
+        cache_key: Optional[str] = None
+        if self._result_cache is not None:
+            cache_key = self._build_cache_key(program, initial_grid)
+            cached_payload = self._result_cache.get(cache_key)
+            if cached_payload is not None:
+                self._cache_hits += 1
+                trace = self._reconstruct_trace(initial_grid, cached_payload)
+                self._record_cache_event("hit", cache_key, base_metadata, extra={"stage_count": len(program)})
+                return trace
+        state = self._make_initial_state(initial_grid)
+        trace = ExecutionTrace(initial_grid=initial_grid.copy())
 
         for index, stage in enumerate(program):
             path = (index,)
@@ -65,6 +92,21 @@ class DSLInterpreter:
             trace.append(stage_result)
 
         trace.final_state = state  # type: ignore[attr-defined]
+
+        if self._result_cache is not None and cache_key is not None:
+            payload = {
+                "grid": trace.final_grid.to_list(),
+                "stage_count": len(trace),
+            }
+            self._result_cache.set(cache_key, payload)
+            self._cache_misses += 1
+            self._record_cache_event(
+                "miss",
+                cache_key,
+                base_metadata,
+                extra={"stage_count": len(trace)},
+            )
+
         return trace
 
     def _make_initial_state(self, grid: Grid) -> ExecutionState:
@@ -155,6 +197,56 @@ class DSLInterpreter:
         self._log_stage(path, stage, duration_ms, nested=nested)
 
         return result, stage_result
+
+    def _build_cache_key(self, program: Program, initial_grid: Grid) -> str:
+        stage_repr = "|".join(f"{stage.operator}:{repr(stage.arguments)}" for stage in program)
+        grid_repr = json.dumps(initial_grid.to_list())
+        payload = f"{stage_repr}#{grid_repr}"
+        return hashlib.sha1(payload.encode("utf-8")).hexdigest()
+
+    def _reconstruct_trace(self, initial_grid: Grid, payload: Dict[str, Any]) -> ExecutionTrace:
+        trace = ExecutionTrace(initial_grid=initial_grid.copy())
+        raw_grid = payload.get("grid")
+        final_grid = Grid.from_list(raw_grid) if isinstance(raw_grid, list) else initial_grid.copy()
+        stage_count = int(payload.get("stage_count", 0) or 0)
+        stage_result = StageResult(
+            stage=Stage(operator="cache_replay", arguments=tuple()),
+            value=None,
+            grid=final_grid.copy(),
+            duration_ms=0.0,
+            metadata={"cache": "interpreter_hit", "stage_count": stage_count},
+        )
+        trace.append(stage_result)
+        trace.final_state = self._make_initial_state(final_grid.copy())
+        return trace
+
+    def _record_cache_event(
+        self,
+        kind: str,
+        cache_key: str,
+        metadata: Dict[str, Any],
+        *,
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        if not self.config.emit_metrics:
+            return
+        payload: Dict[str, Any] = {
+            "event": "dsl_cache",
+            "cache": "interpreter",
+            "kind": kind,
+            "cache_key": cache_key,
+            "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        }
+        if "task_id" in metadata:
+            payload["task_id"] = metadata["task_id"]
+        if self._result_cache is not None:
+            stats = self._result_cache.stats()
+            payload["hit_rate"] = stats.get("hit_rate")
+            payload["size"] = stats.get("size")
+            payload["capacity"] = stats.get("capacity")
+        if extra:
+            payload.update(extra)
+        append_metric(self.metrics_path, payload)
 
     def _emit_metric(
         self,

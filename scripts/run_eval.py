@@ -131,7 +131,23 @@ def main() -> int:
     if not metrics_file.is_absolute():
         metrics_file = log_root / metrics_file
 
-    log_path = logging_utils.configure_logging(log_root, runtime_log_name, level=level)
+    max_bytes_mb = float(logging_cfg.get("log_max_bytes_mb", 5))
+    max_bytes = int(max_bytes_mb * 1024 * 1024)
+    backup_count_cfg = logging_cfg.get("log_backup_count", 3)
+    try:
+        backup_count = int(backup_count_cfg)
+    except Exception:
+        backup_count = 3
+    compress_rotated = bool(logging_cfg.get("compress_rotated_logs", True))
+
+    log_path = logging_utils.configure_logging(
+        log_root,
+        runtime_log_name,
+        level=level,
+        max_bytes=max_bytes,
+        backup_count=backup_count,
+        compress_rotated=compress_rotated,
+    )
 
     logger = __import__("logging").getLogger("tri_arc.run_eval")
     logger.info("Tri-ARC evaluation starting")

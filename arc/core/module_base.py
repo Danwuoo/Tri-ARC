@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
+from arc.common.profiling import capture_performance_snapshot, summarise_snapshot_delta
+
 from .context import ModuleContext, ModuleTaskContext
 from .results import ModuleResult, ModuleSolveStatus, ModuleTelemetry
 
@@ -188,14 +190,27 @@ class SolverModule:
         **kwargs: Any,
     ) -> Tuple[Any, Optional[ModuleTelemetry]]:
         start_time = time.time()
+        perf_before = capture_performance_snapshot()
         telemetry = ModuleTelemetry.started(self.module_name, stage, timestamp=start_time)
         self._emit_event(ModuleEventType.START, stage, status="running", telemetry=telemetry)
+
+        def _complete(status: str, *, error: Optional[str] = None) -> ModuleTelemetry:
+            extras_payload: Optional[Dict[str, Any]] = None
+            try:
+                perf_after = capture_performance_snapshot()
+                perf_delta = summarise_snapshot_delta(perf_before, perf_after)
+                if perf_delta:
+                    extras_payload = {"perf": perf_delta}
+            except Exception:
+                extras_payload = None
+            return telemetry.complete(status, error=error, extras=extras_payload)
 
         try:
             result = handler(*args, **kwargs)
         except NotImplementedError as exc:
             error_message = f"{self.module_name} has not implemented required handler for stage '{stage}'."
-            telemetry = telemetry.complete(status="error", error=str(exc))
+            telemetry = _complete("error", error=str(exc))
+            self._apply_guardrails(stage, telemetry)
             self._emit_event(
                 ModuleEventType.ERROR,
                 stage,
@@ -205,7 +220,8 @@ class SolverModule:
             )
             raise ModuleError(error_message) from exc
         except Exception as exc:  # pragma: no cover - re-raised for caller
-            telemetry = telemetry.complete(status="error", error=repr(exc))
+            telemetry = _complete("error", error=repr(exc))
+            self._apply_guardrails(stage, telemetry)
             self._emit_event(
                 ModuleEventType.ERROR,
                 stage,
@@ -215,9 +231,78 @@ class SolverModule:
             )
             raise
         else:
-            telemetry = telemetry.complete(status="completed")
+            telemetry = _complete("completed")
+            self._apply_guardrails(stage, telemetry)
             self._emit_event(ModuleEventType.STOP, stage, status="completed", telemetry=telemetry)
             return result, telemetry
+
+    def _apply_guardrails(self, stage: str, telemetry: ModuleTelemetry) -> None:
+        context = self._context
+        if context is None:
+            return
+        guardrails = context.extras.get("guardrails") if context.extras else None
+        if not guardrails:
+            return
+        perf = telemetry.extras.get("perf") if telemetry.extras else {}
+        alerts: list[Dict[str, Any]] = []
+
+        max_duration = guardrails.get("max_duration_s")
+        if max_duration is not None and telemetry.duration_s > float(max_duration):
+            alerts.append({
+                "type": "duration",
+                "limit_s": float(max_duration),
+                "observed_s": telemetry.duration_s,
+            })
+
+        cpu_perf = perf.get("cpu", {}) if isinstance(perf, dict) else {}
+        rss_guard = guardrails.get("max_rss_mb")
+        rss_mb = cpu_perf.get("rss_mb") if isinstance(cpu_perf, dict) else None
+        if rss_guard is not None and rss_mb is not None and rss_mb > float(rss_guard):
+            alerts.append({
+                "type": "rss_mb",
+                "limit_mb": float(rss_guard),
+                "observed_mb": rss_mb,
+            })
+
+        gpu_guard = guardrails.get("max_gpu_mb")
+        gpu_perf = perf.get("gpu", {}) if isinstance(perf, dict) else {}
+        if gpu_guard is not None and isinstance(gpu_perf, dict):
+            allocated = gpu_perf.get("allocated_mb")
+            if isinstance(allocated, dict):
+                iterable = allocated.items()
+            else:
+                iterable = gpu_perf.items()
+            for device, value in iterable:
+                if value is None:
+                    continue
+                if float(value) > float(gpu_guard):
+                    alerts.append({
+                        "type": "gpu_mb",
+                        "device": device,
+                        "limit_mb": float(gpu_guard),
+                        "observed_mb": float(value),
+                    })
+
+        if not alerts:
+            return
+
+        telemetry.extras.setdefault("guardrails", {})["alerts"] = alerts
+        if context.metrics_sink:
+            payload = {
+                "event": "guardrail_trigger",
+                "module": self.module_name,
+                "stage": stage,
+                "alerts": alerts,
+                "timestamp": time.time(),
+            }
+            run_id = getattr(context, "run_id", None)
+            if run_id:
+                payload["run_id"] = run_id
+            try:
+                context.metrics_sink(payload)
+            except Exception as exc:  # pragma: no cover - best effort
+                logger = self._logger or LOGGER
+                logger.debug("Guardrail metric emission failed for %s: %s", self.module_name, exc)
 
     def _emit_event(
         self,
@@ -246,6 +331,8 @@ class SolverModule:
             )
             if telemetry.error:
                 payload["error"] = telemetry.error
+            if telemetry.extras:
+                payload["extras"] = telemetry.extras
         if details:
             payload.update(details)
 
@@ -274,10 +361,15 @@ class SolverModule:
                 "status": status,
                 "timestamp": timestamp,
             }
+            run_id = getattr(self._context, "run_id", None)
+            if run_id:
+                metrics_payload["run_id"] = run_id
             if telemetry:
                 metrics_payload["duration_s"] = telemetry.duration_s
                 if telemetry.error:
                     metrics_payload["error"] = telemetry.error
+                if telemetry.extras:
+                    metrics_payload["extras"] = telemetry.extras
             if details:
                 metrics_payload["details"] = details
             try:

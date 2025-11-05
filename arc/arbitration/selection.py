@@ -73,7 +73,7 @@ def select_candidates(
     if secondary is None and len(ordered) > 1:
         rationale.append("Secondary candidate not selected due to insufficient diversity or score gap.")
 
-    rejected = [cand for cand in candidates if cand not in {primary, secondary}]
+    rejected = [cand for cand in candidates if cand is not primary and cand is not secondary]
     return ArbitrationDecision(
         primary=primary,
         secondary=secondary,

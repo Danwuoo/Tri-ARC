@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Dict, List
 
 import pytest
@@ -116,3 +117,23 @@ def test_cannot_prepare_before_initialise(metrics_buffer: List[Dict[str, Any]]) 
     module = SampleModule(config={}, record=[])
     with pytest.raises(ModuleError):
         module.prepare_task({"task_id": "no-init"})
+
+
+def test_guardrail_emits_metrics(module_context: ModuleContext, metrics_buffer: List[Dict[str, Any]]) -> None:
+    module_context.extras["guardrails"] = {"max_duration_s": 0.0}
+
+    class SlowModule(SampleModule):
+        def _on_solve(self, task_context: ModuleTaskContext) -> ModuleResult:
+            time.sleep(0.001)
+            return super()._on_solve(task_context)
+
+    module = SlowModule(config={}, record=[])
+    module.initialize(module_context)
+    prepared = module.prepare_task({"task_id": "guardrail"})
+    module.solve(prepared)
+    module.shutdown()
+
+    guardrail_events = [entry for entry in metrics_buffer if entry.get("event") == "guardrail_trigger"]
+    assert guardrail_events
+    alert = guardrail_events[0]["alerts"][0]
+    assert alert["type"] == "duration"

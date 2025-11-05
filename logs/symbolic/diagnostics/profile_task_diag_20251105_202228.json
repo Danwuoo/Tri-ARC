@@ -1,0 +1,21 @@
+{
+  "task_id": "profile_task",
+  "program": [
+    [
+      "identity",
+      []
+    ]
+  ],
+  "failures": [
+    {
+      "index": 0,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    },
+    {
+      "index": 1,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    }
+  ]
+}

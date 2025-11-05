@@ -37,8 +37,18 @@ class ModuleTelemetry:
             duration_s=0.0,
         )
 
-    def complete(self, status: str, *, error: Optional[str] = None, timestamp: Optional[float] = None) -> ModuleTelemetry:
+    def complete(
+        self,
+        status: str,
+        *,
+        error: Optional[str] = None,
+        timestamp: Optional[float] = None,
+        extras: Optional[Dict[str, Any]] = None,
+    ) -> ModuleTelemetry:
         end_time = time.time() if timestamp is None else timestamp
+        payload = dict(self.extras)
+        if extras:
+            payload.update(extras)
         return ModuleTelemetry(
             module_name=self.module_name,
             stage=self.stage,
@@ -47,7 +57,7 @@ class ModuleTelemetry:
             completed_at=end_time,
             duration_s=max(0.0, end_time - self.started_at),
             error=error,
-            extras=dict(self.extras),
+            extras=payload,
         )
 
 

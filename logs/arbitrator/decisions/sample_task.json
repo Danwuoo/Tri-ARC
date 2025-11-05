@@ -1,0 +1,76 @@
+{
+  "task_id": "sample_task",
+  "answers": [
+    {
+      "candidate_id": "fallback-0",
+      "module": "fallback",
+      "outputs": [
+        [
+          [
+            3,
+            2
+          ],
+          [
+            7,
+            8
+          ]
+        ]
+      ],
+      "score": 1.0,
+      "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+      "rationale": "fallback"
+    }
+  ],
+  "answers_outputs": [
+    [
+      [
+        [
+          3,
+          2
+        ],
+        [
+          7,
+          8
+        ]
+      ]
+    ]
+  ],
+  "rationale": [
+    "Primary candidate fallback-0 selected with score 1.000.",
+    "Secondary candidate not selected due to insufficient diversity or score gap."
+  ],
+  "low_confidence": false,
+  "fallback_used": true,
+  "timestamp": "2025-11-05T12:24:00Z",
+  "latency_ms": 2.7484893798828125,
+  "rejected_candidates": [
+    {
+      "candidate_id": "symbolic-0",
+      "module": "symbolic",
+      "score": 1.0,
+      "verification_status": "rejected",
+      "failure_reason": "smt_attestation_failed:missing_smt_token"
+    },
+    {
+      "candidate_id": "ttt-stub-sample_task",
+      "module": "ttt",
+      "score": 0.9500000000000001,
+      "verification_status": "failed",
+      "failure_reason": "output_mismatch"
+    },
+    {
+      "candidate_id": "llm-stub-sample_task",
+      "module": "llm",
+      "score": 0.8500000000000001,
+      "verification_status": "failed",
+      "failure_reason": "output_mismatch"
+    },
+    {
+      "candidate_id": "fallback-1",
+      "module": "fallback",
+      "score": 1.0,
+      "verification_status": "passed",
+      "failure_reason": null
+    }
+  ]
+}

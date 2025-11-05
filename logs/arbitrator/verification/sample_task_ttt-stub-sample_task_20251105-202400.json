@@ -1,0 +1,162 @@
+{
+  "task_id": "sample_task",
+  "candidate_id": "ttt-stub-sample_task",
+  "module": "ttt",
+  "status": "failed",
+  "duration_ms": 0.1790000023902394,
+  "failure_reason": "output_mismatch",
+  "score": null,
+  "metadata": {
+    "confidence": 0.4,
+    "strategy": "train_echo",
+    "note": "Stub candidate mirroring first train output."
+  },
+  "provenance": {
+    "module": "ttt",
+    "source": "ttt",
+    "raw_index": 0
+  },
+  "traces": [
+    {
+      "example_index": 1,
+      "input_grid": [
+        [
+          8,
+          6
+        ],
+        [
+          6,
+          4
+        ]
+      ],
+      "expected_output": [
+        [
+          8,
+          6,
+          8,
+          6,
+          8,
+          6
+        ],
+        [
+          6,
+          4,
+          6,
+          4,
+          6,
+          4
+        ],
+        [
+          6,
+          8,
+          6,
+          8,
+          6,
+          8
+        ],
+        [
+          4,
+          6,
+          4,
+          6,
+          4,
+          6
+        ],
+        [
+          8,
+          6,
+          8,
+          6,
+          8,
+          6
+        ],
+        [
+          6,
+          4,
+          6,
+          4,
+          6,
+          4
+        ]
+      ],
+      "produced_output": [
+        [
+          7,
+          9,
+          7,
+          9,
+          7,
+          9
+        ],
+        [
+          4,
+          3,
+          4,
+          3,
+          4,
+          3
+        ],
+        [
+          9,
+          7,
+          9,
+          7,
+          9,
+          7
+        ],
+        [
+          3,
+          4,
+          3,
+          4,
+          3,
+          4
+        ],
+        [
+          7,
+          9,
+          7,
+          9,
+          7,
+          9
+        ],
+        [
+          4,
+          3,
+          4,
+          3,
+          4,
+          3
+        ]
+      ],
+      "notes": {
+        "reason": "mismatch",
+        "difference": {
+          "type": "value_mismatch",
+          "first_positions": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

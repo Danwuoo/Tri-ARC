@@ -148,7 +148,19 @@ class ModuleRegistry:
 
         module_logger = self.logger.getChild(spec.name)
         device = spec.device or self._resolve_device_default(spec.name)
+        global_guardrails = dict(self.config.get("guardrails", {}) or {})
+        module_guardrails: Dict[str, Any] = {}
+        modules_cfg = self.config.get("modules", {})
+        if isinstance(modules_cfg, Mapping):
+            module_specific = modules_cfg.get(spec.name, {})
+            if isinstance(module_specific, Mapping):
+                module_guardrails = dict(module_specific.get("guardrails", {}) or {})
+        if module_guardrails:
+            global_guardrails.update(module_guardrails)
+
         extras = dict(spec.extras)
+        if global_guardrails:
+            extras.setdefault("guardrails", global_guardrails)
         extras["device"] = device
         context = ModuleContext(
             module_name=spec.name,

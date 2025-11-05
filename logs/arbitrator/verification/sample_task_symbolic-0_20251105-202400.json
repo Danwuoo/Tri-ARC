@@ -1,0 +1,30 @@
+{
+  "task_id": "sample_task",
+  "candidate_id": "symbolic-0",
+  "module": "symbolic",
+  "status": "rejected",
+  "duration_ms": 0.006999998731771484,
+  "failure_reason": "smt_attestation_failed:missing_smt_token",
+  "score": null,
+  "metadata": {
+    "failures": [
+      {
+        "index": 0,
+        "type": "exception",
+        "message": "IndexError('list index out of range')"
+      },
+      {
+        "index": 1,
+        "type": "exception",
+        "message": "IndexError('list index out of range')"
+      }
+    ],
+    "solution_reason": "Null enumerator returns identity program."
+  },
+  "provenance": {
+    "module": "symbolic",
+    "source": "symbolic",
+    "raw_index": 0
+  },
+  "traces": []
+}
