@@ -23,23 +23,43 @@ def build_context(name: str, config: dict) -> ModuleContext:
     )
 
 
-def test_ttt_stub_returns_partial() -> None:
+def build_payload() -> dict:
+    base_grid = [[1, 2], [3, 4]]
+    return {
+        "task_id": "sample-task",
+        "train_examples": [{"input": base_grid, "output": base_grid}],
+        "eval_examples": [{"input": base_grid}],
+    }
+
+
+def test_ttt_module_generates_candidate() -> None:
     config = {"ttt": {"enabled": True}}
     module = TTTModule(config=config)
     module.initialize(build_context("ttt", config))
-    prepared = module.prepare_task({"task_id": "sample"})
+    prepared = module.prepare_task(build_payload())
     result = module.solve(prepared)
-    assert result.status.value == "partial"
+    assert result.status.value in {"success", "partial"}
+    assert result.candidates
+    candidate = result.candidates[0]
+    metadata = candidate.get("metadata", {})
+    train_outputs = metadata.get("train_outputs", [])
+    assert train_outputs and train_outputs[0]["grid"] == [[1, 2], [3, 4]]
     module.shutdown()
 
 
-def test_llm_stub_returns_partial() -> None:
+def test_llm_module_generates_candidate() -> None:
     config = {"llm": {"enabled": True}}
     module = LLMModule(config=config)
     module.initialize(build_context("llm", config))
-    prepared = module.prepare_task({"task_id": "sample"})
+    prepared = module.prepare_task(build_payload())
     result = module.solve(prepared)
-    assert result.status.value == "partial"
+    assert result.status.value in {"success", "partial"}
+    assert result.candidates
+    candidate = result.candidates[0]
+    metadata = candidate.get("metadata", {})
+    assert metadata.get("operation")
+    train_outputs = metadata.get("train_outputs", [])
+    assert train_outputs and train_outputs[0]["grid"] is not None
     module.shutdown()
 
 

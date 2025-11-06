@@ -44,7 +44,7 @@ The TTT lane adapts a differentiable grid interpreter on-the-fly using the few I
 - Add explainability hooks that track which features shifted most during adaptation for downstream reporting.
 
 ## SolverModule Contract Snapshot
-- `arc/ttt/__init__.py` now provides a `TTTModule` implementation derived from `SolverModule`. The current stub returns partial results while preserving cache namespaces and telemetry plumbing, allowing the scheduler to exercise the lane without full adaptation logic.
-- Module context wiring ensures each task receives a shared cache entry (`shared_cache["ttt"][task_id]`) where adaptation artefacts and diagnostics can be stored once the full optimizer lands.
-- Capability flags advertise GPU requirements so the registry can warn when the configured device map conflicts with runtime needs.
-- Mock variants (`arc/ttt/mocks.py`) emit deterministic records for CI smoke runs; toggle them via `--mock-modules ttt` or the `modules.ttt.mock_class` setting.
+- `arc/ttt/__init__.py` implements the full adaptation pipeline: the `TTTAdapter` neural head is loaded from `models/ttt/base.ckpt`, cloned per task, and fine-tuned against the provided train examples using cross-entropy plus palette/structure regularisers.
+- Module metadata and cache entries now expose `loss_history`, per-example predictions, and evaluation grids so the arbitrator can consume TTT outputs without bespoke wiring.
+- Grid candidates include `train_outputs`/`eval_outputs` metadata. Verification consumes the per-example bundle, while downstream reporting surfaces adaptation confidence and loss curves.
+- Mock variants (`arc/ttt/mocks.py`) remain available for CI. Toggle them via `--mock-modules ttt` or the `modules.ttt.mock_class` setting when the lightweight neural adapter is unnecessary.

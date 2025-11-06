@@ -189,6 +189,12 @@ class ArbitratorModule(SolverModule):
                 payload_outputs = candidate.payload.get("outputs")
                 if payload_outputs:
                     outputs = payload_outputs
+                elif candidate.metadata.get("eval_outputs"):
+                    outputs = [
+                        record.get("grid")
+                        for record in candidate.metadata.get("eval_outputs")
+                        if record.get("grid") is not None
+                    ]
                 else:
                     outputs = [candidate.payload.get("grid")]
             else:

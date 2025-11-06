@@ -128,6 +128,13 @@ class VerificationRunner:
     ) -> Grid:
         """Execute candidate deterministically (without verification feedback)."""
         if candidate.candidate_type == CandidateType.GRID:
+            if candidate.module in {"ttt", "llm"} and metadata is not None:
+                example_index = metadata.get("example_index")
+                if example_index is not None:
+                    outputs = candidate.metadata.get("train_outputs") or []
+                    for record in outputs:
+                        if record.get("index") == example_index and record.get("grid") is not None:
+                            return normalise_grid(record["grid"]).copy()
             normalised = normalise_grid(candidate.payload.get("grid"))
             return normalised.copy()
 

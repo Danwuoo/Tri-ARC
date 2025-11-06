@@ -39,6 +39,6 @@ The LLM lane contributes creative program hypotheses that complement the structu
 - Explore LLM-to-symbolic feedback loops where high-quality generations propose new DSL abstractions directly.
 
 ## SolverModule Contract Snapshot
-- `arc/llm/__init__.py` exposes the lane as a `SolverModule` stub. It prepares task-local cache slots, records prompt configuration, and surfaces partial results so orchestration paths can be exercised ahead of the full generation stack.
-- Module metadata and telemetry now flow through the shared logging pipeline, emitting lifecycle events (`module_start`, `module_stop`, `module_error`) and per-task summaries in `metrics.jsonl`.
-- Mock implementations (`arc/llm/mocks.py`) can be activated via CLI or configuration for deterministic smoke tests that validate scheduler, arbitrator, and logging behaviour without loading heavyweight checkpoints.
+- `arc/llm/__init__.py` loads a quantised local decoder from `models/llm/tri-arc-30b-qlora/model.pt`, scores transformation hypotheses, and emits grid candidates enriched with per-example predictions and descriptive rationales.
+- Module metadata and telemetry flow through the shared logging pipeline, exposing selected operations, operation probabilities, and train-time agreement for downstream analytics.
+- Mock implementations (`arc/llm/mocks.py`) remain available for deterministic smoke tests when the lightweight decoder is not required.
