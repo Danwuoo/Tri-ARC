@@ -5995,57 +5995,57 @@
     "size_bytes": 424
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\config.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\config.json",
     "sha256": "3f1e8b5674914c0f8c6e27649e80c5eddb9e45c5a906614c7576627ec67e0bc9",
     "size_bytes": 690
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\generation_config.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\generation_config.json",
     "sha256": "e8a3bbd318b82333d64d3f01ccf671f2393ba874ea8a7b3576d8438e0b5407bd",
     "size_bytes": 256
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\merges.txt",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\merges.txt",
     "sha256": "0de0bc38a29ea38eef099b677fa1ff52edd181e573529af26c4cd2136e233777",
     "size_bytes": 1823226
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\model-00001-of-00004.safetensors",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\model-00001-of-00004.safetensors",
     "sha256": "7c70542d88de2ca0e6fa530445b898ef0d7bffda51186d3081eeba3b68683182",
     "size_bytes": 137
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\model-00002-of-00004.safetensors",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\model-00002-of-00004.safetensors",
     "sha256": "37f1a4296f1c19231b3067937f6d46c1939590e98cddfc62bc88c8ae72f80333",
     "size_bytes": 137
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\model-00003-of-00004.safetensors",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\model-00003-of-00004.safetensors",
     "sha256": "7045a974eda93bdd85b288d9ed6cdc0a8125892fa811edd66fb42b9c0a2caad2",
     "size_bytes": 136
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\model-00004-of-00004.safetensors",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\model-00004-of-00004.safetensors",
     "sha256": "4973603605f84d6dc8305b26c02790afe6ceeb15dc8642e5d3d85a29b444d87c",
     "size_bytes": 138
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\model.safetensors.index.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\model.safetensors.index.json",
     "sha256": "6f56abb594a0b41aa128c25548fd4fdd3d5d79c64593bfaf34354b87f2de43a8",
     "size_bytes": 28098
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\tokenizer.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\tokenizer.json",
     "sha256": "47ec9be242d3ef39b9c97ac0a3f06c1752f061b234e295bc0a2842067a3fe4f9",
     "size_bytes": 7334926
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\tokenizer_config.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\tokenizer_config.json",
     "sha256": "0d6d03775072afe09e122ae163a15eb29d3023b905e91fb498c82f61edfbda35",
     "size_bytes": 7512
   },
   {
-    "path": "model\\Qwen2.5-Coder-7B-Instruct\\vocab.json",
+    "path": "models\\Qwen2.5-Coder-7B-Instruct\\vocab.json",
     "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
     "size_bytes": 2776833
   },
