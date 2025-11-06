@@ -1,0 +1,86 @@
+2025-11-06 13:13:24 | INFO | tri_arc.run_eval | Tri-ARC evaluation starting
+2025-11-06 13:13:24 | INFO | tri_arc.run_eval | Runtime log: reports\eval_runs\smoke\smoke-20251106T051324Z\logs\runtime.log
+2025-11-06 13:13:24 | INFO | tri_arc.run_eval | Run directory: reports\eval_runs\smoke\smoke-20251106T051324Z
+2025-11-06 13:13:24 | INFO | tri_arc.run_eval | Metrics file: reports\eval_runs\smoke\smoke-20251106T051324Z\metrics.jsonl
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> running
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> completed
+2025-11-06 13:13:24 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> running
+2025-11-06 13:13:24 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> completed
+2025-11-06 13:13:24 | INFO | tri_arc.eval.harness | Evaluating task 0934a4d8 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\smoke\0934a4d8.json)
+2025-11-06 13:13:24 | INFO | tri_arc.scheduler | Scheduled task_id=0934a4d8 projected=102.0s risk=0.06 matched_rules=['large_palette_noise']
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-06 13:13:24 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.024 ms
+2025-11-06 13:13:24 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.017 ms
+2025-11-06 13:13:24 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.016 ms
+2025-11-06 13:13:24 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.011 ms
+2025-11-06 13:13:24 | INFO | tri_arc.modules.symbolic | symbolic::solve -> completed
+2025-11-06 13:13:24 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-06 13:13:24 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-06 13:13:24 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.eval.harness | Evaluating task 135a2760 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\smoke\135a2760.json)
+2025-11-06 13:13:25 | INFO | tri_arc.scheduler | Scheduled task_id=135a2760 projected=102.0s risk=0.11 matched_rules=['large_palette_noise']
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.011 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.009 ms
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.eval.harness | Evaluating task 136b0064 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\smoke\136b0064.json)
+2025-11-06 13:13:25 | INFO | tri_arc.scheduler | Scheduled task_id=136b0064 projected=90.0s risk=0.16 matched_rules=[]
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.012 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.012 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.009 ms
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.eval.harness | Evaluating task 13e47133 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\smoke\13e47133.json)
+2025-11-06 13:13:25 | INFO | tri_arc.scheduler | Scheduled task_id=13e47133 projected=102.0s risk=0.22 matched_rules=['large_palette_noise']
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.010 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.008 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.013 ms
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.eval.harness | Evaluating task 142ca369 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\smoke\142ca369.json)
+2025-11-06 13:13:25 | INFO | tri_arc.scheduler | Scheduled task_id=142ca369 projected=90.0s risk=0.27 matched_rules=[]
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.009 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.008 ms
+2025-11-06 13:13:25 | INFO | arc.symbolic.dsl.interpreter | DSL stage 0 | identity | 0.008 ms
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> running
+2025-11-06 13:13:25 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> completed
+2025-11-06 13:13:26 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> running
+2025-11-06 13:13:26 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> completed
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Evaluation complete. Summary written to reports\eval_runs\smoke\smoke-20251106T051324Z\summary.json
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Completed tasks: 5
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Failed tasks: 0
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Total elapsed seconds: 1.13
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Manifest: C:\Users\000000\Desktop\Tri-ARC\reports\eval_manifest_20251106_smoke-20251106T051324Z.md
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Summary report: C:\Users\000000\Desktop\Tri-ARC\reports\eval_summary.md
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Delta report: C:\Users\000000\Desktop\Tri-ARC\reports\eval_delta_smoke-20251106T051324Z.md
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | History log: C:\Users\000000\Desktop\Tri-ARC\reports\eval_history.md
+2025-11-06 13:13:26 | INFO | tri_arc.run_eval | Packaged artefacts: C:\Users\000000\Desktop\Tri-ARC\reports\archives\smoke-20251106T051324Z_artefacts.zip

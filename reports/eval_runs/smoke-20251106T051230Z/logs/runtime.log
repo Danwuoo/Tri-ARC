@@ -1,0 +1,22 @@
+2025-11-06 13:12:30 | INFO | tri_arc.run_eval | Tri-ARC evaluation starting
+2025-11-06 13:12:30 | INFO | tri_arc.run_eval | Runtime log: reports\eval_runs\smoke-20251106T051230Z\logs\runtime.log
+2025-11-06 13:12:30 | INFO | tri_arc.run_eval | Run directory: reports\eval_runs\smoke-20251106T051230Z
+2025-11-06 13:12:30 | INFO | tri_arc.run_eval | Metrics file: reports\eval_runs\smoke-20251106T051230Z\metrics.jsonl
+2025-11-06 13:12:30 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.ttt | ttt::initialize -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.ttt | TTT module initialised with profile=default
+2025-11-06 13:12:30 | INFO | tri_arc.modules.ttt | ttt::initialize -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.llm | llm::initialize -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.llm | LLM module initialised with prompt_version=v1
+2025-11-06 13:12:30 | INFO | tri_arc.modules.llm | llm::initialize -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.ttt | ttt::shutdown -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.ttt | ttt::shutdown -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.llm | llm::shutdown -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.llm | llm::shutdown -> completed
+2025-11-06 13:12:30 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> running
+2025-11-06 13:12:30 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> completed

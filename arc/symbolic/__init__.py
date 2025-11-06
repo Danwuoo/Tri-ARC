@@ -137,6 +137,7 @@ class SymbolicModule(SolverModule):
             "frontier_log": str(telemetry.frontier_log) if telemetry.frontier_log else None,
             "diagnostics": [str(path) for path in telemetry.diagnostics],
             "progress_path": str(telemetry.progress_path) if telemetry.progress_path else None,
+            "checkpoint_path": str(telemetry.checkpoint_path) if telemetry.checkpoint_path else None,
             "elapsed_s": telemetry.elapsed_s,
             "expansions": telemetry.expansions,
             "generated_nodes": telemetry.generated_nodes,

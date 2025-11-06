@@ -28,6 +28,12 @@ class DepthFirstSearchStrategy(SearchStrategy):
             return node
         return None
 
+    def _export_internal_state(self) -> dict:
+        return {"stack": list(self._stack)}
+
+    def _restore_internal_state(self, payload: dict) -> None:
+        self._stack = list(payload.get("stack", []))
+
 
 @dataclass
 class _DeferredNode:
@@ -79,6 +85,21 @@ class IterativeDeepeningStrategy(SearchStrategy):
                 continue
             return node
 
+    def _export_internal_state(self) -> dict:
+        return {
+            "limit": self._limit,
+            "depth_step": self._depth_step,
+            "stack": list(self._stack),
+            "deferred": list(self._deferred),
+        }
+
+    def _restore_internal_state(self, payload: dict) -> None:
+        self._limit = int(payload.get("limit", self._limit))
+        self._depth_step = int(payload.get("depth_step", self._depth_step))
+        self._stack = list(payload.get("stack", []))
+        deferred = payload.get("deferred", [])
+        self._deferred = collections.deque(deferred)
+
 
 class BeamSearchStrategy(SearchStrategy):
     """Beam search ordered by node score."""
@@ -106,6 +127,16 @@ class BeamSearchStrategy(SearchStrategy):
                 continue
             return node
         return None
+
+    def _export_internal_state(self) -> dict:
+        return {
+            "beam": list(self._beam),
+            "tiebreak": self._tiebreak,
+        }
+
+    def _restore_internal_state(self, payload: dict) -> None:
+        self._beam = list(payload.get("beam", []))
+        self._tiebreak = int(payload.get("tiebreak", 0))
 
 
 __all__ = [

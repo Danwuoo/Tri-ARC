@@ -1,5 +1,11 @@
 # Tri-ARC Change Log
 
+## 2025-11-06 - DreamCoder Fragment Mining
+- Report: `reports\symbolic\dreamcoder_fragments_demo.md`
+- Top fragments:
+  - `(identity, rotate)` occurrences=2 score=1.00
+  - `(identity, mirror)` occurrences=2 score=1.00
+
 This change log captures spec, interpreter, and governance updates that require ratification before downstream consumers adopt them. Each entry records the proposal owner, reviewers, approvals, and validation artefacts.
 
 ## 2025-11-05 - Module Lifecycle Contract v1.0

@@ -48,3 +48,8 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 3. Execute `python scripts/run_eval.py --split smoke --max_tasks 5` to validate end-to-end operation within 15 minutes (Stage 2 onwards).
 4. Log outputs in `reports/smoke_logs/`.
 5. Update `docs/compliance/LICENCE_LOG.md` with new bundles before publishing artifacts.
+
+## Symbolic Heuristic Weights
+- Build deterministic TorchScript weights for the neural heuristic with `python scripts/build/build_symbolic_heuristic.py`. The script emits `models/symbolic/heuristic.pt` and a checksum manifest `models/symbolic/heuristic.sha256`.
+- The checksum manifest records the SHA256 hash and metadata (seed, layer layout). Upload both files with the offline bundle so `docs/MODULES/SYMBOLIC.md` requirements are satisfied.
+- On CPU-only hosts, override the symbolic lane device via `python tools/compare_heuristics.py --seed 1337 --output ...` (or set `symbolic.device: cpu` in config) before running calibration jobs.

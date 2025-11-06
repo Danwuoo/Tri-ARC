@@ -42,6 +42,7 @@ def build_solver_result(status: str = "success") -> SolverResult:
         diagnostics=[],
         events=[],
         progress_path=None,
+        checkpoint_path=None,
         elapsed_s=0.25,
         expansions=10,
         generated_nodes=25,

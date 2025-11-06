@@ -1,0 +1,21 @@
+[
+  [
+    ["identity", []],
+    ["rotate", ["left"]]
+  ],
+  [
+    ["identity", []],
+    ["mirror", ["horizontal"]],
+    ["paint", ["foreground"]]
+  ],
+  [
+    ["identity", []],
+    ["rotate", ["left"]],
+    ["crop", ["largest"]]
+  ],
+  [
+    ["identity", []],
+    ["mirror", ["horizontal"]],
+    ["crop", ["largest"]]
+  ]
+]

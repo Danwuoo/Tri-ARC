@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 import random
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from .budget import SearchBudget
 from .types import FrontierSnapshot, SearchNode, summarise_nodes
@@ -81,6 +81,39 @@ class SearchStrategy(abc.ABC):
             max_depth=int(max_depth),
             notes=notes or {},
         )
+
+    def export_state(self) -> Dict[str, Any]:
+        """Export strategy state for checkpointing."""
+        return {
+            "name": self.name,
+            "rng_state": self._rng.getstate(),
+            "initialised": self._initialised,
+            "pending": list(self._pending.values()),
+            "expanded": list(self._expanded.values()),
+            "pruned": list(self._pruned.values()),
+            "internal": self._export_internal_state(),
+        }
+
+    def restore_state(self, payload: Dict[str, Any]) -> None:
+        """Restore strategy state from a checkpoint payload."""
+        self._pending = {node.node_id: node for node in payload.get("pending", [])}
+        self._expanded = {node.node_id: node for node in payload.get("expanded", [])}
+        self._pruned = {node.node_id: node for node in payload.get("pruned", [])}
+        rng_state = payload.get("rng_state")
+        if rng_state is not None:
+            self._rng.setstate(rng_state)
+        self._initialised = bool(payload.get("initialised", True))
+        self._restore_internal_state(payload.get("internal", {}))
+
+    @abc.abstractmethod
+    def _export_internal_state(self) -> Dict[str, Any]:
+        """Subclasses should export any additional state necessary for resuming."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _restore_internal_state(self, payload: Dict[str, Any]) -> None:
+        """Subclasses should restore additional state from the payload."""
+        raise NotImplementedError
 
     @abc.abstractmethod
     def _push(self, node: SearchNode) -> None:

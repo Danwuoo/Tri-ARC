@@ -5,6 +5,7 @@ import json
 import logging
 import random
 import time
+import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -38,6 +39,7 @@ class SolverTelemetry:
     diagnostics: List[Path]
     events: List[SearchTraceEvent]
     progress_path: Optional[Path]
+    checkpoint_path: Optional[Path]
     elapsed_s: float
     expansions: int
     generated_nodes: int
@@ -50,6 +52,57 @@ class SolverResult:
     candidates: List[CandidateProgram]
     telemetry: SolverTelemetry
     summary: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SolverControl:
+    """Best-effort cooperative control shared with the scheduler."""
+
+    signal_path: Optional[Path]
+    throttle_s: float = 0.5
+    _direct_action: Optional[str] = field(default=None, init=False, repr=False)
+    _last_poll: float = field(default=0.0, init=False, repr=False)
+    _last_seen: Optional[str] = field(default=None, init=False, repr=False)
+
+    @classmethod
+    def from_task(cls, payload: Optional[Dict[str, Any]]) -> "SolverControl":
+        if not payload:
+            return cls(signal_path=None)
+        signal_path = payload.get("signal_path")
+        path = Path(signal_path) if signal_path else None
+        throttle = float(payload.get("poll_interval_s", 0.5))
+        control = cls(signal_path=path, throttle_s=max(0.1, throttle))
+        action = payload.get("action")
+        if isinstance(action, str) and action.lower() in {"pause", "cancel"}:
+            control._direct_action = action.lower()
+        return control
+
+    def poll(self) -> Optional[str]:
+        if self._direct_action:
+            action = self._direct_action
+            self._direct_action = None
+            self._last_seen = action
+            return action
+        if not self.signal_path:
+            return None
+        now = time.perf_counter()
+        if now - self._last_poll < self.throttle_s:
+            return None
+        self._last_poll = now
+        if not self.signal_path.exists():
+            return None
+        try:
+            payload = json.loads(self.signal_path.read_text(encoding="utf-8"))
+        except Exception as exc:  # pragma: no cover - defensive
+            LOGGER.debug("Failed to read control signal %s: %s", self.signal_path, exc)
+            return None
+        action = str(payload.get("action", "")).lower()
+        if action not in {"pause", "cancel"}:
+            return None
+        if action == self._last_seen:
+            return None
+        self._last_seen = action
+        return action
 
 
 class SymbolicSolver:
@@ -89,6 +142,13 @@ class SymbolicSolver:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+        control_dir = self.symbolic_cfg.get("telemetry", {}).get("control_dir")
+        if control_dir:
+            self.control_dir = Path(control_dir)
+        else:
+            self.control_dir = self.checkpoint_dir
+        self.control_dir.mkdir(parents=True, exist_ok=True)
+
         self.reports_dir = Path(self.symbolic_cfg.get("frontier", {}).get("report_dir", "reports/symbolic"))
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 
@@ -99,15 +159,52 @@ class SymbolicSolver:
     # --------------------------------------------------------------------- #
     def solve(self, task: Dict[str, Any]) -> SolverResult:
         task_id = str(task.get("task_id", "unknown_task"))
+        control = SolverControl.from_task(task.get("control"))
+        if control.signal_path and not control.signal_path.is_absolute():
+            control.signal_path = (self.control_dir / control.signal_path).resolve()
+
         train_examples = task.get("train_examples") or task.get("examples") or []
         examples = self._build_examples(train_examples)
         metadata = task.get("metadata", {})
 
+        resume_path = self._resolve_resume_checkpoint(task, task_id)
+        resume_payload: Optional[Dict[str, Any]] = None
+        if resume_path and resume_path.exists():
+            try:
+                candidate_payload = self._load_checkpoint(resume_path)
+                if candidate_payload.get("task_id") != task_id:
+                    LOGGER.warning(
+                        "Checkpoint %s belongs to task %s; expected %s. Ignoring resume request.",
+                        resume_path,
+                        candidate_payload.get("task_id"),
+                        task_id,
+                    )
+                else:
+                    resume_payload = candidate_payload
+            except Exception as exc:  # pragma: no cover - defensive
+                LOGGER.warning("Failed to load checkpoint %s for task %s: %s", resume_path, task_id, exc)
+
         budget = self._build_budget(task_id)
         strategy = self._build_strategy(budget)
+        if resume_payload:
+            strategy_state = resume_payload.get("strategy", {})
+            if strategy_state.get("name") != strategy.name:
+                LOGGER.warning(
+                    "Checkpoint %s strategy %s mismatches current strategy %s; starting fresh search for %s.",
+                    resume_path,
+                    strategy_state.get("name"),
+                    strategy.name,
+                    task_id,
+                )
+                resume_payload = None
 
         base_seed = self._derive_seed(task_id)
         rng = random.Random(base_seed)
+        if resume_payload and "context_rng_state" in resume_payload:
+            try:
+                rng.setstate(resume_payload["context_rng_state"])
+            except Exception as exc:  # pragma: no cover - best effort
+                LOGGER.debug("Unable to restore RNG state for %s: %s", task_id, exc)
 
         root_node = SearchNode(
             node_id=0,
@@ -118,14 +215,32 @@ class SymbolicSolver:
             metadata={"coverage": 0.0, "consistency": 0.0, "progress": 0.0, "novelty": 0.0},
         )
 
-        events: List[SearchTraceEvent] = []
-        candidates: List[CandidateProgram] = []
-        diagnostics: List[Path] = []
+        events: List[SearchTraceEvent] = list(resume_payload.get("events", [])) if resume_payload else []
+        candidates: List[CandidateProgram] = list(resume_payload.get("candidates", [])) if resume_payload else []
+        diagnostics: List[Path] = list(resume_payload.get("diagnostics", [])) if resume_payload else []
 
         trace_log_handle = self.frontier_log_path.open("a", encoding="utf-8")
-        start_time = time.perf_counter()
-        frontier_report_path = self.reports_dir / f"frontier_{task_id}_{time.strftime('%Y%m%d_%H%M%S')}.md"
+        if resume_payload:
+            self._log_event(
+                trace_log_handle,
+                events,
+                event_type="resume_start",
+                payload={
+                    "task_id": task_id,
+                    "reason": resume_payload.get("reason", "resume"),
+                    "checkpoint": str(resume_path) if resume_path else None,
+                },
+                task_id=task_id,
+            )
+
+        if resume_payload and resume_payload.get("frontier_report"):
+            frontier_report_path = Path(resume_payload["frontier_report"])
+        else:
+            frontier_report_path = self.reports_dir / f"frontier_{task_id}_{time.strftime('%Y%m%d_%H%M%S')}.md"
+        frontier_report_path.parent.mkdir(parents=True, exist_ok=True)
         frontier_recorder = FrontierRecorder(frontier_report_path)
+        if resume_payload:
+            frontier_recorder.extend(resume_payload.get("frontier_snapshots", []))
 
         context = EnumeratorContext(
             task_id=task_id,
@@ -151,18 +266,40 @@ class SymbolicSolver:
             for rule in builtin_rules():
                 egraph.add_rule(rule)
 
-        node_counter = 0
-        strategy.initialise(root_node)
-        budget.register_node()
+        node_counter = int(resume_payload.get("node_counter", 0)) if resume_payload else 0
 
         snapshot_interval_s = float(self.symbolic_cfg.get("frontier", {}).get("snapshot_interval_s", 5.0))
-        next_snapshot = snapshot_interval_s
+        if resume_payload:
+            budget.restore_state(resume_payload.get("budget", {}))
+            strategy.restore_state(resume_payload.get("strategy", {}))
+            elapsed_offset = float(resume_payload.get("elapsed_s", 0.0))
+            start_time = time.perf_counter() - elapsed_offset
+            next_snapshot = float(resume_payload.get("next_snapshot", snapshot_interval_s))
+        else:
+            strategy.initialise(root_node)
+            budget.register_node()
+            start_time = time.perf_counter()
+            next_snapshot = snapshot_interval_s
 
+        pause_requested = False
+        cancel_requested = False
         terminate = False
+
         while strategy and budget.allow_expansion():
+            action = control.poll()
+            if action == "pause":
+                pause_requested = True
+                LOGGER.info("Pause signal received for task %s.", task_id)
+                break
+            if action == "cancel":
+                cancel_requested = True
+                LOGGER.info("Cancel signal received for task %s.", task_id)
+                break
+
             if not budget.within_time(soft=False):
                 LOGGER.info("Task %s exceeded hard timeout.", task_id)
                 break
+
             node = strategy.pop()
             if node is None:
                 break
@@ -185,7 +322,6 @@ class SymbolicSolver:
                 task_id=task_id,
             )
 
-            # Check if current node already represents a complete program.
             if node.depth > 0:
                 candidate = self._attempt_verification(node, examples, task_id, diagnostics)
                 if candidate is not None:
@@ -289,13 +425,14 @@ class SymbolicSolver:
 
         elapsed_s = time.perf_counter() - start_time
 
+        checkpoint_path: Optional[Path] = None
+        control_reason: Optional[str] = None
         egraph_payload: Optional[Dict[str, Any]] = None
-        if egraph is not None and candidates:
-            egraph_payload = self._run_egraph(egraph, candidates, task_id)
 
-        if not frontier_recorder.snapshots:
+        if pause_requested or cancel_requested:
+            control_reason = "pause" if pause_requested else "cancel"
             try:
-                snapshot = strategy.frontier_snapshot(notes={"task": task_id, "phase": "final"})
+                snapshot = strategy.frontier_snapshot(notes={"task": task_id, "phase": control_reason})
                 frontier_recorder.record(snapshot)
                 self._log_event(
                     trace_log_handle,
@@ -304,45 +441,98 @@ class SymbolicSolver:
                     payload=snapshot.__dict__,
                     task_id=task_id,
                 )
-            except Exception:  # pragma: no cover - strategies may not support snapshots after completion
-                LOGGER.debug("Frontier snapshot unavailable for task %s", task_id)
+            except Exception:  # pragma: no cover - best effort
+                LOGGER.debug("Frontier snapshot unavailable during %s for task %s", control_reason, task_id)
 
-        final_payload: Dict[str, Any] = {
-            "task_id": task_id,
-            "elapsed_s": elapsed_s,
-            "expansions": budget.expansions,
-            "generated_nodes": budget.generated_nodes,
-            "candidate_count": len(candidates),
-        }
-        if egraph_payload is not None:
-            final_payload["egraph"] = egraph_payload
-        self._log_event(
-            trace_log_handle,
-            events,
-            event_type="search_complete",
-            payload=final_payload,
-            task_id=task_id,
-        )
+            checkpoint_payload = {
+                "version": 1,
+                "task_id": task_id,
+                "created_at": time.time(),
+                "reason": control_reason,
+                "node_counter": node_counter,
+                "budget": budget.export_state(),
+                "strategy": strategy.export_state(),
+                "candidates": candidates,
+                "diagnostics": diagnostics,
+                "events": events,
+                "frontier_snapshots": frontier_recorder.snapshots,
+                "frontier_report": str(frontier_report_path),
+                "context_rng_state": rng.getstate(),
+                "elapsed_s": elapsed_s,
+                "next_snapshot": next_snapshot,
+            }
+            checkpoint_path = self._save_checkpoint(task_id, checkpoint_payload)
+            self._log_event(
+                trace_log_handle,
+                events,
+                event_type="checkpoint_created",
+                payload={"task_id": task_id, "checkpoint": str(checkpoint_path), "reason": control_reason},
+                task_id=task_id,
+            )
+        else:
+            if egraph is not None and candidates:
+                egraph_payload = self._run_egraph(egraph, candidates, task_id)
+
+            if not frontier_recorder.snapshots:
+                try:
+                    snapshot = strategy.frontier_snapshot(notes={"task": task_id, "phase": "final"})
+                    frontier_recorder.record(snapshot)
+                    self._log_event(
+                        trace_log_handle,
+                        events,
+                        event_type="frontier_snapshot",
+                        payload=snapshot.__dict__,
+                        task_id=task_id,
+                    )
+                except Exception:  # pragma: no cover - strategies may not support snapshots after completion
+                    LOGGER.debug("Frontier snapshot unavailable for task %s", task_id)
+
+            final_payload: Dict[str, Any] = {
+                "task_id": task_id,
+                "elapsed_s": elapsed_s,
+                "expansions": budget.expansions,
+                "generated_nodes": budget.generated_nodes,
+                "candidate_count": len(candidates),
+            }
+            if egraph_payload is not None:
+                final_payload["egraph"] = egraph_payload
+            self._log_event(
+                trace_log_handle,
+                events,
+                event_type="search_complete",
+                payload=final_payload,
+                task_id=task_id,
+            )
 
         trace_log_handle.close()
 
-        frontier_report = frontier_recorder.flush()
+        frontier_report = frontier_recorder.flush(append=bool(resume_payload))
 
         self.enumerator.shutdown()
         self.heuristic.shutdown()
+
+        if pause_requested or cancel_requested:
+            progress_status = "paused" if pause_requested else "cancelled"
+            summary_status = "partial"
+        else:
+            progress_status = "success" if candidates else "no_solution"
+            summary_status = progress_status
+
+        progress_path = self._write_progress(
+            task_id=task_id,
+            status=progress_status,
+            elapsed_s=elapsed_s,
+            expansions=budget.expansions,
+            nodes=budget.generated_nodes,
+        )
 
         telemetry = SolverTelemetry(
             frontier_report=frontier_report,
             frontier_log=self.frontier_log_path,
             diagnostics=diagnostics,
             events=events,
-            progress_path=self._write_progress(
-                task_id=task_id,
-                status="success" if candidates else "no_solution",
-                elapsed_s=elapsed_s,
-                expansions=budget.expansions,
-                nodes=budget.generated_nodes,
-            ),
+            progress_path=progress_path,
+            checkpoint_path=checkpoint_path,
             elapsed_s=elapsed_s,
             expansions=budget.expansions,
             generated_nodes=budget.generated_nodes,
@@ -350,7 +540,7 @@ class SymbolicSolver:
 
         summary: Dict[str, Any] = {
             "task_id": task_id,
-            "status": "success" if candidates else "no_solution",
+            "status": summary_status,
             "elapsed_s": elapsed_s,
             "expansions": budget.expansions,
             "nodes": budget.generated_nodes,
@@ -358,6 +548,10 @@ class SymbolicSolver:
         }
         if egraph_payload is not None:
             summary["egraph"] = egraph_payload
+        if checkpoint_path:
+            summary["checkpoint_path"] = str(checkpoint_path)
+        if control_reason:
+            summary["control_reason"] = control_reason
 
         self._emit_metric(summary)
 
@@ -597,6 +791,34 @@ class SymbolicSolver:
     def _emit_metric(self, payload: Dict[str, Any]) -> None:
         metrics_file = Path(self.global_cfg.get("log_root", "logs")) / "metrics.jsonl"
         append_metric(metrics_file, {"module": "symbolic_solver", **payload})
+
+    def _checkpoint_path(self, task_id: str) -> Path:
+        return self.checkpoint_dir / f"{task_id}.ckpt"
+
+    def _save_checkpoint(self, task_id: str, payload: Dict[str, Any]) -> Path:
+        path = self._checkpoint_path(task_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as handle:
+            pickle.dump(payload, handle)
+        return path
+
+    def _load_checkpoint(self, path: Path) -> Dict[str, Any]:
+        with path.open("rb") as handle:
+            return pickle.load(handle)
+
+    def _resolve_resume_checkpoint(self, task: Dict[str, Any], task_id: str) -> Optional[Path]:
+        if "resume_checkpoint" in task:
+            return Path(task["resume_checkpoint"])
+        resume_flag = task.get("resume")
+        if isinstance(resume_flag, str):
+            if resume_flag.lower() == "auto":
+                candidate = self._checkpoint_path(task_id)
+                return candidate if candidate.exists() else None
+            if resume_flag.lower() in {"true", "yes"}:
+                resume_flag = True
+        if resume_flag:
+            return self._checkpoint_path(task_id)
+        return None
 
     def _derive_seed(self, task_id: str) -> int:
         base_seed = int(self.symbolic_cfg.get("seed", self.global_cfg.get("seed", 1337)))

@@ -71,5 +71,30 @@ class SearchBudget:
             return float("inf")
         return max(0.0, limit - self.elapsed_s)
 
+    def export_state(self) -> dict:
+        """Serialise budget counters for checkpointing."""
+        return {
+            "max_depth": self.max_depth,
+            "max_expansions": self.max_expansions,
+            "soft_timeout_s": self.soft_timeout_s,
+            "hard_timeout_s": self.hard_timeout_s,
+            "max_nodes": self.max_nodes,
+            "beam_width": self.beam_width,
+            "seed": self.seed,
+            "elapsed_s": self.elapsed_s,
+            "expansions": self._expansions,
+            "generated_nodes": self._generated_nodes,
+        }
+
+    def restore_state(self, payload: dict) -> None:
+        """Restore budget counters from a checkpoint payload."""
+        self._expansions = int(payload.get("expansions", 0))
+        self._generated_nodes = int(payload.get("generated_nodes", 0))
+        elapsed = float(payload.get("elapsed_s", 0.0))
+        if elapsed < 0:
+            elapsed = 0.0
+        # Reconstruct start time so elapsed calculations stay monotonic.
+        self._start_time = time.perf_counter() - elapsed
+
 
 __all__ = ["SearchBudget"]

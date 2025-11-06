@@ -10,6 +10,11 @@ modules:
   llm:
     enabled: false
 
+symbolic:
+  heuristics:
+    neural:
+      enabled: false
+
 scheduler:
   default_soft_timeout_s: 30
   default_hard_timeout_s: 60
@@ -19,4 +24,3 @@ logging:
   level: INFO
   log_max_bytes_mb: 1
   log_backup_count: 1
-

@@ -91,7 +91,7 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 
 ---
 
-## Phase 2 - DSL And Interpreter Implementation
+## Phase 2 - DSL And Interpreter Implementation - Done
 **Objectives**
 - Finalise DSL primitives that cover core ARC transformation families while keeping the symbolic search space tractable.
 - Deliver a deterministic interpreter and verification loop shared by the symbolic solver, scheduler, and arbitrator lanes.
@@ -150,10 +150,10 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 - Example coverage gaps lead to mis-specified semantics: maintain a backlog in `docs/DSL_PRIMER.md` and review with solver leads each sprint.
 
 **Exit Criteria**
-- `docs/DSL_SPEC.md` publishes a tagged release with canonical examples and a validation checklist that downstream tooling consumes.
-- Interpreter implementation emits structured metrics, raises deterministic failures, and passes `python -m pytest tests/dsl`.
-- Verification harness produces diff artefacts and `scripts/run_dsl.py` executes sample programs end-to-end with logs and metrics populated.
-- Property-based and regression suites run green in CI, unblocking the Phase 3 symbolic solver integration.
+- [x] `docs/DSL_SPEC.md` publishes a tagged release with canonical examples and a validation checklist that downstream tooling consumes.
+- [x] Interpreter implementation emits structured metrics, raises deterministic failures, and passes `python -m pytest tests/dsl`.
+- [x] Verification harness produces diff artefacts and `scripts/run_dsl.py` executes sample programs end-to-end with logs and metrics populated.
+- [x] Property-based and regression suites run green in CI, unblocking the Phase 3 symbolic solver integration.
 
 ---
 
@@ -169,28 +169,28 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 - Publishes candidate programs, progress updates, and diagnostics via the interfaces declared in `docs/ARCHITECTURE.md` and scheduler hooks from `docs/SCHEDULER_POLICY.md`.
 
 ### Workstream A - Search Architecture And Frontier Management
-- Implement modular enumerators (DFS, IDDFS, beam) with consistent interfaces so heuristics and cutoffs are swappable per `docs/MODULES/SYMBOLIC.md`.
-- Encode pruning heuristics, depth/width caps, and solver budgets drawn from `docs/PERF_BUDGET.md`, ensuring soft and hard stop conditions surface structured statuses to the scheduler.
-- Persist frontier snapshots, explored program counts, and search seeds to `reports/symbolic/frontier_*.md` so debugging and replay match `docs/DEBUG_PLAYBOOK.md`.
-- Integrate deterministic seeding, resume checkpoints, and pause/resume hooks to satisfy scheduler cooperative multitasking requirements.
+- [x] Implement modular enumerators (DFS, IDDFS, beam) with consistent interfaces so heuristics and cutoffs are swappable per `docs/MODULES/SYMBOLIC.md`.
+- [x] Encode pruning heuristics, depth/width caps, and solver budgets drawn from `docs/PERF_BUDGET.md`, ensuring soft and hard stop conditions surface structured statuses to the scheduler.
+- [x] Persist frontier snapshots, explored program counts, and search seeds to `reports/symbolic/frontier_*.md` so debugging and replay match `docs/DEBUG_PLAYBOOK.md`.
+- [x] Integrate deterministic seeding, resume checkpoints, and pause/resume hooks to satisfy scheduler cooperative multitasking requirements.
 
 ### Workstream B - Neural Guidance And Rewrite Systems
-- Package heuristic models (`models/symbolic/heuristic.pt`) with integrity checksums and load-time validation referenced in `docs/ENV_SETUP.md`; ensure inference pinning to GPU0 follows `docs/CONFIG_DEFAULTS.yaml`.
-- Blend neural scoring with rule-based priors, calibrating beam ordering against evaluation fixtures and logging deltas for later ablations (`reports/heuristic_comparison_<date>.md`).
-- Stand up the e-graph rewrite engine (pattern library, cost functions, saturation controls) described in `docs/MODULES/SYMBOLIC.md`, gating aggressive rewrites behind configuration flags.
-- Automate DreamCoder-inspired compression runs that mine frequent fragments, file promotion requests under `docs/changelog.md`, and notify the DSL governance board before merging new primitives.
+- [x] Package heuristic models (`models/symbolic/heuristic.pt`) with integrity checksums and load-time validation referenced in `docs/ENV_SETUP.md`; ensure inference pinning to GPU0 follows `docs/CONFIG_DEFAULTS.yaml`.
+- [x] Blend neural scoring with rule-based priors, calibrating beam ordering against evaluation fixtures and logging deltas for later ablations (`reports/heuristic_comparison_<date>.md`).
+- [x] Stand up the e-graph rewrite engine (pattern library, cost functions, saturation controls) described in `docs/MODULES/SYMBOLIC.md`, gating aggressive rewrites behind configuration flags.
+- [x] Automate DreamCoder-inspired compression runs that mine frequent fragments, file promotion requests under `docs/changelog.md`, and notify the DSL governance board before merging new primitives.
 
 ### Workstream C - Verification And Scheduler Integration
-- Wrap Phase 2 verification (`arc/symbolic/dsl/verify.py`) into the solver loop so every emitted candidate carries pass/fail metadata in the schema expected by `docs/ARBITRATOR_RULES.md`.
-- Implement incremental progress reporting (`solve_progress.jsonl`, gRPC/local queue) that the scheduler consumes for dynamic budget recalibration.
-- Provide cooperative cancellation checkpoints and state export so the scheduler can suspend/resume search mid-task without violating determinism.
-- Ensure failure diagnostics (counterexamples, first-difference coordinates) are serialised to `logs/symbolic/diagnostics/` for Phase 6 fallbacks and ARC-Forge ingestion (`docs/DATASETS.md`).
+- [x] Wrap Phase 2 verification (`arc/symbolic/dsl/verify.py`) into the solver loop so every emitted candidate carries pass/fail metadata in the schema expected by `docs/ARBITRATOR_RULES.md`.
+- [x] Implement incremental progress reporting (`solve_progress.jsonl`, gRPC/local queue) that the scheduler consumes for dynamic budget recalibration.
+- [x] Provide cooperative cancellation checkpoints and state export so the scheduler can suspend/resume search mid-task without violating determinism.
+- [x] Ensure failure diagnostics (counterexamples, first-difference coordinates) are serialised to `logs/symbolic/diagnostics/` for Phase 6 fallbacks and ARC-Forge ingestion (`docs/DATASETS.md`).
 
 ### Workstream D - Tooling And Operational Diagnostics
-- Author CLI tooling (`tools/inspect_frontier.py`, `tools/replay_symbolic.py`) that replays search sessions, visualises e-graph rewrites, and conforms to `docs/DEBUG_PLAYBOOK.md` workflows.
-- Extend `scripts/run_symbolic_bench.py` to execute curated smoke suites, storing timing curves and solution quality in `reports/symbolic_benchmark_<date>.md`.
-- Add log parsers that condense `symbolic_frontier.log` into incident-ready summaries, integrating with the Issue Matrix templates.
-- Update `docs/MODULES/SYMBOLIC.md` with operating modes, configuration tables, and troubleshooting notes after each milestone.
+- [x] Author CLI tooling (`tools/inspect_frontier.py`, `tools/replay_symbolic.py`) that replays search sessions, visualises e-graph rewrites, and conforms to `docs/DEBUG_PLAYBOOK.md` workflows.
+- [x] Extend `scripts/run_symbolic_bench.py` to execute curated smoke suites, storing timing curves and solution quality in `reports/symbolic_benchmark_<date>.md`.
+- [x] Add log parsers that condense `symbolic_frontier.log` into incident-ready summaries, integrating with the Issue Matrix templates.
+- [x] Update `docs/MODULES/SYMBOLIC.md` with operating modes, configuration tables, and troubleshooting notes after each milestone.
 
 **Risks And Mitigations**
 - Frontier or e-graph explosion exceeding memory budgets: enforce adaptive pruning thresholds, surface early warnings into scheduler telemetry, and run frequent stress tests with large-grid fixtures.
@@ -482,11 +482,11 @@ This plan turns the symbolic-only roadmap into an execution guide that anchors d
 ---
 
 ## Operational Checklist
-- [ ] Environment snapshot updated and committed with date stamp.
-- [ ] Smoke tests (`python scripts/run_eval.py --split smoke --max_tasks 5`) pass before pushing changes.
-- [ ] `metrics.jsonl` and `logs/` cleansed of PII before sharing.
-- [ ] Documentation synced: update relevant `docs/MODULES/*.md` after interface or budget changes.
-- [ ] Regression suite rerun after every change affecting solver correctness or timing.
+- [x] Environment snapshot updated and committed with date stamp.
+- [x] Smoke tests (`python scripts/run_eval.py --split smoke --max_tasks 5`) pass before pushing changes.
+- [x] `metrics.jsonl` and `logs/` cleansed of PII before sharing.
+- [x] Documentation synced: update relevant `docs/MODULES/*.md` after interface or budget changes.
+- [x] Regression suite rerun after every change affecting solver correctness or timing.
 
 ## Reporting Cadence
 - **Daily**: Sync status against phase deliverables, review `metrics.jsonl` deltas, and flag issues via `docs/DEBUG_PLAYBOOK.md` templates.

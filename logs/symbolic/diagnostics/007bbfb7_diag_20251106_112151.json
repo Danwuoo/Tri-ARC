@@ -1,0 +1,161 @@
+{
+  "task_id": "007bbfb7",
+  "program": [
+    [
+      "identity",
+      []
+    ]
+  ],
+  "failures": [
+    {
+      "index": 0,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    },
+    {
+      "index": 1,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    },
+    {
+      "index": 2,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    },
+    {
+      "index": 3,
+      "type": "exception",
+      "message": "IndexError('list index out of range')"
+    },
+    {
+      "index": 4,
+      "type": "grid_mismatch",
+      "expected": [
+        [
+          0,
+          0,
+          0,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          0,
+          7,
+          7,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        [
+          0,
+          7,
+          7,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ]
+      ],
+      "actual": [
+        [
+          0,
+          7,
+          7
+        ],
+        [
+          7,
+          7,
+          7
+        ],
+        [
+          0,
+          7,
+          7
+        ]
+      ],
+      "diff": {
+        "first_mismatch": {
+          "row": 0,
+          "col": 1,
+          "expected": 0,
+          "actual": 7
+        }
+      }
+    }
+  ]
+}

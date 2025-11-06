@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import logging
 from dataclasses import dataclass
@@ -62,7 +63,14 @@ class NeuralHeuristic(HeuristicScorer):
             self._available = False
             return
         if self.config.checksum_path and self.config.checksum_path.exists():
-            expected = self.config.checksum_path.read_text(encoding="utf-8").strip()
+            raw_manifest = self.config.checksum_path.read_text(encoding="utf-8").strip()
+            expected = raw_manifest
+            if raw_manifest.startswith("{"):
+                try:
+                    manifest = json.loads(raw_manifest)
+                    expected = str(manifest.get("sha256", raw_manifest)).strip()
+                except json.JSONDecodeError as exc:  # pragma: no cover - rare
+                    LOGGER.warning("Checksum manifest at %s is not valid JSON: %s", self.config.checksum_path, exc)
             actual = self._compute_checksum(model_path)
             if expected != actual:
                 message = f"Heuristic weights checksum mismatch: expected {expected}, got {actual}"
