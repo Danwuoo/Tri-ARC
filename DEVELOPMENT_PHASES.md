@@ -13,6 +13,7 @@
 # 階段四：LLM 程式生成整合
 - **工作內容**：在本地/Kaggle 以 4-bit 方式載入 Qwen-2.5 Coder 7B，設計 DSL 專用 prompt + 多版 chain-of-thought 變體，完成溫度/Top-p 抽樣（預設 8 筆）與 `DSLInterpreter` 驗證流程，並封裝通過驗證的程式候選（含 prompt 版本、confidence、token 使用量等 metadata）。
 - **完成條件**：LLMModule 可成功啟動模型、於 smoke 任務至少產出 1 個通過驗證的 DSL 候選；失敗候選會被過濾或標示 `note="failed_verification"`，且整個流程遵守 GPU/記憶體限制無 OOM。
+- **進度更新**：`arc/llm` 已切換至 Qwen-2.5 Coder 7B 4-bit pipeline，PromptBuilder/DSLInterpreter 驗證與 metadata 打包皆完成，smoke 設定預設啟用 stub backend 驗證流程。
 
 # 階段五：Kaggle Notebook 首跑與交付
 - **工作內容**：依 `docs/ENV_SETUP.md` 打包 wheels、在 Kaggle GPU Notebook 套用 `scripts/setup_kaggle_env.sh`，調整 `CONFIG_DEFAULTS.yaml`（GPU 映射、SMT 關閉、記憶體保護），執行 `python scripts/run_eval.py --split evaluation`、收集 `logs/runtime.log`／`reports/metrics.jsonl`，並整理 `outputs/pass2.json` 為最終提交流程。

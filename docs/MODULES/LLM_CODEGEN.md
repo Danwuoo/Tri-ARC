@@ -8,30 +8,30 @@ The LLM lane contributes creative program hypotheses that complement the structu
 - Deliver only candidates that satisfy all known examples by coupling generation with formal verification.
 
 ## Model Configuration
-- **Backbone**: A 30B-class causal decoder fine-tuned on ARC-style program traces and grid transformations.
-- **Quantisation**: 4-bit or 8-bit QLoRA checkpoints loaded via tensor parallelism to fit within a single GPU (<=24 GB).
-- **Prompt scaffolding**: Inputs include task metadata, canonicalised grids, symbolic summaries, and prior solution sketches sourced from the shared cache.
+- **Backbone**: Qwen‑2.5 Coder 7B (Instruct) running locally in 4‑bit NF4 via BitsAndBytes. The loader defaults to `backend=auto`, attempting Qwen first and falling back to a stub engine when GPU resources are absent.
+- **Quantisation**: 4‑bit weights with bfloat16 compute; max context trimmed to 1,536 tokens to avoid OOM on 24 GB GPUs. Other bit widths are supported when explicitly requested in the config.
+- **Prompt scaffolding**: The `PromptBuilder` feeds canonicalised grids, palette summaries, and rationalised instructions into three chain‑of‑thought variants (planner / symmetry / contrast). Each prompt emits JSON containing `rationale`, `dsl`, `confidence`, and `test_outputs`.
 
 ## Generation Strategy
-1. **Multi-agent prompting**: Spawn several prompt variants (chain-of-thought, toolformer, DSL-first) to widen hypothesis coverage.
-2. **Sampling controls**: Use moderate temperatures (0.6-0.8), nucleus sampling (p~=0.9), and enforce max token budgets to bound latency.
-3. **Structured output**: Request JSON-like envelopes that separate natural language reasoning, DSL code, and predicted outputs for easier post-processing.
-4. **Self-reflection**: Optionally re-prompt the model with its own critique of earlier attempts to refine subsequent samples.
+1. **Variant round-robin**: Eight samples per task are distributed proportionally across the bundled prompt variants so that symmetry-heavy and object-count focused chains receive dedicated budget.
+2. **Sampling controls**: Temperatures/top‑p values inherit from the configuration (defaults: 0.7 / 0.9) and max new tokens are clamped to 512 to bound latency.
+3. **Structured output**: Every completion must be valid JSON. The parser extracts the DSL string, rationale, model‑reported confidence, and evaluation predictions before downstream checks run.
+4. **Cache-friendly metadata**: Prompt hashes, variant names, token usage, and runtime per completion are stored in `cache_namespace['llm_generations']` for replay tooling.
 
 ## SMT-Based Filtering
-- **Translation layer** converts generated DSL or Python to a constraint system expressed for Z3.
-- **Satisfiability check** ensures each candidate reproduces every provided example exactly; unsatisfiable programs are discarded before runtime execution.
-- **Ranking** combines SMT verification status, heuristic scores (program length, primitive usage), and the model's own log-probabilities.
+- **DSL Interpreter**: Generated programs are parsed with `arc.symbolic.dsl.parser`, linted, and executed via `DSLInterpreter`. Candidates that fail static checks or runtime evaluation are labeled `note="failed_verification"` and excluded unless `keep_failed_candidates` is enabled.
+- **Virtual SMT tokens**: Passing candidates receive deterministic `smt_token`s derived from `llm.smt.token_prefix`, satisfying the arbitrator's attestation gate.
+- **Ranking**: Verified programs are ordered by blended confidence (`0.35 * model_confidence + 0.65 * train_accuracy`) before the refinement cap is applied.
 
 ## Interface With The Rest Of Tri-ARC
-- The scheduler allocates batch size, number of candidates, and temperature schedules according to task difficulty and remaining time.
-- Verified programs, along with optional natural language rationales, are streamed to the arbitrator as soon as they pass SMT checks.
-- Failed attempts plus SMT diagnostics are logged and can seed DSL rewrite discovery or new ARC-Forge adversarial tasks.
+- Scheduler inputs map directly to `initial_candidates`, `temperature_initial`, and `top_p_initial`. Setting `backend: stub` keeps smoke tests cheap while real runs load the quantised Qwen weights.
+- Each candidate exposes rich metadata (prompt version, variant focus, prompt hash, token usage, rationale, DSL lint issues, per-example execution logs) so the arbitrator and diagnostics dashboards can understand LLM provenance.
+- Rejected generations (JSON errors, duplicates, verification failures) are preserved under `cache_namespace['llm_failures']` to guide future prompt tweaks.
 
 ## Resource Management
-- Generation runs on a dedicated GPU; large batches fall back to staggered micro-batches to respect memory caps.
-- KV caches are reused across prompt variants when compatible to lower latency.
-- SMT solving executes on CPU cores with configurable parallelism, leaving GPU time for additional sampling.
+- 4‑bit quantisation keeps the 7B model within a single 24 GB GPU. Sampling is executed sequentially per prompt request to avoid surprise memory spikes on Kaggle GPUs.
+- Stub backend remains available for CI environments without GPUs; it emits deterministic identity programs for contract checks.
+- Interpreter executions stay on CPU, allowing the GPU to remain saturated with generation work while verification results stream back incrementally.
 
 ## Roadmap
 - Integrate curriculum-learned prompts derived from historical failure clusters.
@@ -39,6 +39,6 @@ The LLM lane contributes creative program hypotheses that complement the structu
 - Explore LLM-to-symbolic feedback loops where high-quality generations propose new DSL abstractions directly.
 
 ## SolverModule Contract Snapshot
-- `arc/llm/__init__.py` loads a quantised local decoder from `models/llm/tri-arc-30b-qlora/model.pt`, scores transformation hypotheses, and emits grid candidates enriched with per-example predictions and descriptive rationales.
-- Module metadata and telemetry flow through the shared logging pipeline, exposing selected operations, operation probabilities, and train-time agreement for downstream analytics.
-- Mock implementations (`arc/llm/mocks.py`) remain available for deterministic smoke tests when the lightweight decoder is not required.
+- `arc/llm/__init__.py` now initialises `PromptBuilder`, `QwenCoderEngine`, and `DSLInterpreter` inside the `SolverModule` lifecycle, returning **program** candidates annotated with prompt/verification metadata and SMT tokens.
+- Module summaries record generated/verified counts plus a failure histogram (`failure_reasons`) so regressions can be triaged quickly.
+- `arc/llm/mocks.py` keeps a stubbed subclass for deterministic tests, while `backend: stub` offers a config-level bypass without swapping implementations.

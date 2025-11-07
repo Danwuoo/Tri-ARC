@@ -8,6 +8,7 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 - **PyTorch**: 2.3 with CUDA support.
 - **Z3**: 4.12 CLI and Python bindings.
 - **Auxiliary tools**: `torchvision`, `numpy`, `scipy`, `networkx`, `hydra-core`, `pyyaml`, `rg` (ripgrep), `nsys`, `ncu`.
+- **LLM runtime**: `transformers>=4.38`, `accelerate>=0.24`, and `bitsandbytes>=0.43` (CUDA build) are required to load the Qwen-2.5 Coder 7B checkpoint; fallback to the stub backend if these wheels are unavailable.
 - Dependency manifests live in `requirements.txt`, `environments/conda/environment.yml`, and `environments/docker/Dockerfile`.
 - Use `scripts/build/build_wheel_cache.sh` to pre-download wheels into `vendor/wheels/` and refresh `vendor/wheels/manifest.sha256` for offline installs. Override `PIP_PYTHON_VERSION`, `PIP_PLATFORM`, or `PIP_NO_BINARY` when targeting non-default environments.
 - Verify GPU availability with `python scripts/check_gpu.py`.

@@ -4,9 +4,9 @@
 global:
   seed: 1337
   device_map:
-    symbolic: cuda:0
+    llm: cuda:0
     ttt: cuda:1
-    llm: cuda:2
+    symbolic: cuda:2
     flex: cuda:3
   max_wall_clock_hours: 12
   data_root: data/arcagi2
@@ -139,19 +139,36 @@ ttt:
 
 llm:
   enabled: true
-  model_path: models/llm/tri-arc-30b-qlora
-  quantisation_bits: 4
-  prompt_version: v1
-  batch_size: 2
+  backend: auto
+  model_path: models/Qwen2.5-Coder-7B-Instruct
+  tokenizer_path: models/Qwen2.5-Coder-7B-Instruct
+  prompt_version: dsl-v1
   initial_candidates: 8
   refinement_candidates: 4
   temperature_initial: 0.7
-  temperature_refine: 0.4
   top_p_initial: 0.9
-  top_p_refine: 0.8
+  max_input_tokens: 1536
+  max_new_tokens: 512
+  quantisation_bits: 4
+  keep_failed_candidates: false
+  stop_sequences:
+    - "</json>"
+    - "</response>"
+    - "<|im_end|>"
+  prompt_variants:
+    - name: planner
+      weight: 1.0
+    - name: symmetry
+      weight: 0.8
+    - name: contrast
+      weight: 0.6
+  smt:
+    issue_tokens: true
+    token_prefix: "smt:virtual-llm:"
+    virtual_secret: "tri-arc-llm"
 
 smt:
-  enabled: true
+  enabled: false
   token_prefix: "smt:virtual-symbolic:"
   solver: z3
   timeout_ms: 2000
@@ -187,8 +204,8 @@ logging:
 
 guardrails:
   max_duration_s: 300
-  max_rss_mb: 64000
-  max_gpu_mb: 24576
+  max_rss_mb: 110000
+  max_gpu_mb: 23000
   scheduler:
     feature_cache_min_hit_rate: 0.2
     descriptor_cache_min_hit_rate: 0.2

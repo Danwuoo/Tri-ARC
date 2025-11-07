@@ -6,69 +6,61 @@ This library captures the prompt templates, sampling parameters, and anti-halluc
 
 ### 1. Task Overview Prompt
 ```
-You are Tri-ARC's program synthesis assistant. Given ARC examples, describe the rule and propose DSL code.
+You are Tri-ARC's DSL synthesis assistant. Think step-by-step inside the rationale field and emit strictly valid JSON.
 
 Task ID: {{task_id}}
-Grid Size: {{grid_dims}}
-Colours: {{palette_summary}}
+Focus: {{variant.focus}}
+
+Reasoning Checklist:
+{% for step in variant.instructions %}
+  {{loop.index}}. {{step}}
+{% endfor %}
 
 Examples:
 {% for example in examples %}
-- Input:
-{{example.input}}
-- Output:
-{{example.output}}
+{{example.summary}}
 {% endfor %}
 
-Respond in JSON with keys:
-  "rationale": concise explanation of the rule
-  "dsl": DSL program implementing the rule
-  "test_prediction": predicted output for the test grid
+Evaluation inputs (predict outputs under test_outputs):
+{% for example in eval_examples %}
+{{example.summary}}
+{% endfor %}
+
+Respond with a JSON object containing:
+  "rationale": chain-of-thought explanation (no markdown)
+  "dsl": DSL pipeline compliant with docs/DSL_SPEC.md
+  "confidence": float in [0, 1]
+  "test_outputs": list of predicted grids matching the eval order
 ```
 
-### 2. Chain-of-Thought Refinement Prompt
-```
-Review the previous attempt and correct mistakes.
+### 2. Variant Specialisations
 
-Previous rationale:
-{{previous_rationale}}
+| Name | Focus | Key Instructions |
+|------|-------|------------------|
+| `planner` | General pattern discovery | Contrast input/output deltas, translate reasoning into primitive-friendly stages, mentally verify before emitting DSL. |
+| `symmetry` | Rotations/reflections/tiling | Identify axes, describe colour mappings under those transforms, compose reflect/rotate/crop primitives accordingly. |
+| `contrast` | Object counting and palette rules | Track object counts, bounding boxes, and colour substitutions; prefer filter_objects/paint primitives and justify replacements. |
 
-Previous DSL:
-{{previous_dsl}}
-
-Known failure: {{failure_summary}}
-
-Provide a revised rationale and DSL in the same JSON schema.
-```
-
-### 3. Symmetry-Focused Prompt
-```
-Focus on symmetry and pattern repetition. Analyse the grids for reflections, rotations, or tiling.
-
-Important constraints:
-- Preserve colour counts unless evidence shows creation/destruction.
-- Use DSL primitives from docs/DSL_SPEC.md only.
-
-Return JSON with "rationale", "dsl", and "test_prediction".
-```
+Each sampling round distributes requests proportionally across these variants so at least one covers symmetry-dominant puzzles.
 
 ## Sampling Settings
-| Scenario | Temperature | Top-p | Max tokens | Candidates | Notes |
-|----------|-------------|-------|------------|------------|-------|
-| Initial batch | 0.7 | 0.9 | 512 | 8 | Balanced exploration |
-| Refinement | 0.4 | 0.8 | 384 | 4 | More deterministic for fixes |
-| Symmetry focus | 0.6 | 0.85 | 448 | 6 | Bias toward structural solutions |
-| Low-resource fallback | 0.2 | 0.6 | 320 | 2 | When SMT backlog is high |
+| Variant | Temperature | Top-p | Max tokens | Default share | Notes |
+|---------|-------------|-------|------------|---------------|-------|
+| planner | 0.70 | 0.90 | 512 | 4/8 | Baseline CoT reasoning, tends to generalise. |
+| symmetry | 0.65 | 0.85 | 480 | 2/8 | Prioritises reflections/rotations and palette preservation. |
+| contrast | 0.75 | 0.92 | 520 | 2/8 | Focused on object counting, foreground/background swaps. |
+
+Set `prompt_variants` in the config to rebalance weights or override temperatures for experiment-specific runs.
 
 Scheduler may override candidate counts based on budgets (see `docs/SCHEDULER_POLICY.md`).
 
 ## Anti-Hallucination Rules
-- **Primitive whitelist**: Restrict DSL tokens to those documented in `docs/DSL_SPEC.md`. Unknown primitives trigger immediate rejection.
-- **Structured output**: LLM must return valid JSON. Use regex validation and schema checks before SMT translation.
-- **Token budget guard**: Abort responses exceeding max tokens to prevent rambling explanations.
-- **Self-check**: After each generation, re-prompt the model with `"Does your DSL use only allowed primitives? Answer yes/no."`; discard responses containing "no".
-- **SMT veto**: No candidate reaches the arbitrator without a `sat` result from the gatekeeper (`docs/SMT_GATEKEEPER.md`).
-- **Diversity filter**: Drop near-duplicate DSL programs (levenshtein distance < 10) to widen search coverage.
+- **Interpreter-first rejection**: Programs that fail parsing, linting, or deterministic interpreter evaluation on training examples are tagged `note="failed_verification"` and never forwarded.
+- **Primitive whitelist**: The prompt explicitly references `docs/DSL_SPEC.md`. Unknown operators trip the validation step.
+- **Structured output**: JSON parsing is strict; anything outside the schema counts as `json_missing` and is recorded for debugging.
+- **Token budget guard**: Requests exceeding the `max_input_tokens` budget are truncated and surfaced via `truncated_prompt` metadata.
+- **Virtual SMT tokens**: Every surviving candidate receives a deterministic token, so the arbitrator's SMT gatekeeper can continue to enforce module provenance.
+- **Diversity filter**: DSL strings are hashed; duplicates (hash match) are skipped before verification to widen coverage.
 
 ## Prompt Versioning
 - Store prompt revisions under `prompts/history/<date>/<name>.md`.

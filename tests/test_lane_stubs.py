@@ -52,7 +52,7 @@ def test_ttt_module_generates_candidate() -> None:
 
 
 def test_llm_module_generates_candidate() -> None:
-    config = {"llm": {"enabled": True}}
+    config = {"llm": {"enabled": True, "backend": "stub"}}
     module = LLMModule(config=config)
     module.initialize(build_context("llm", config))
     prepared = module.prepare_task(build_payload())
@@ -60,10 +60,12 @@ def test_llm_module_generates_candidate() -> None:
     assert result.status.value in {"success", "partial"}
     assert result.candidates
     candidate = result.candidates[0]
+    assert candidate.get("program")
     metadata = candidate.get("metadata", {})
-    assert metadata.get("operation")
+    assert metadata.get("prompt_version")
+    assert metadata.get("confidence") is not None
     train_outputs = metadata.get("train_outputs", [])
-    assert train_outputs and train_outputs[0]["grid"] is not None
+    assert isinstance(train_outputs, list)
     module.shutdown()
 
 

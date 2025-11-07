@@ -1,60 +1,118 @@
 from __future__ import annotations
 
-import math
-from collections import Counter
-from dataclasses import dataclass
+import hashlib
+import json
+import logging
+import time
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
+from arc.common.grid import grids_equal, normalise_grid
 from arc.core import (
     ModuleCapabilities,
     ModuleContext,
+    ModuleError,
     ModuleResult,
     ModuleSolveStatus,
     ModuleTaskContext,
     SolverModule,
 )
+from arc.symbolic.dsl.exceptions import DSLParseError
+from arc.symbolic.dsl.interpreter import DSLInterpreter, validate_program
+from arc.symbolic.dsl.parser import parse_program
+from arc.symbolic.dsl.runtime.errors import InterpreterFailure
 
-Tensor = torch.Tensor
+from .engine import BaseLLMEngine, LLMEngineError, LLMGenerationResult, QwenCoderEngine, StubLLMEngine
+from .prompting import LLMPromptContext, PromptBuilder, PromptVariant, build_default_variants
+
+LOGGER = logging.getLogger("arc.llm.module")
 
 
 @dataclass(frozen=True)
-class LLMConfiguration:
-    initial_candidates: int = 4
-    refinement_candidates: int = 2
-    temperature_initial: float = 0.7
-    top_p_initial: float = 0.9
+class SMTSettings:
+    enabled: bool
+    prefix: str
+    secret: str
 
     @classmethod
-    def from_config(cls, cfg: Mapping[str, Any]) -> "LLMConfiguration":
+    def from_config(cls, llm_cfg: Mapping[str, Any], root_cfg: Mapping[str, Any]) -> "SMTSettings":
+        llm_smt = llm_cfg.get("smt", {}) or {}
+        global_smt = root_cfg.get("smt", {}) or {}
+        enabled = bool(llm_smt.get("issue_tokens", global_smt.get("issue_tokens", True)))
+        prefix = str(llm_smt.get("token_prefix") or global_smt.get("token_prefix") or "smt:virtual-llm:")
+        secret = str(
+            llm_smt.get("virtual_secret")
+            or global_smt.get("virtual_secret")
+            or root_cfg.get("global", {}).get("seed", "tri-arc-llm")
+        )
+        return cls(enabled=enabled, prefix=prefix, secret=secret)
+
+
+@dataclass(frozen=True)
+class LLMModuleSettings:
+    enabled: bool
+    backend: str
+    prompt_version: str
+    model_path: Path
+    tokenizer_path: Optional[Path]
+    initial_candidates: int
+    refinement_candidates: int
+    temperature: float
+    top_p: float
+    max_input_tokens: int
+    max_new_tokens: int
+    quantisation_bits: int
+    keep_failed_candidates: bool
+    stop_sequences: Tuple[str, ...]
+    prompt_variants: Tuple[Dict[str, Any], ...]
+    dtype: str
+
+    @classmethod
+    def from_mapping(cls, config: Mapping[str, Any], *, prompt_version: str) -> "LLMModuleSettings":
+        model_path = Path(config.get("model_path", "models/Qwen2.5-Coder-7B-Instruct"))
+        tokenizer_path = config.get("tokenizer_path")
+        stop_sequences = tuple(config.get("stop_sequences", ["</json>", "</response>", "<|im_end|>"]))
+        prompt_variants_cfg = tuple(config.get("prompt_variants") or ())
         return cls(
-            initial_candidates=int(cfg.get("initial_candidates", cls.initial_candidates)),
-            refinement_candidates=int(cfg.get("refinement_candidates", cls.refinement_candidates)),
-            temperature_initial=float(cfg.get("temperature_initial", cls.temperature_initial)),
-            top_p_initial=float(cfg.get("top_p_initial", cls.top_p_initial)),
+            enabled=bool(config.get("enabled", True)),
+            backend=str(config.get("backend", "auto")).lower(),
+            prompt_version=prompt_version,
+            model_path=model_path,
+            tokenizer_path=Path(tokenizer_path) if tokenizer_path else None,
+            initial_candidates=max(1, int(config.get("initial_candidates", 8))),
+            refinement_candidates=max(1, int(config.get("refinement_candidates", 4))),
+            temperature=float(config.get("temperature_initial", 0.7)),
+            top_p=float(config.get("top_p_initial", 0.9)),
+            max_input_tokens=int(config.get("max_input_tokens", 1536)),
+            max_new_tokens=int(config.get("max_new_tokens", 512)),
+            quantisation_bits=int(config.get("quantisation_bits", 4)),
+            keep_failed_candidates=bool(config.get("keep_failed_candidates", False)),
+            stop_sequences=stop_sequences,
+            prompt_variants=prompt_variants_cfg,
+            dtype=str(config.get("dtype", "bfloat16")),
         )
 
 
-class ArcLLMModel(nn.Module):
-    """Compact decoder predicting transformation probabilities."""
+@dataclass
+class ParsedGeneration:
+    dsl: str
+    rationale: str
+    model_confidence: float
+    predictions: Sequence[Any]
+    payload: Dict[str, Any]
+    notes: Optional[str] = None
 
-    def __init__(self, *, input_dim: int, hidden_dim: int, num_operations: int) -> None:
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, num_operations),
-        )
 
-    def forward(self, features: Tensor) -> Tensor:
-        return self.net(features)
+@dataclass
+class CandidateVerification:
+    passed: bool
+    train_outputs: List[Dict[str, Any]]
+    eval_outputs: List[Dict[str, Any]]
+    train_accuracy: float
+    total_train_examples: int
+    issues: List[str] = field(default_factory=list)
+    failure_reason: Optional[str] = None
 
 
 class LLMModule(SolverModule):
@@ -62,463 +120,498 @@ class LLMModule(SolverModule):
     capabilities = ModuleCapabilities(
         supports_partial_results=True,
         supports_resume=False,
-        requires_gpu=False,
+        requires_gpu=True,
         extras={"lane": "llm"},
     )
 
     def __init__(self, config: Dict[str, Any], *, prompt_version: Optional[str] = None) -> None:
         super().__init__(config)
-        cfg = config.get("llm", {})
-        self._prompt_version = prompt_version or cfg.get("prompt_version", "v1")
-        self._enabled = bool(cfg.get("enabled", True))
-        self._config = LLMConfiguration.from_config(cfg)
-        self._model_path = Path(cfg.get("model_path", "models/llm/tri-arc-30b-qlora/model.pt"))
-        self._device_label = str(cfg.get("device") or config.get("global", {}).get("device_map", {}).get("llm", "cpu"))
-        self._device = self._resolve_device(self._device_label)
-        self._model: Optional[ArcLLMModel] = None
-        self._operations: List[str] = []
-        self._feature_mean: Optional[Tensor] = None
-        self._feature_std: Optional[Tensor] = None
-        self._feature_dim: int = 32
+        llm_cfg = config.get("llm", {}) or {}
+        self._device_label = str(llm_cfg.get("device") or config.get("global", {}).get("device_map", {}).get("llm", "auto"))
+        version = prompt_version or str(llm_cfg.get("prompt_version", "dsl-v1"))
+        self._settings = LLMModuleSettings.from_mapping(llm_cfg, prompt_version=version)
+        self._smt = SMTSettings.from_config(llm_cfg, config)
+        self._engine: Optional[BaseLLMEngine] = None
+        self._engine_name: str = "uninitialised"
+        self._engine_warning: Optional[str] = None
+        self._prompt_builder: Optional[PromptBuilder] = None
+        self._interpreter: Optional[DSLInterpreter] = None
+        self._smt_counter = 0
 
     # ------------------------------------------------------------------ #
     # Lifecycle hooks
     # ------------------------------------------------------------------ #
     def _on_initialize(self, context: ModuleContext) -> None:
-        if not self._enabled:
+        if not self._settings.enabled:
             context.logger.info("LLM lane disabled via configuration toggle.")
             return
-        self._ensure_assets_exist()
-        payload = torch.load(self._model_path, map_location="cpu")
-        operations = payload.get("operations")
-        if not operations or not isinstance(operations, list):
-            raise RuntimeError(f"LLM checkpoint {self._model_path} missing operation vocabulary.")
-        self._operations = [str(item) for item in operations]
-        self._feature_dim = int(payload.get("feature_dim", 32))
-        self._model = ArcLLMModel(input_dim=self._feature_dim, hidden_dim=int(payload.get("hidden_dim", 64)), num_operations=len(self._operations))
-        state = payload.get("model_state")
-        if state is None:
-            raise RuntimeError(f"LLM checkpoint {self._model_path} missing 'model_state'.")
-        self._model.load_state_dict(state)
-        self._model.to(self._device)
-        mean = payload.get("feature_mean")
-        std = payload.get("feature_std")
-        if mean is not None and std is not None:
-            self._feature_mean = torch.tensor(mean, dtype=torch.float32, device=self._device)
-            self._feature_std = torch.tensor(std, dtype=torch.float32, device=self._device).clamp_min(1e-6)
-        context.logger.info(
-            "LLM module initialised with prompt_version=%s, device=%s, operations=%d",
-            self._prompt_version,
-            self._device,
-            len(self._operations),
+        self._interpreter = DSLInterpreter(config=self.config)
+        variants = self._resolve_variants()
+        self._prompt_builder = PromptBuilder(
+            prompt_version=self._settings.prompt_version,
+            variants=variants,
+            stop_sequences=self._settings.stop_sequences,
+            default_temperature=self._settings.temperature,
+            default_top_p=self._settings.top_p,
+            default_max_new_tokens=self._settings.max_new_tokens,
         )
+        self._engine = self._initialise_engine(context)
 
     def _on_prepare_task(self, task_context: ModuleTaskContext) -> ModuleTaskContext:
-        shared_namespace = task_context.module_context.shared_cache.setdefault(self.module_name, {})
-        module_cache = shared_namespace.setdefault(task_context.task_id, {})
+        namespace = task_context.module_context.shared_cache.setdefault(self.module_name, {})
+        module_cache = namespace.setdefault(task_context.task_id, {})
         task_context.cache_namespace = module_cache
         task_context.metadata["module"] = self.module_name
-        task_context.metadata["prompt_version"] = self._prompt_version
-        task_context.metadata["device"] = str(self._device)
+        task_context.metadata["prompt_version"] = self._settings.prompt_version
+        task_context.metadata["engine"] = self._engine_name
         return task_context
 
     def _on_solve(self, task_context: ModuleTaskContext) -> ModuleResult:
-        if not self._enabled:
-            summary = {"lane": self.module_name, "reason": "module_disabled"}
+        if not self._settings.enabled:
+            summary = {"reason": "module_disabled", "lane": self.module_name}
             return ModuleResult(task_id=task_context.task_id, status=ModuleSolveStatus.SKIPPED, summary=summary)
-        if self._model is None:
-            raise RuntimeError("LLM model not loaded; initialise module before solving.")
+
+        if self._prompt_builder is None or self._engine is None or self._interpreter is None:
+            raise ModuleError("LLM module must be initialised before solving.")
 
         train_examples = list(task_context.task_payload.get("train_examples") or [])
-        eval_examples = list(task_context.task_payload.get("eval_examples") or task_context.task_payload.get("test_examples") or [])
+        eval_examples = list(
+            task_context.task_payload.get("eval_examples")
+            or task_context.task_payload.get("test_examples")
+            or []
+        )
         if not train_examples:
             summary = {
                 "lane": self.module_name,
-                "profile": self._prompt_version,
+                "prompt_version": self._settings.prompt_version,
                 "reason": "no_train_examples",
             }
             task_context.cache_namespace["candidates"] = []
             task_context.cache_namespace["llm_summary"] = summary
             return ModuleResult(task_id=task_context.task_id, status=ModuleSolveStatus.SKIPPED, summary=summary)
 
-        features = self._compute_task_features(train_examples).unsqueeze(0)  # (1, feature_dim)
-        logits = self._model(features)
-        logits = logits / max(self._config.temperature_initial, 1e-4)
-        probabilities = F.softmax(logits, dim=-1).squeeze(0)
-        ranked_indices = torch.argsort(probabilities, descending=True).tolist()
+        prompt_context = LLMPromptContext(task_id=task_context.task_id, train_examples=train_examples, eval_examples=eval_examples)
+        requests = self._prompt_builder.build_requests(prompt_context, self._settings.initial_candidates)
+        generations = self._engine.generate(requests)
+        processed = self._process_generations(
+            generations,
+            train_examples=train_examples,
+            eval_examples=eval_examples,
+            task_id=task_context.task_id,
+        )
+        candidates = processed["candidates"]
+        failures = processed["failures"]
+        failure_counts = processed["failure_reasons"]
 
-        operation_context = self._build_operation_context(train_examples)
-        candidates: List[Dict[str, Any]] = []
-        seen_operations: set[str] = set()
-        for index in ranked_indices[: max(1, self._config.initial_candidates)]:
-            operation = self._operations[index]
-            if operation in seen_operations:
-                continue
-            seen_operations.add(operation)
-            probability = float(probabilities[index].item())
-            eval_payload = self._evaluate_operation(
-                operation=operation,
-                train_examples=train_examples,
-                eval_examples=eval_examples,
-                context=operation_context,
-            )
-            if not eval_payload["train_outputs"]:
-                continue
-            confidence = self._blend_confidence(probability, eval_payload["train_accuracy"])
-            primary_grid = None
-            for record in eval_payload["eval_outputs"]:
-                if record.get("grid") is not None:
-                    primary_grid = record["grid"]
-                    break
-            if primary_grid is None:
-                for record in eval_payload["train_outputs"]:
-                    if record.get("grid") is not None:
-                        primary_grid = record["grid"]
-                        break
-            if primary_grid is None:
-                continue
-            candidate = {
-                "candidate_id": f"llm-{task_context.task_id}-{operation}",
-                "type": "grid",
-                "grid": primary_grid,
-                "metadata": {
-                    "operation": operation,
-                    "confidence": confidence,
-                    "train_accuracy": eval_payload["train_accuracy"],
-                    "probability": probability,
-                    "prompt_version": self._prompt_version,
-                    "train_outputs": eval_payload["train_outputs"],
-                    "eval_outputs": eval_payload["eval_outputs"],
-                    "rationale": eval_payload["rationale"],
-                },
+        task_context.cache_namespace["candidates"] = candidates
+        task_context.cache_namespace["llm_failures"] = failures
+        task_context.cache_namespace["llm_generations"] = [
+            {
+                "variant": result.request.variant,
+                "finish_reason": result.finish_reason,
+                "runtime_s": result.runtime_s,
+                "prompt_tokens": result.prompt_tokens,
+                "completion_tokens": result.completion_tokens,
+                "truncated_prompt": result.truncated_prompt,
             }
-            candidates.append(candidate)
-            if len(candidates) >= self._config.refinement_candidates:
-                break
+            for result in generations
+        ]
 
         summary = {
             "lane": self.module_name,
-            "prompt_version": self._prompt_version,
-            "selected_operations": [candidate["metadata"]["operation"] for candidate in candidates],
-            "top_probability": candidates[0]["metadata"]["probability"] if candidates else None,
+            "prompt_version": self._settings.prompt_version,
+            "engine": self._engine_name,
+            "backend": self._settings.backend,
+            "generated": len(generations),
+            "verified": len(candidates),
+            "failure_reasons": dict(failure_counts),
+            "engine_warning": self._engine_warning,
         }
-        task_context.cache_namespace["candidates"] = candidates
         task_context.cache_namespace["llm_summary"] = summary
-        status = ModuleSolveStatus.SUCCESS if candidates else ModuleSolveStatus.PARTIAL
-        return ModuleResult(
-            task_id=task_context.task_id,
-            status=status,
-            candidates=candidates,
-            summary=summary,
-        )
+
+        if candidates:
+            status = ModuleSolveStatus.SUCCESS
+        elif generations:
+            status = ModuleSolveStatus.PARTIAL
+        else:
+            status = ModuleSolveStatus.FAILED
+        return ModuleResult(task_id=task_context.task_id, status=status, candidates=candidates, summary=summary)
 
     def _on_shutdown(self, context: ModuleContext) -> None:
-        if self._model is not None:
-            del self._model
-        torch.cuda.empty_cache() if torch.cuda.is_available() else None
-        context.logger.debug("LLM module teardown complete.")
-
+        if self._engine:
+            try:
+                self._engine.shutdown()
+            except Exception as exc:  # pragma: no cover - defensive
+                context.logger.debug("LLM engine shutdown raised %s", exc)
+        self._engine = None
+        self._prompt_builder = None
+        self._interpreter = None
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #
-    def _resolve_device(self, label: str) -> torch.device:
-        if label.startswith("cuda") and torch.cuda.is_available():
-            try:
-                index = int(label.split(":")[1])
-            except (IndexError, ValueError):
-                index = 0
-            if index < torch.cuda.device_count():
-                return torch.device(f"cuda:{index}")
-            if torch.cuda.device_count() > 0:
-                return torch.device("cuda:0")
-        return torch.device("cpu")
-
-    def _ensure_assets_exist(self) -> None:
-        if self._model_path.exists():
-            return
-        self._model_path.parent.mkdir(parents=True, exist_ok=True)
-        operations = [
-            "identity",
-            "rotate90",
-            "rotate180",
-            "rotate270",
-            "mirror_horizontal",
-            "mirror_vertical",
-            "transpose",
-            "invert_palette",
-            "fill_majority_input",
-            "fill_majority_output",
-            "outline_preserve",
-            "shift_right",
-            "shift_down",
-        ]
-        feature_dim = self._feature_dim
-        hidden_dim = 64
-        model = ArcLLMModel(input_dim=feature_dim, hidden_dim=hidden_dim, num_operations=len(operations))
-        torch.manual_seed(1337)
-        for param in model.parameters():
-            if param.dim() >= 2:
-                nn.init.xavier_uniform_(param)
-            else:
-                nn.init.zeros_(param)
-        payload = {
-            "model_state": model.state_dict(),
-            "operations": operations,
-            "feature_dim": feature_dim,
-            "hidden_dim": hidden_dim,
-            "feature_mean": [0.0] * feature_dim,
-            "feature_std": [1.0] * feature_dim,
+    def _resolve_variants(self) -> Tuple[PromptVariant, ...]:
+        base = list(build_default_variants())
+        if not self._settings.prompt_variants:
+            return tuple(base)
+        overrides = {
+            str(entry.get("name", "")).lower(): entry
+            for entry in self._settings.prompt_variants
+            if isinstance(entry, Mapping)
         }
-        torch.save(payload, self._model_path)
-
-    def _compute_task_features(self, train_examples: Sequence[Mapping[str, Any]]) -> Tensor:
-        feature_vectors: List[np.ndarray] = []
-        for example in train_examples:
-            input_grid = self._grid_to_array(example.get("input"))
-            output_grid = self._grid_to_array(example.get("output"))
-            if input_grid is None:
+        resolved: List[PromptVariant] = []
+        for variant in base:
+            payload = overrides.get(variant.name.lower())
+            if not payload:
+                resolved.append(variant)
                 continue
-            feature_vectors.append(self._extract_features(input_grid, output_grid))
-        if not feature_vectors:
-            features = np.zeros(self._feature_dim, dtype=np.float32)
-        else:
-            features = np.mean(feature_vectors, axis=0)
-        tensor = torch.tensor(features, dtype=torch.float32, device=self._device)
-        if self._feature_mean is not None and self._feature_std is not None:
-            tensor = (tensor - self._feature_mean) / self._feature_std
-        return tensor
+            updated = variant
+            scalar_fields = {
+                "temperature": float,
+                "top_p": float,
+                "max_new_tokens": int,
+                "weight": float,
+            }
+            for key, caster in scalar_fields.items():
+                if key in payload:
+                    updated = replace(updated, **{key: caster(payload[key])})
+            if "focus" in payload:
+                updated = replace(updated, focus=str(payload["focus"]))
+            if "description" in payload:
+                updated = replace(updated, description=str(payload["description"]))
+            if "instructions" in payload and isinstance(payload["instructions"], Sequence):
+                instructions = tuple(str(item) for item in payload["instructions"] if item)
+                if instructions:
+                    updated = replace(updated, instructions=instructions)
+            if "system_prompt" in payload:
+                updated = replace(updated, system_prompt=str(payload["system_prompt"]))
+            resolved.append(updated)
+        return tuple(resolved)
 
-    def _extract_features(self, input_grid: np.ndarray, output_grid: Optional[np.ndarray]) -> np.ndarray:
-        rows, cols = input_grid.shape
-        feature = np.zeros(self._feature_dim, dtype=np.float32)
-        feature[0] = rows / 30.0
-        feature[1] = cols / 30.0
-        feature[2] = (output_grid.shape[0] / 30.0) if output_grid is not None else feature[0]
-        feature[3] = (output_grid.shape[1] / 30.0) if output_grid is not None else feature[1]
-        feature[4] = self._palette_entropy(input_grid)
-        feature[5] = self._palette_entropy(output_grid) if output_grid is not None else 0.0
-        feature[6] = self._unique_ratio(input_grid)
-        feature[7] = self._unique_ratio(output_grid) if output_grid is not None else 0.0
-        feature[8] = self._symmetry_score(input_grid, axis=0)
-        feature[9] = self._symmetry_score(input_grid, axis=1)
-        feature[10] = self._symmetry_score(output_grid, axis=0) if output_grid is not None else 0.0
-        feature[11] = self._symmetry_score(output_grid, axis=1) if output_grid is not None else 0.0
-        feature[12] = self._colour_difference(input_grid, output_grid)
-        feature[13] = float(np.mean(input_grid)) / 9.0
-        feature[14] = float(np.mean(output_grid)) / 9.0 if output_grid is not None else feature[13]
-        feature[15] = float(np.var(input_grid)) / 25.0
-        feature[16] = float(np.var(output_grid)) / 25.0 if output_grid is not None else feature[15]
-        feature[17] = float(self._foreground_density(input_grid))
-        feature[18] = float(self._foreground_density(output_grid)) if output_grid is not None else feature[17]
-        feature[19] = float(self._bounding_box_ratio(input_grid))
-        feature[20] = float(self._bounding_box_ratio(output_grid)) if output_grid is not None else feature[19]
-        feature[21] = (rows == cols)
-        feature[22] = float(np.count_nonzero(input_grid)) / (rows * cols)
-        feature[23] = float(np.count_nonzero(output_grid)) / (output_grid.size) if output_grid is not None else feature[22]
-        feature[24] = float(self._colour_match_score(input_grid, output_grid))
-        feature[25] = float(self._edge_similarity(input_grid, output_grid))
-        feature[26] = float(self._background_colour(input_grid))
-        feature[27] = float(self._background_colour(output_grid)) if output_grid is not None else feature[26]
-        feature[28] = float(np.argmax(np.bincount(input_grid.flatten(), minlength=10)))
-        feature[29] = float(np.argmax(np.bincount(output_grid.flatten(), minlength=10))) if output_grid is not None else feature[28]
-        feature[30] = float(np.count_nonzero(input_grid == self._background_colour(input_grid))) / (rows * cols)
-        feature[31] = float(np.count_nonzero(output_grid == self._background_colour(output_grid))) / (output_grid.size) if output_grid is not None else feature[30]
-        return feature
+    def _initialise_engine(self, context: ModuleContext) -> BaseLLMEngine:
+        backend = self._settings.backend
+        if backend in {"auto", "qwen", "qwen2", "qwen2.5"}:
+            try:
+                engine = QwenCoderEngine(
+                    model_path=str(self._settings.model_path),
+                    tokenizer_path=str(self._settings.tokenizer_path) if self._settings.tokenizer_path else None,
+                    device=self._device_label,
+                    quantisation_bits=self._settings.quantisation_bits,
+                    dtype=self._settings.dtype,
+                    max_input_tokens=self._settings.max_input_tokens,
+                )
+                self._engine_name = engine.name
+                self._engine_warning = None
+                return engine
+            except LLMEngineError as exc:
+                context.logger.warning("Qwen engine unavailable (%s)", exc)
+                self._engine_warning = str(exc)
+                if backend != "auto":
+                    raise
+                fallback = StubLLMEngine(reason=str(exc))
+                self._engine_name = fallback.name
+                return fallback
+        if backend == "stub":
+            engine = StubLLMEngine()
+            self._engine_name = engine.name
+            return engine
+        raise ModuleError(f"Unknown llm backend '{backend}'.")
 
-    def _palette_entropy(self, grid: Optional[np.ndarray]) -> float:
-        if grid is None:
-            return 0.0
-        values, counts = np.unique(grid, return_counts=True)
-        probs = counts / counts.sum()
-        entropy = -np.sum(probs * np.log2(probs + 1e-9))
-        return float(entropy / math.log2(10))
-
-    def _unique_ratio(self, grid: Optional[np.ndarray]) -> float:
-        if grid is None or grid.size == 0:
-            return 0.0
-        return float(len(np.unique(grid)) / 10.0)
-
-    def _symmetry_score(self, grid: Optional[np.ndarray], axis: int) -> float:
-        if grid is None:
-            return 0.0
-        if axis == 0:
-            flipped = np.flipud(grid)
-        else:
-            flipped = np.fliplr(grid)
-        return float(np.mean(grid == flipped))
-
-    def _colour_difference(self, input_grid: np.ndarray, output_grid: Optional[np.ndarray]) -> float:
-        if output_grid is None or input_grid.shape != output_grid.shape:
-            return 0.0
-        return float(np.mean(input_grid == output_grid))
-
-    def _foreground_density(self, grid: Optional[np.ndarray]) -> float:
-        if grid is None or grid.size == 0:
-            return 0.0
-        background = self._background_colour(grid)
-        return float(np.count_nonzero(grid != background)) / float(grid.size)
-
-    def _bounding_box_ratio(self, grid: Optional[np.ndarray]) -> float:
-        if grid is None or grid.size == 0:
-            return 0.0
-        rows = np.any(grid != self._background_colour(grid), axis=1)
-        cols = np.any(grid != self._background_colour(grid), axis=0)
-        if not rows.any() or not cols.any():
-            return 0.0
-        height = rows.sum()
-        width = cols.sum()
-        total = grid.shape[0] * grid.shape[1]
-        return float(height * width) / float(total)
-
-    def _colour_match_score(self, input_grid: np.ndarray, output_grid: Optional[np.ndarray]) -> float:
-        if output_grid is None:
-            return 0.0
-        counts_input = np.bincount(input_grid.flatten(), minlength=10)
-        counts_output = np.bincount(output_grid.flatten(), minlength=10)
-        total = counts_input.sum() + counts_output.sum()
-        if total == 0:
-            return 0.0
-        return float(np.minimum(counts_input, counts_output).sum()) / float(max(1, counts_output.sum()))
-
-    def _edge_similarity(self, input_grid: np.ndarray, output_grid: Optional[np.ndarray]) -> float:
-        if output_grid is None:
-            return 0.0
-        top_match = np.mean(input_grid[0, :] == output_grid[0, :]) if input_grid.shape[0] > 0 and output_grid.shape[0] > 0 else 0.0
-        left_match = np.mean(input_grid[:, 0] == output_grid[:, 0]) if input_grid.shape[1] > 0 and output_grid.shape[1] > 0 else 0.0
-        return float((top_match + left_match) / 2.0)
-
-    def _background_colour(self, grid: Optional[np.ndarray]) -> int:
-        if grid is None or grid.size == 0:
-            return 0
-        counts = np.bincount(grid.flatten(), minlength=10)
-        return int(np.argmax(counts))
-
-    def _build_operation_context(self, train_examples: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
-        context: Dict[str, Any] = {}
-        palette_input: Counter[int] = Counter()
-        palette_output: Counter[int] = Counter()
-        for example in train_examples:
-            input_grid = self._grid_to_array(example.get("input"))
-            output_grid = self._grid_to_array(example.get("output"))
-            if input_grid is not None:
-                palette_input.update(input_grid.flatten().tolist())
-            if output_grid is not None:
-                palette_output.update(output_grid.flatten().tolist())
-        context["majority_input_colour"] = palette_input.most_common(1)[0][0] if palette_input else 0
-        context["majority_output_colour"] = palette_output.most_common(1)[0][0] if palette_output else context["majority_input_colour"]
-        context["background_colour"] = context["majority_input_colour"]
-        context["train_outputs"] = [self._grid_to_list(example.get("output")) for example in train_examples]
-        return context
-
-    def _evaluate_operation(
+    def _process_generations(
         self,
+        generations: Sequence[LLMGenerationResult],
         *,
-        operation: str,
         train_examples: Sequence[Mapping[str, Any]],
         eval_examples: Sequence[Mapping[str, Any]],
-        context: Mapping[str, Any],
+        task_id: str,
     ) -> Dict[str, Any]:
+        verified: List[Dict[str, Any]] = []
+        failures: List[Dict[str, Any]] = []
+        failure_reasons: Dict[str, int] = {}
+        seen_hashes: set[str] = set()
+
+        for index, generation in enumerate(generations):
+            parsed, reason = self._parse_generation(generation)
+            if not parsed:
+                failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
+                failures.append(
+                    {
+                        "reason": reason,
+                        "variant": generation.request.variant,
+                        "finish_reason": generation.finish_reason,
+                    }
+                )
+                continue
+
+            digest = hashlib.sha1(parsed.dsl.strip().encode("utf-8")).hexdigest()
+            if digest in seen_hashes:
+                failure_reasons["duplicate_program"] = failure_reasons.get("duplicate_program", 0) + 1
+                continue
+
+            program, lint_issues, validation_error = self._prepare_program(parsed.dsl)
+            if program is None:
+                key = validation_error or "parse_error"
+                failure_reasons[key] = failure_reasons.get(key, 0) + 1
+                failures.append(
+                    {
+                        "reason": key,
+                        "variant": generation.request.variant,
+                        "issues": lint_issues,
+                    }
+                )
+                continue
+
+            verification = self._evaluate_program(program, train_examples, eval_examples, task_id)
+            metadata = self._build_metadata(
+                generation=generation,
+                parsed=parsed,
+                lint_issues=lint_issues,
+                verification=verification,
+                program_digest=digest,
+            )
+
+            if verification.passed:
+                candidate = {
+                    "candidate_id": f"llm-{task_id}-{index}",
+                    "program": parsed.dsl,
+                    "metadata": metadata,
+                }
+                token = self._issue_virtual_smt_token(task_id, index)
+                if token:
+                    candidate["smt_token"] = token
+                verified.append(candidate)
+                seen_hashes.add(digest)
+            else:
+                key = verification.failure_reason or "failed_verification"
+                failure_reasons[key] = failure_reasons.get(key, 0) + 1
+                metadata["note"] = key
+                metadata["train_outputs"] = verification.train_outputs
+                metadata["eval_outputs"] = verification.eval_outputs
+                if self._settings.keep_failed_candidates:
+                    failures.append({"program": parsed.dsl, "metadata": metadata})
+                else:
+                    failures.append({"program_digest": digest, "reason": key})
+
+        verified.sort(key=lambda item: float(item.get("metadata", {}).get("confidence", 0.0)), reverse=True)
+        if len(verified) > self._settings.refinement_candidates:
+            verified = verified[: self._settings.refinement_candidates]
+        return {
+            "candidates": verified,
+            "failures": failures,
+            "failure_reasons": failure_reasons,
+        }
+
+    def _parse_generation(self, generation: LLMGenerationResult) -> Tuple[Optional[ParsedGeneration], str]:
+        text = generation.completion.strip()
+        if not text:
+            return None, "empty_completion"
+        snippet = self._extract_json_block(text)
+        if not snippet:
+            return None, "json_missing"
+        try:
+            payload = json.loads(snippet)
+        except json.JSONDecodeError:
+            return None, "json_decode_error"
+        if isinstance(payload, list):
+            payload = payload[0] if payload else {}
+        if not isinstance(payload, dict):
+            return None, "json_not_object"
+        dsl = payload.get("dsl") or payload.get("program")
+        if not isinstance(dsl, str) or not dsl.strip():
+            return None, "missing_dsl"
+        rationale = str(payload.get("rationale") or payload.get("reasoning") or "").strip()
+        confidence_value = payload.get("confidence", payload.get("score"))
+        model_conf = self._safe_float(confidence_value, default=0.5)
+        predictions = payload.get("test_outputs") or payload.get("test_prediction") or []
+        if isinstance(predictions, Mapping):
+            predictions = [predictions]
+        elif not isinstance(predictions, Sequence):
+            predictions = []
+        notes = payload.get("notes")
+        return (
+            ParsedGeneration(
+                dsl=dsl.strip(),
+                rationale=rationale,
+                model_confidence=max(0.0, min(1.0, model_conf)),
+                predictions=predictions,
+                payload=payload,
+                notes=str(notes) if notes is not None else None,
+            ),
+            "",
+        )
+
+    def _extract_json_block(self, text: str) -> Optional[str]:
+        tick = "\u0060" * 3
+        if tick in text:
+            start = text.find(tick)
+            end = text.find(tick, start + len(tick))
+            if end > start >= 0:
+                block = text[start + len(tick) : end]
+                if block.strip().startswith("json"):
+                    block = block[4:]
+                return block.strip()
+        first = text.find("{")
+        last = text.rfind("}")
+        if first == -1 or last == -1 or last <= first:
+            return None
+        return text[first : last + 1]
+
+    def _prepare_program(self, source: str) -> Tuple[Optional[Any], List[str], Optional[str]]:
+        try:
+            program = parse_program(source)
+        except DSLParseError as exc:
+            return None, [], f"parse_error:{exc}"[:128]
+        assert self._interpreter is not None
+        issues = validate_program(program, self._interpreter.registry)
+        if issues:
+            return program, issues, "validation_failed"
+        return program, issues, None
+
+    def _evaluate_program(
+        self,
+        program: Any,
+        train_examples: Sequence[Mapping[str, Any]],
+        eval_examples: Sequence[Mapping[str, Any]],
+        task_id: str,
+    ) -> CandidateVerification:
+        assert self._interpreter is not None
         train_outputs: List[Dict[str, Any]] = []
         eval_outputs: List[Dict[str, Any]] = []
         matches = 0
-        total = 0
+        total_expected = 0
+        failure_reason: Optional[str] = None
+
         for index, example in enumerate(train_examples):
-            predicted = self._apply_operation(operation, example.get("input"), context)
             expected = example.get("output")
-            train_outputs.append({"index": index, "grid": predicted, "confidence": 1.0 if predicted is not None else 0.0})
-            if predicted is not None and expected is not None and self._grids_equal(predicted, expected):
-                matches += 1
-            total += 1
-        for index, example in enumerate(eval_examples):
-            predicted = self._apply_operation(operation, example.get("input"), context)
-            eval_outputs.append({"index": index, "grid": predicted, "confidence": 1.0 if predicted is not None else 0.0})
-        accuracy = float(matches) / float(max(1, total))
-        rationale = f"operation={operation}, train_accuracy={accuracy:.2f}"
-        return {
-            "train_outputs": train_outputs,
-            "eval_outputs": eval_outputs,
-            "train_accuracy": accuracy,
-            "rationale": rationale,
-        }
-
-    def _apply_operation(self, operation: str, grid: Any, context: Mapping[str, Any]) -> Optional[List[List[int]]]:
-        array = self._grid_to_array(grid)
-        if array is None:
-            return None
-        background = int(context.get("background_colour", self._background_colour(array)))
-        if operation == "identity":
-            result = array
-        elif operation == "rotate90":
-            result = np.rot90(array, -1)
-        elif operation == "rotate180":
-            result = np.rot90(array, 2)
-        elif operation == "rotate270":
-            result = np.rot90(array, 1)
-        elif operation == "mirror_horizontal":
-            result = np.fliplr(array)
-        elif operation == "mirror_vertical":
-            result = np.flipud(array)
-        elif operation == "transpose":
-            result = array.transpose()
-        elif operation == "invert_palette":
-            result = (9 - array) % 10
-        elif operation == "fill_majority_input":
-            colour = int(context.get("majority_input_colour", background))
-            result = np.full_like(array, colour)
-        elif operation == "fill_majority_output":
-            colour = int(context.get("majority_output_colour", background))
-            result = np.full_like(array, colour)
-        elif operation == "outline_preserve":
-            result = np.full_like(array, background)
-            if array.shape[0] > 0:
-                result[0, :] = array[0, :]
-                result[-1, :] = array[-1, :]
-            if array.shape[1] > 0:
-                result[:, 0] = array[:, 0]
-                result[:, -1] = array[:, -1]
-        elif operation == "shift_right":
-            result = np.full_like(array, background)
-            result[:, 1:] = array[:, :-1]
-        elif operation == "shift_down":
-            result = np.full_like(array, background)
-            result[1:, :] = array[:-1, :]
-        else:
-            return None
-        return result.astype(int).tolist()
-
-    def _blend_confidence(self, probability: float, accuracy: float) -> float:
-        return float(0.6 * probability + 0.4 * accuracy)
-
-    def _grid_to_array(self, grid: Any) -> Optional[np.ndarray]:
-        if grid is None:
-            return None
-        if isinstance(grid, np.ndarray):
-            return grid.astype(np.int16, copy=True)
-        if isinstance(grid, torch.Tensor):
-            return grid.detach().cpu().numpy().astype(np.int16)
-        if isinstance(grid, Iterable):
-            rows: List[List[int]] = []
-            for row in grid:
-                if not isinstance(row, Iterable):
-                    return None
-                rows.append([int(value) for value in row])
-            if not rows:
-                return None
+            start = time.perf_counter()
             try:
-                return np.array(rows, dtype=np.int16)
-            except ValueError:
-                return None
-        return None
+                trace = self._interpreter.run(
+                    program,
+                    example.get("input"),
+                    metadata={"task_id": task_id, "lane": self.module_name, "example_index": index},
+                )
+            except InterpreterFailure as exc:
+                failure_reason = f"interpreter_error:{getattr(exc, 'code', 'unknown')}"
+                return CandidateVerification(
+                    passed=False,
+                    train_outputs=train_outputs,
+                    eval_outputs=eval_outputs,
+                    train_accuracy=0.0,
+                    total_train_examples=total_expected,
+                    failure_reason=failure_reason,
+                )
+            duration_ms = (time.perf_counter() - start) * 1000.0
+            output_grid = trace.final_grid
+            record = {
+                "index": index,
+                "grid": output_grid.to_list(),
+                "duration_ms": duration_ms,
+            }
+            if expected is not None:
+                total_expected += 1
+                expected_grid = normalise_grid(expected)
+                if grids_equal(output_grid, expected_grid):
+                    matches += 1
+                    record["matches_expected"] = True
+                else:
+                    record["matches_expected"] = False
+            train_outputs.append(record)
 
-    def _grid_to_list(self, grid: Any) -> Optional[List[List[int]]]:
-        array = self._grid_to_array(grid)
-        if array is None:
+        for index, example in enumerate(eval_examples):
+            start = time.perf_counter()
+            try:
+                trace = self._interpreter.run(
+                    program,
+                    example.get("input"),
+                    metadata={"task_id": task_id, "lane": self.module_name, "example_index": index, "role": "eval"},
+                )
+                eval_outputs.append(
+                    {
+                        "index": index,
+                        "grid": trace.final_grid.to_list(),
+                        "duration_ms": (time.perf_counter() - start) * 1000.0,
+                    }
+                )
+            except InterpreterFailure as exc:  # pragma: no cover - defensive
+                eval_outputs.append(
+                    {
+                        "index": index,
+                        "error": f"interpreter_error:{getattr(exc, 'code', 'unknown')}",
+                    }
+                )
+
+        train_accuracy = matches / total_expected if total_expected else 0.0
+        passed = matches == total_expected
+        return CandidateVerification(
+            passed=passed,
+            train_outputs=train_outputs,
+            eval_outputs=eval_outputs,
+            train_accuracy=train_accuracy,
+            total_train_examples=total_expected,
+            failure_reason=failure_reason,
+        )
+
+    def _build_metadata(
+        self,
+        *,
+        generation: LLMGenerationResult,
+        parsed: ParsedGeneration,
+        lint_issues: Sequence[str],
+        verification: CandidateVerification,
+        program_digest: str,
+    ) -> Dict[str, Any]:
+        confidence = self._blend_confidence(parsed.model_confidence, verification.train_accuracy)
+        prompt_hash = hashlib.sha1(
+            json.dumps(generation.request.messages, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        metadata = {
+            "prompt_version": self._settings.prompt_version,
+            "prompt_variant": generation.request.variant,
+            "prompt_metadata": generation.request.metadata,
+            "prompt_hash": prompt_hash,
+            "engine": self._engine_name,
+            "sampling": {
+                "temperature": generation.request.temperature,
+                "top_p": generation.request.top_p,
+                "max_new_tokens": generation.request.max_new_tokens,
+            },
+            "token_usage": {
+                "prompt": generation.prompt_tokens,
+                "completion": generation.completion_tokens,
+                "total": generation.prompt_tokens + generation.completion_tokens,
+            },
+            "generation_finish_reason": generation.finish_reason,
+            "generation_runtime_s": generation.runtime_s,
+            "truncated_prompt": generation.truncated_prompt,
+            "confidence": confidence,
+            "model_confidence": parsed.model_confidence,
+            "train_accuracy": verification.train_accuracy,
+            "train_example_count": verification.total_train_examples,
+            "verification_ready": verification.passed,
+            "dsl_issues": list(lint_issues),
+            "program_digest": program_digest,
+            "rationale": parsed.rationale,
+            "notes": parsed.notes,
+            "predicted_eval_outputs": parsed.predictions,
+            "llm_payload": parsed.payload,
+        }
+        metadata.setdefault("train_outputs", verification.train_outputs)
+        metadata.setdefault("eval_outputs", verification.eval_outputs)
+        return metadata
+
+    def _blend_confidence(self, model_conf: float, train_accuracy: float) -> float:
+        return round(max(0.0, min(1.0, 0.35 * model_conf + 0.65 * train_accuracy)), 4)
+
+    def _issue_virtual_smt_token(self, task_id: str, sample_index: int) -> Optional[str]:
+        if not self._smt.enabled:
             return None
-        return array.astype(int).tolist()
+        self._smt_counter += 1
+        payload = f"{task_id}:{sample_index}:{self._smt_counter}:{time.time_ns()}:{self._smt.secret}"
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        return f"{self._smt.prefix}{digest[:24]}"
 
-    def _grids_equal(self, left: Any, right: Any) -> bool:
-        left_array = self._grid_to_array(left)
-        right_array = self._grid_to_array(right)
-        if left_array is None or right_array is None:
-            return False
-        return left_array.shape == right_array.shape and np.array_equal(left_array, right_array)
+    @staticmethod
+    def _safe_float(value: Any, *, default: float) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default

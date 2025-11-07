@@ -8,7 +8,8 @@ modules:
   ttt:
     enabled: false
   llm:
-    enabled: false
+    enabled: true
+    backend: stub
 
 symbolic:
   heuristics:
