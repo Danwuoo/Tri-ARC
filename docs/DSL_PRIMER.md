@@ -185,6 +185,30 @@ Crop the bounding box covering colour 2 cells.
 [2, 0]
 ```
 
+### trim_background - `fixtures/dsl/spec_examples/trim_background.json`
+
+Automatically crop uniform padding by detecting the dominant background colour.
+
+**Program**
+```
+(pipeline
+  (apply trim_background))
+```
+**Input grid**
+```
+[0, 0, 0, 0, 0]
+[0, 2, 2, 2, 0]
+[0, 2, 2, 2, 0]
+[0, 2, 2, 2, 0]
+[0, 0, 0, 0, 0]
+```
+**Output grid**
+```
+[2, 2, 2]
+[2, 2, 2]
+[2, 2, 2]
+```
+
 
 ### place - `fixtures/dsl/spec_examples/place.json`
 
@@ -320,6 +344,50 @@ Create a rectangular region from coordinates.
 [0, 1, 1]
 [0, 1, 1]
 [0, 0, 0]
+```
+
+
+### region_outline - `fixtures/dsl/spec_examples/region_outline.json`
+
+Take the perimeter of a previously created region mask.
+
+**Program**
+```
+(pipeline
+  (apply region_from_bbox 0 0 2 2)
+  (apply region_outline @last_region))
+```
+**Region mask**
+```
+[1, 1, 1]
+[1, 0, 1]
+[1, 1, 1]
+```
+
+
+### region_expand - `fixtures/dsl/spec_examples/region_expand.json`
+
+Dilate a region by one step using four-connectivity.
+
+**Program**
+```
+(pipeline
+  (apply region_where_colour 2)
+  (apply region_expand @last_region 1))
+```
+**Input grid**
+```
+[0, 0, 0, 0]
+[0, 2, 0, 0]
+[0, 0, 0, 0]
+[0, 0, 0, 0]
+```
+**Region mask**
+```
+[0, 1, 0, 0]
+[1, 1, 1, 0]
+[0, 1, 0, 0]
+[0, 0, 0, 0]
 ```
 
 

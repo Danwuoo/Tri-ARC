@@ -52,4 +52,6 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 ## Symbolic Heuristic Weights
 - Build deterministic TorchScript weights for the neural heuristic with `python scripts/build/build_symbolic_heuristic.py`. The script emits `models/symbolic/heuristic.pt` and a checksum manifest `models/symbolic/heuristic.sha256`.
 - The checksum manifest records the SHA256 hash and metadata (seed, layer layout). Upload both files with the offline bundle so `docs/MODULES/SYMBOLIC.md` requirements are satisfied.
-- On CPU-only hosts, override the symbolic lane device via `python tools/compare_heuristics.py --seed 1337 --output ...` (or set `symbolic.device: cpu` in config) before running calibration jobs.
+- Package the weights plus checksum into a distributable archive with `python scripts/build/package_symbolic_heuristic_bundle.py --output dist/heuristics/symbolic_heuristic_bundle.zip`.
+- After a smoke run, compare rule-based versus neural contributions using `python scripts/analysis/compare_heuristics.py --tasks-dir reports/eval_runs/smoke/<run>/tasks` and attach the summary to Phase 2 reports.
+- Use `python tools/compare_heuristics.py --mode neural_only --mode rule_only --input-dir data/arcagi2/smoke` when you need an end-to-end runtime comparison between heuristic modes.

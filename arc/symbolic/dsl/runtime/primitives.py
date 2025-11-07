@@ -188,6 +188,32 @@ def _set_last_region(state: ExecutionState, region: Region) -> None:
     state.env["last_region"] = region
 
 
+def _erode_mask(mask: np.ndarray) -> np.ndarray:
+    up = np.zeros_like(mask, dtype=bool)
+    down = np.zeros_like(mask, dtype=bool)
+    left = np.zeros_like(mask, dtype=bool)
+    right = np.zeros_like(mask, dtype=bool)
+
+    up[1:, :] = mask[:-1, :]
+    down[:-1, :] = mask[1:, :]
+    left[:, 1:] = mask[:, :-1]
+    right[:, :-1] = mask[:, 1:]
+
+    return mask & up & down & left & right
+
+
+def _dilate_mask(mask: np.ndarray, radius: int) -> np.ndarray:
+    expanded = mask.copy()
+    for _ in range(radius):
+        shell = expanded.copy()
+        shell[:-1, :] |= expanded[1:, :]
+        shell[1:, :] |= expanded[:-1, :]
+        shell[:, :-1] |= expanded[:, 1:]
+        shell[:, 1:] |= expanded[:, :-1]
+        expanded |= shell
+    return expanded
+
+
 def primitive_identity(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
     state = _clone_state(ctx.state)
     return PrimitiveResult(state=state, value=state.grid)
@@ -318,6 +344,44 @@ def primitive_extract_region(ctx: PrimitiveContext, args: Dict[str, Any]) -> Pri
     )
 
 
+def primitive_trim_background(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
+    grid = ctx.state.grid
+    data = grid.data
+    pad = max(0, int(args.get("pad", 0)))
+    colour_arg = args.get("colour")
+    auto_colour = False
+    if colour_arg is None:
+        auto_colour = True
+    elif isinstance(colour_arg, str) and colour_arg.lower() in {"auto", "background"}:
+        auto_colour = True
+    if auto_colour:
+        colour = ctx.state.background_colour if ctx.state.background_colour is not None else int(grid.detect_background_colour())
+    else:
+        colour = resolve_colour(colour_arg)
+    mask = data != colour
+    if not np.any(mask):
+        state = _clone_state(ctx.state)
+        return PrimitiveResult(state=state, value=state.grid, metadata={"colour": colour, "trimmed": False})
+    row_indices = np.where(mask.any(axis=1))[0]
+    col_indices = np.where(mask.any(axis=0))[0]
+    top = max(0, row_indices[0] - pad)
+    bottom = min(data.shape[0] - 1, row_indices[-1] + pad)
+    left = max(0, col_indices[0] - pad)
+    right = min(data.shape[1] - 1, col_indices[-1] + pad)
+    top_i, bottom_i, left_i, right_i = int(top), int(bottom), int(left), int(right)
+    cropped = data[top_i : bottom_i + 1, left_i : right_i + 1].copy()
+    new_grid = Grid(cropped)
+    state = _update_grid(ctx, new_grid)
+    state.background_colour = colour
+    trimmed = new_grid.shape != grid.shape
+    metadata = {
+        "colour": int(colour),
+        "bounding_box": (top_i, left_i, bottom_i, right_i),
+        "trimmed": trimmed,
+    }
+    return PrimitiveResult(state=state, value=new_grid, metadata=metadata)
+
+
 def primitive_place(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
     source = ensure_grid(args["source"])
     position = args["position"]
@@ -428,6 +492,38 @@ def primitive_region_from_bbox(ctx: PrimitiveContext, args: Dict[str, Any]) -> P
     state.push_object(region)
     _set_last_region(state, region)
     return PrimitiveResult(state=state, value=region, metadata={"bounding_box": (top, left, bottom, right)})
+
+
+def primitive_region_outline(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
+    region = ensure_region(args["region"], ctx.state.grid.shape)
+    mask = region.mask
+    interior = _erode_mask(mask)
+    outline_mask = mask & ~interior
+    outline = Region(outline_mask)
+    state = _clone_state(ctx.state)
+    state.push_object(outline)
+    _set_last_region(state, outline)
+    return PrimitiveResult(state=state, value=outline, metadata={"area": int(outline_mask.sum())})
+
+
+def primitive_region_expand(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
+    region = ensure_region(args["region"], ctx.state.grid.shape)
+    radius = max(0, int(args.get("radius", 1)))
+    if radius == 0:
+        state = _clone_state(ctx.state)
+        state.push_object(region)
+        _set_last_region(state, region)
+        return PrimitiveResult(state=state, value=region, metadata={"area": int(region.mask.sum()), "radius": radius})
+    expanded_mask = _dilate_mask(region.mask, radius)
+    expanded = Region(expanded_mask)
+    state = _clone_state(ctx.state)
+    state.push_object(expanded)
+    _set_last_region(state, expanded)
+    return PrimitiveResult(
+        state=state,
+        value=expanded,
+        metadata={"area": int(expanded_mask.sum()), "radius": radius},
+    )
 
 def primitive_detect_objects(ctx: PrimitiveContext, args: Dict[str, Any]) -> PrimitiveResult:
     connectivity = int(args.get("connectivity", 4))
@@ -692,6 +788,16 @@ register(PrimitiveSpec(
     description="Extract the bounding box grid for a region.",
 ))
 register(PrimitiveSpec(
+    name="trim_background",
+    arguments=(
+        ArgSpec("pad", "int", required=False, default=0),
+        ArgSpec("colour", "colour|str", required=False, default=None),
+    ),
+    result_type="grid",
+    implementation=primitive_trim_background,
+    description="Trim uniform background rows/columns and optionally retain padding.",
+))
+register(PrimitiveSpec(
     name="place",
     arguments=(
         ArgSpec("source", "grid"),
@@ -730,6 +836,20 @@ register(PrimitiveSpec(
     result_type="region",
     implementation=primitive_region_from_bbox,
     description="Construct a rectangular region from coordinates.",
+))
+register(PrimitiveSpec(
+    name="region_outline",
+    arguments=(ArgSpec("region", "region"),),
+    result_type="region",
+    implementation=primitive_region_outline,
+    description="Return the boundary pixels of a region.",
+))
+register(PrimitiveSpec(
+    name="region_expand",
+    arguments=(ArgSpec("region", "region"), ArgSpec("radius", "int", required=False, default=1)),
+    result_type="region",
+    implementation=primitive_region_expand,
+    description="Dilate a region using four-connectivity.",
 ))
 register(PrimitiveSpec(
     name="detect_objects",

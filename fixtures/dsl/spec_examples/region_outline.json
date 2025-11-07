@@ -1,0 +1,22 @@
+{
+  "name": "region_outline_square",
+  "operator": "region_outline",
+  "description": "Take the perimeter of a filled region.",
+  "program": "(pipeline\n  (apply region_from_bbox 0 0 2 2)\n  (apply region_outline @last_region))",
+  "input_grid": [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ],
+  "expected_grid": [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ],
+  "expected_region_mask": [
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1]
+  ],
+  "focus_stage": 1
+}

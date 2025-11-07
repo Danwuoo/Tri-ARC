@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from arc.symbolic.dsl.interpreter import DSLInterpreter
 from arc.symbolic.dsl.parser import parse_program
+from arc.symbolic.dsl.types import Region
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class VerificationCase:
     program: str
     input_grid: Sequence[Sequence[int]]
     expected_grid: Optional[Sequence[Sequence[int]]] = None
+    expected_region_mask: Optional[Sequence[Sequence[int]]] = None
     expected_value: Optional[Any] = None
     focus_stage: Optional[int] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -59,6 +61,7 @@ def _load_case(path: Path) -> VerificationCase:
         program=payload["program"],
         input_grid=payload["input_grid"],
         expected_grid=payload.get("expected_grid"),
+        expected_region_mask=payload.get("expected_region_mask"),
         expected_value=payload.get("expected_value"),
         focus_stage=payload.get("focus_stage"),
         metadata=metadata,
@@ -131,6 +134,28 @@ def _run_case(case: VerificationCase, interpreter: DSLInterpreter) -> CaseResult
                     "actual": value,
                     "focus_stage": focus_index,
                 }
+    if case.expected_region_mask is not None:
+        focus_index = case.focus_stage if case.focus_stage is not None else len(trace) - 1
+        if focus_index < 0 or focus_index >= len(trace):
+            issues["region_focus"] = {
+                "requested": focus_index,
+                "available": len(trace),
+            }
+        else:
+            value = trace[focus_index].value
+            if not isinstance(value, Region):
+                issues["region_type"] = {
+                    "focus_stage": focus_index,
+                    "actual_type": type(value).__name__,
+                }
+            else:
+                mask = value.mask.astype(int).tolist()
+                if mask != case.expected_region_mask:
+                    issues["region_mismatch"] = {
+                        "expected": case.expected_region_mask,
+                        "actual": mask,
+                        "focus_stage": focus_index,
+                    }
 
     duration_ms = (time.perf_counter() - start) * 1000.0
     if issues:

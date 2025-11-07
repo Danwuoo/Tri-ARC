@@ -1,0 +1,22 @@
+{
+  "name": "trim_background_auto",
+  "operator": "trim_background",
+  "description": "Remove uniform padding that matches the detected background colour.",
+  "program": "(pipeline\n  (apply trim_background))",
+  "input_grid": [
+    [0, 0, 0, 0, 0],
+    [0, 2, 2, 2, 0],
+    [0, 2, 2, 2, 0],
+    [0, 2, 2, 2, 0],
+    [0, 0, 0, 0, 0]
+  ],
+  "expected_grid": [
+    [2, 2, 2],
+    [2, 2, 2],
+    [2, 2, 2]
+  ],
+  "parameters": {
+    "pad": 0,
+    "colour": "auto"
+  }
+}

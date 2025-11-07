@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from arc.symbolic.heuristics import HeuristicContext
+from arc.symbolic.heuristics import HeuristicContext, build_heuristic_from_config
+from arc.symbolic.heuristics.neural import NeuralHeuristic
 from arc.symbolic.heuristics.rule_based import RuleBasedHeuristic
 from arc.symbolic.search import SearchNode, TrainingExample
 
@@ -37,3 +38,29 @@ def test_rule_based_heuristic_scores_within_unit_interval():
     result = heuristic.score(node)
     assert 0.0 <= result.score <= 1.0
     assert "coverage" in result.reasoning
+
+
+def _base_config() -> dict:
+    return {
+        "symbolic": {
+            "heuristics": {
+                "rule_based": {"enabled": True, "weight": 1.0},
+                "neural": {"enabled": True, "weight": 1.0, "model_path": "models/symbolic/heuristic.pt"},
+                "calibration": {"enabled": False},
+            }
+        }
+    }
+
+
+def test_build_heuristic_mode_rule_only():
+    config = _base_config()
+    config["symbolic"]["heuristics"]["mode"] = "rule_only"
+    heuristic = build_heuristic_from_config(config, device="cpu")
+    assert isinstance(heuristic, RuleBasedHeuristic)
+
+
+def test_build_heuristic_mode_neural_only():
+    config = _base_config()
+    config["symbolic"]["heuristics"]["mode"] = "neural_only"
+    heuristic = build_heuristic_from_config(config, device="cpu")
+    assert isinstance(heuristic, NeuralHeuristic)

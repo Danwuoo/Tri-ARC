@@ -10,14 +10,32 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from arc.config import load_config
 from arc.logging_utils import append_metric
-from arc.scheduler.cache import LRUCache
-from arc.symbolic.dsl.types import ExecutionState, ExecutionTrace, Grid, Program, Stage, StageResult
+try:
+    from arc.scheduler.cache import LRUCache
+except Exception:  # pragma: no cover - fallback when scheduler deps unavailable
+    class LRUCache:  # type: ignore[override]
+        def __init__(self, max_items: int, *, ttl_seconds: Optional[float] = None) -> None:
+            self._store: Dict[str, Any] = {}
+
+        def get(self, key: str) -> Optional[Any]:
+            return self._store.get(key)
+
+        def set(self, key: str, value: Any, *, metadata: Optional[Dict[str, Any]] = None) -> None:
+            self._store[key] = value
+
+        def clear(self) -> None:
+            self._store.clear()
+
+        def stats(self) -> Dict[str, Any]:
+            size = len(self._store)
+            return {"size": size, "capacity": size, "hits": 0, "misses": 0, "hit_rate": 0.0}
+from arc.symbolic.dsl.types import ExecutionState, ExecutionTrace, Grid, LambdaExpression, Program, Stage, StageResult
 
 from arc.common.grid import ensure_palette, normalise_grid
 from .runtime.context import InterpreterConfig, PrimitiveContext
 from .runtime.evaluation import EvaluationContext, evaluate_expression
 from .runtime.errors import InterpreterFailure
-from .runtime.primitives import PrimitiveResult, PrimitiveSpec, build_registry
+from .runtime.primitives import ArgSpec, PrimitiveResult, PrimitiveSpec, build_registry
 
 LOGGER_NAME = "arc.symbolic.dsl.interpreter"
 
@@ -309,6 +327,45 @@ def validate_program(program: Program, registry: Optional[Dict[str, PrimitiveSpe
         if arg_count > max_args:
             errors.append(
                 f"Stage {index}: operator '{stage.operator}' expects at most {max_args} arguments, received {arg_count}."
+            )
+        errors.extend(_lint_stage_arguments(stage, spec, index))
+    return errors
+
+
+def _lint_stage_arguments(stage: Stage, spec: PrimitiveSpec, stage_index: int) -> List[str]:
+    """Perform lightweight static checks for Stage- and lambda-typed arguments."""
+    errors: List[str] = []
+    values = stage.arguments
+    cursor = 0
+    total = len(values)
+    for arg_spec in spec.arguments:
+        if arg_spec.variadic:
+            if cursor >= total:
+                continue
+            for offset, value in enumerate(values[cursor:]):
+                errors.extend(_validate_argument_type(stage, arg_spec, value, stage_index, cursor + offset))
+            cursor = total
+            break
+        if cursor >= total:
+            continue
+        value = values[cursor]
+        errors.extend(_validate_argument_type(stage, arg_spec, value, stage_index, cursor))
+        cursor += 1
+    return errors
+
+
+def _validate_argument_type(stage: Stage, arg_spec: ArgSpec, value: Any, stage_index: int, argument_index: int) -> List[str]:
+    errors: List[str] = []
+    hints = {hint.strip() for hint in arg_spec.type_hint.split("|")}
+    if "stage" in hints:
+        if value is not None and not isinstance(value, Stage):
+            errors.append(
+                f"Stage {stage_index}: argument '{arg_spec.name}' for operator '{stage.operator}' must be a Stage literal (argument {argument_index})."
+            )
+    if "lambda" in hints:
+        if value is None or not isinstance(value, LambdaExpression):
+            errors.append(
+                f"Stage {stage_index}: argument '{arg_spec.name}' for operator '{stage.operator}' must be a lambda expression."
             )
     return errors
 

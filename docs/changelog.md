@@ -1,5 +1,27 @@
 # Tri-ARC Change Log
 
+## 2025-11-07 - DSL Specification v0.3.0
+- Added `trim_background`, `region_outline`, and `region_expand` primitives plus accompanying fixtures and primer coverage to address common LibraryGap failures (cropping, outlining, and morphological dilation).
+- Strengthened static linting so higher-order arguments (`<stage>`, `<lambda>`) are validated during `validate_program`, preventing malformed combinators from reaching the interpreter.
+- Extended the DSL verification harness to assert region masks via `expected_region_mask`, ensuring region-oriented fixtures genuinely exercise runtime behaviour.
+
+**Proposed by:** Phase 2 DSL working group
+
+**Reviewed by:** Symbolic Solver, Dev Productivity
+
+**Approvals:** [approved] Symbolic Solver - [approved] Dev Productivity
+
+**Validation artefacts:**
+- `arc/symbolic/dsl/runtime/primitives.py`
+- `docs/DSL_SPEC.md`
+- `docs/DSL_PRIMER.md`
+- `arc/symbolic/dsl/interpreter.py`
+- `arc/symbolic/dsl/verify.py`
+- `fixtures/dsl/spec_examples/trim_background.json`
+- `fixtures/dsl/spec_examples/region_outline.json`
+- `fixtures/dsl/spec_examples/region_expand.json`
+- `tests/dsl/test_validation.py`
+
 ## 2025-11-06 - DreamCoder Fragment Mining
 - Report: `reports\symbolic\dreamcoder_fragments_demo.md`
 - Top fragments:

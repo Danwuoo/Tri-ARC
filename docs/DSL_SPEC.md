@@ -1,6 +1,6 @@
 # Tri-ARC DSL Specification
 
-Version: 0.2.0 (2025-11-04)
+Version: 0.3.0 (2025-11-07)
 
 The Tri-ARC domain-specific language encodes grid transformations as composable, deterministic programs. This document defines the grammar, typing rules, primitive catalogue, and governance required to execute the DSL inside the symbolic solver, scheduler, and arbitrator lanes.
 
@@ -79,6 +79,7 @@ Interpreter preflight enforces the following rules before a program is executed.
 - [ ] **Type safety**: argument types align with the operator contract. Regions must match the current grid shape, colours must lie in `[0, 9]`, and lambdas provide exactly one positional parameter.
 - [ ] **Bounds**: numeric arguments obey grid limits. Tuples used as positions stay within `0 <= row < rows` and `0 <= col < cols`.
 - [ ] **Region guards**: region arguments originate from earlier primitives in the same invocation or are validated explicitly via `Region.ensure_shape`.
+- [ ] **Higher-order literals**: primitives that declare `<stage>` or `<lambda>` arguments must receive literal nested stages / lambda expressions; static lint rejects scalars, env references, or other placeholders before execution.
 - [ ] **Object stack discipline**: stack operations (`select_object`, `push_region`, `pop_region`) may only operate when the stack is non-empty.
 - [ ] **Deterministic seeds**: operators that rely on randomness (none in v0.2.0) must receive the interpreter seed; future extensions register through governance.
 - [ ] **Instrumentation health**: metrics sink (`metrics.jsonl`) and runtime log exist and are writable before evaluation begins.
@@ -97,11 +98,14 @@ The interpreter ships a lint helper under `arc.symbolic.dsl.interpreter.validate
 | `flood_fill` | `position seed`, `colour new_colour` | `grid` | Flood-fills from `seed` using four-connectivity and replaces the contiguous region with `new_colour`. | updates `last_grid` |
 | `paint_region` | `region`, `colour` | `grid` | Paints all cells in the supplied region. | updates `last_grid`, sets `last_region` |
 | `extract_region` | `region`, `[int pad]` | `grid` | Crops the minimal bounding box around the region with optional zero-padding. | sets `last_grid` to crop result |
+| `trim_background` | `[int pad]`, `[colour|"auto"]` | `grid` | Removes uniform background rows/columns and optionally expands the retained content by `pad` cells per side. Auto mode infers the dominant colour. | updates `last_grid`, preserves background metadata |
 | `place` | `grid source`, `position top_left`, `[str mode]`, `[grid target]` | `grid` | Places `source` onto the current grid (or optional `target`) at `top_left`. Modes: `"overwrite"` or `"transparent"` (skip zeros). | updates `last_grid` |
 | `map_cells` | `region`, `lambda` | `grid` | Applies the lambda to each cell `(row, col, value)` in the region, expecting a colour result per invocation. | updates `last_value`, stores lambda metadata |
 | `region_all` | n/a | `region` | Produces a region covering the entire grid. | sets `last_region` and pushes onto stack |
 | `region_where_colour` | `colour` | `region` | Returns a region masking cells matching the colour. | sets `last_region`, pushes onto stack |
 | `region_from_bbox` | `int top`, `int left`, `int bottom`, `int right` | `region` | Produces a rectangular region; bounds validated against the grid. | sets `last_region`, pushes onto stack |
+| `region_outline` | `region` | `region` | Emits only the boundary cells of the supplied region using four-connectivity. | sets `last_region`, pushes outline |
+| `region_expand` | `region`, `[int radius]` | `region` | Dilates the region by `radius` steps (four-connectivity) while respecting grid bounds. | sets `last_region`, pushes expanded mask |
 | `detect_objects` | `[int connectivity]`, `[int min_size]` | `region_list` | Performs connected-component analysis over non-background cells. | populates `objects`, rebuilds object stack |
 | `select_object` | `str selector`, `[scalar hint]` | `region` | Picks a region from the object stack (`"largest"`, `"smallest"`, `"index"`, `"colour"`). | sets `last_object`, `last_region`, pushes selection |
 | `push_region` | `region` | `region_list` | Pushes a region onto the stack (for custom workflows). | updates stack |

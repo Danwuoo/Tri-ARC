@@ -1,0 +1,29 @@
+{
+  "name": "region_expand_cross",
+  "operator": "region_expand",
+  "description": "Dilate a single-cell region by one step using four-connectivity.",
+  "program": "(pipeline\n  (apply region_where_colour 2)\n  (apply region_expand @last_region 1))",
+  "input_grid": [
+    [0, 0, 0, 0],
+    [0, 2, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+  ],
+  "expected_grid": [
+    [0, 0, 0, 0],
+    [0, 2, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+  ],
+  "expected_region_mask": [
+    [0, 1, 0, 0],
+    [1, 1, 1, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 0]
+  ],
+  "focus_stage": 1,
+  "parameters": {
+    "colour": 2,
+    "radius": 1
+  }
+}

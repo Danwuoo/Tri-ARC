@@ -65,14 +65,15 @@ symbolic:
   enabled: true
   seed: 1337
   search_strategy: beam
-  max_depth: 12
+  max_depth: 16
   max_expansions: 5000
-  max_nodes: 20000
-  beam_width: 64
+  max_nodes: 40000
+  beam_width: 96
   soft_timeout_s: 90
   hard_timeout_s: 150
   heuristics_model_path: models/symbolic/heuristic.pt
   heuristics:
+    mode: hybrid
     rule_based:
       enabled: true
       weight: 1.0
