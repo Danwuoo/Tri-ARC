@@ -117,8 +117,9 @@ class SymbolicModule(SolverModule):
     # ------------------------------------------------------------------ #
     def _build_module_result(self, task_context: ModuleTaskContext, solver_result: "SolverResult") -> ModuleResult:
         status = _normalise_status(solver_result.status)
-        candidates = [
-            {
+        candidates = []
+        for candidate in solver_result.candidates:
+            payload = {
                 "node_id": candidate.node_id,
                 "score": candidate.score,
                 "cost": candidate.cost,
@@ -128,8 +129,10 @@ class SymbolicModule(SolverModule):
                 "metadata": candidate.metadata,
                 "program": [(stage.operator, stage.arguments) for stage in candidate.program],
             }
-            for candidate in solver_result.candidates
-        ]
+            token = candidate.metadata.get("smt_token") if isinstance(candidate.metadata, dict) else None
+            if token:
+                payload["smt_token"] = token
+            candidates.append(payload)
 
         telemetry = solver_result.telemetry
         telemetry_payload = {

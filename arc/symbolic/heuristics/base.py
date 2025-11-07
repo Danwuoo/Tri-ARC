@@ -5,7 +5,7 @@ import math
 import random
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 from arc.symbolic.search.types import SearchNode, TrainingExample
 
@@ -92,6 +92,72 @@ class HeuristicEnsemble(HeuristicScorer):
         super().shutdown()
 
 
+class CalibratedHeuristicEnsemble(HeuristicEnsemble):
+    """Ensemble wrapper that normalises the blended score using calibration settings."""
+
+    def __init__(
+        self,
+        members: Sequence[HeuristicScorer],
+        weights: Optional[Sequence[float]] = None,
+        *,
+        calibration: Optional[Mapping[str, Any]] = None,
+        name: str = "calibrated_ensemble",
+    ):
+        super().__init__(members, weights=weights, name=name)
+        cfg = dict(calibration or {})
+        self._enabled = bool(cfg.get("enabled", True))
+        midpoint_cfg = cfg.get("midpoint", "auto")
+        if isinstance(midpoint_cfg, str) and midpoint_cfg.lower() == "auto":
+            self._fixed_midpoint: Optional[float] = None
+        else:
+            self._fixed_midpoint = float(midpoint_cfg)
+        self._scale = float(cfg.get("scale", 1.0))
+        self._min_score = cfg.get("min_score", 0.0)
+        self._max_score = cfg.get("max_score", 1.0)
+        self._ema_alpha = float(cfg.get("ema_alpha", 0.2))
+        self._report_field = str(cfg.get("report_field", "calibration"))
+        self._ema_midpoint: Optional[float] = None
+
+    def initialise(self, context: HeuristicContext) -> None:
+        super().initialise(context)
+        self._ema_midpoint = None
+
+    def score_node(self, node: SearchNode) -> HeuristicResult:
+        base = super().score_node(node)
+        if not self._enabled:
+            return base
+        raw = base.score
+        midpoint = self._resolved_midpoint(raw)
+        calibrated = logistic_normalise(raw, midpoint=midpoint, scale=self._scale)
+        if self._min_score is not None:
+            calibrated = max(float(self._min_score), calibrated)
+        if self._max_score is not None:
+            calibrated = min(float(self._max_score), calibrated)
+        base.components["ensemble_total"] = raw
+        base.components["calibrated_total"] = calibrated
+        diagnostics = base.reasoning.setdefault(self._report_field, {})
+        diagnostics.update(
+            {
+                "raw": raw,
+                "midpoint": midpoint,
+                "scale": self._scale,
+                "min_score": self._min_score,
+                "max_score": self._max_score,
+            }
+        )
+        base.score = calibrated
+        return base
+
+    def _resolved_midpoint(self, latest_score: float) -> float:
+        if self._fixed_midpoint is not None:
+            return self._fixed_midpoint
+        if self._ema_midpoint is None:
+            self._ema_midpoint = latest_score
+        else:
+            self._ema_midpoint = (1.0 - self._ema_alpha) * self._ema_midpoint + self._ema_alpha * latest_score
+        return self._ema_midpoint
+
+
 def logistic_normalise(value: float, *, midpoint: float = 0.0, scale: float = 1.0) -> float:
     """Normalise a scalar using a logistic curve."""
     return 1.0 / (1.0 + math.exp(-(value - midpoint) / max(scale, 1e-6)))
@@ -102,5 +168,6 @@ __all__ = [
     "HeuristicResult",
     "HeuristicScorer",
     "HeuristicEnsemble",
+    "CalibratedHeuristicEnsemble",
     "logistic_normalise",
 ]

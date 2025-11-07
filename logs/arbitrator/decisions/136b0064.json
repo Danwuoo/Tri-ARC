@@ -671,15 +671,15 @@
   ],
   "low_confidence": false,
   "fallback_used": true,
-  "timestamp": "2025-11-06T05:13:25Z",
-  "latency_ms": 1.9831657409667969,
+  "timestamp": "2025-11-07T03:38:28Z",
+  "latency_ms": 4.0130615234375,
   "rejected_candidates": [
     {
       "candidate_id": "symbolic-0",
       "module": "symbolic",
-      "score": 0.45,
-      "verification_status": "rejected",
-      "failure_reason": "smt_attestation_failed:missing_smt_token"
+      "score": 0.05,
+      "verification_status": "failed",
+      "failure_reason": "output_mismatch"
     },
     {
       "candidate_id": "fallback-1",

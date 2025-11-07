@@ -25,7 +25,7 @@ from arc.symbolic.search import (
     TrainingExample,
 )
 from arc.symbolic.search.generator import EnumeratorContext, NullEnumerator, ProgramEnumerator
-from arc.symbolic.heuristics import HeuristicContext, HeuristicScorer, build_heuristic_from_config
+from arc.symbolic.heuristics import HeuristicContext, HeuristicResult, HeuristicScorer, build_heuristic_from_config
 from arc.symbolic.egraph.engine import EGraph
 from arc.symbolic.egraph.rules import builtin_rules
 
@@ -126,6 +126,15 @@ class SymbolicSolver:
         self.device = self.symbolic_cfg.get("device", device_map.get("symbolic", "cuda:0"))
 
         self.enumerator = enumerator or NullEnumerator()
+
+        smt_cfg = raw_config.get("smt", {}) or {}
+        symbolic_smt_cfg = self.symbolic_cfg.get("smt", {}) or {}
+        token_prefix = symbolic_smt_cfg.get("token_prefix") or smt_cfg.get("token_prefix") or "smt:virtual-symbolic:"
+        virtual_secret = symbolic_smt_cfg.get("virtual_secret") or smt_cfg.get("virtual_secret") or str(self.global_cfg.get("seed", "tri-arc"))
+        self._smt_issue_tokens = bool(symbolic_smt_cfg.get("issue_tokens", True))
+        self._smt_token_prefix = str(token_prefix)
+        self._smt_virtual_secret = str(virtual_secret)
+        self._smt_token_counter = 0
         self.heuristic = heuristic or build_heuristic_from_config(raw_config, device=self.device)
 
         self.frontier_log_path = Path(self.symbolic_cfg.get("frontier", {}).get("log_path", "logs/symbolic/symbolic_frontier.log"))
@@ -307,6 +316,7 @@ class SymbolicSolver:
             node_score = self.heuristic.score(node)
             node.score = node_score.score
             node.metadata.update(node_score.reasoning)
+            self._capture_heuristic_metadata(node, node_score)
 
             self._log_event(
                 trace_log_handle,
@@ -385,6 +395,7 @@ class SymbolicSolver:
                 score_result = self.heuristic.score(new_node)
                 new_node.score = score_result.score
                 new_node.metadata.update(score_result.reasoning)
+                self._capture_heuristic_metadata(new_node, score_result)
 
                 if expansion.is_solution:
                     candidate = self._attempt_verification(new_node, examples, task_id, diagnostics)
@@ -664,6 +675,19 @@ class SymbolicSolver:
         if diag_path:
             diagnostics.append(diag_path)
 
+        metadata_snapshot = dict(node.metadata)
+        candidate_metadata: Dict[str, Any] = dict(metadata_snapshot)
+        candidate_metadata.setdefault("task_id", task_id)
+        candidate_metadata["node_id"] = node.node_id
+        candidate_metadata["depth"] = node.depth
+        candidate_metadata["cost"] = node.cost
+        candidate_metadata["generated_at"] = time.time()
+        candidate_metadata["solved_examples"] = solved
+        candidate_metadata["total_examples"] = total
+        smt_token = self._issue_virtual_smt_token(task_id, node.node_id)
+        if smt_token:
+            candidate_metadata["smt_token"] = smt_token
+
         candidate = CandidateProgram(
             node_id=node.node_id,
             program=node.program,
@@ -672,7 +696,7 @@ class SymbolicSolver:
             solved_examples=solved,
             total_examples=total,
             verification_passed=solved == total and total > 0,
-            metadata={}
+            metadata=candidate_metadata,
         )
         if failures:
             candidate.metadata["failures"] = failures
@@ -768,6 +792,21 @@ class SymbolicSolver:
         successes = [candidate for candidate in candidates if candidate.verification_passed]
         return len(successes) > 0
 
+    def _capture_heuristic_metadata(self, node: SearchNode, result: HeuristicResult) -> None:
+        heuristics_bucket = node.metadata.setdefault("heuristics", {})
+        heuristics_bucket["score"] = result.score
+        if result.components:
+            components = heuristics_bucket.setdefault("components", {})
+            components.update(result.components)
+
+    def _issue_virtual_smt_token(self, task_id: str, node_id: int) -> Optional[str]:
+        if not self._smt_issue_tokens:
+            return None
+        self._smt_token_counter += 1
+        payload = f"{task_id}:{node_id}:{self._smt_token_counter}:{time.time_ns()}:{self._smt_virtual_secret}"
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        return f"{self._smt_token_prefix}{digest[:24]}"
+
     def _write_progress(
         self,
         *,
@@ -836,6 +875,7 @@ class SymbolicSolver:
             "verification_passed": candidate.verification_passed,
             "metadata": candidate.metadata,
             "program": [(stage.operator, stage.arguments) for stage in candidate.program],
+            "smt_token": candidate.metadata.get("smt_token"),
         }
 
 

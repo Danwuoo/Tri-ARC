@@ -91,6 +91,13 @@ symbolic:
       model_path: models/symbolic/heuristic.pt
       checksum_path: models/symbolic/heuristic.sha256
       requires_checksum: false
+    calibration:
+      enabled: true
+      midpoint: auto
+      scale: 0.45
+      min_score: 0.0
+      max_score: 1.0
+      ema_alpha: 0.2
   egraph:
     enabled: true
     rewrite_limit: 5000
@@ -110,6 +117,10 @@ symbolic:
     enabled: true
     max_items: 512
     ttl_seconds: 43200
+  smt:
+    issue_tokens: true
+    token_prefix: "smt:virtual-symbolic:"
+    virtual_secret: "tri-arc-symbolic"
 
 ttt:
   enabled: true
@@ -140,6 +151,7 @@ llm:
 
 smt:
   enabled: true
+  token_prefix: "smt:virtual-symbolic:"
   solver: z3
   timeout_ms: 2000
   max_retries: 2

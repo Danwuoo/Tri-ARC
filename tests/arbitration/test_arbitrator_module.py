@@ -88,20 +88,7 @@ def test_arbitrator_triggers_fallback_when_needed(tmp_path: Path) -> None:
         },
         "smt": {"enabled": False},
     }
-    shared_cache = {
-        "ttt": {
-            "task-beta": {
-                "candidates": [
-                    {
-                        "candidate_id": "ttt-1",
-                        "type": "grid",
-                        "grid": [[2]],
-                        "metadata": {"confidence": 0.2},
-                    }
-                ]
-            }
-        }
-    }
+    shared_cache = {}
     module = ArbitratorModule(config=config)
     context = _build_context(tmp_path, config, shared_cache)
     module.initialize(context)

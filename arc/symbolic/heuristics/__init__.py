@@ -1,7 +1,14 @@
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .base import HeuristicContext, HeuristicEnsemble, HeuristicResult, HeuristicScorer, logistic_normalise
+from .base import (
+    CalibratedHeuristicEnsemble,
+    HeuristicContext,
+    HeuristicEnsemble,
+    HeuristicResult,
+    HeuristicScorer,
+    logistic_normalise,
+)
 from .neural import NeuralHeuristic, NeuralHeuristicConfig
 from .rule_based import RuleBasedHeuristic, RuleBasedWeights
 
@@ -38,6 +45,10 @@ def build_heuristic_from_config(config: Dict[str, Any], *, device: str) -> Heuri
     if not members:
         raise ValueError("No heuristics enabled; at least one heuristic must be configured.")
 
+    calibration_cfg = heuristics_cfg.get("calibration", {})
+    if calibration_cfg.get("enabled"):
+        return CalibratedHeuristicEnsemble(members, weights=weights, calibration=calibration_cfg)
+
     if len(members) == 1:
         return members[0]
 
@@ -47,6 +58,7 @@ def build_heuristic_from_config(config: Dict[str, Any], *, device: str) -> Heuri
 __all__ = [
     "HeuristicContext",
     "HeuristicEnsemble",
+    "CalibratedHeuristicEnsemble",
     "HeuristicResult",
     "HeuristicScorer",
     "RuleBasedHeuristic",

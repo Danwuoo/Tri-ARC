@@ -14,6 +14,16 @@ symbolic:
   heuristics:
     neural:
       enabled: false
+    calibration:
+      enabled: true
+      midpoint: auto
+      scale: 0.35
+      min_score: 0.0
+      max_score: 1.0
+  smt:
+    issue_tokens: true
+    token_prefix: "smt:smoke-virtual:"
+    virtual_secret: "smoke-stage1"
 
 scheduler:
   default_soft_timeout_s: 30
@@ -24,3 +34,7 @@ logging:
   level: INFO
   log_max_bytes_mb: 1
   log_backup_count: 1
+
+smt:
+  enabled: true
+  token_prefix: "smt:smoke-virtual:"

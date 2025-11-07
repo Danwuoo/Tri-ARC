@@ -97,18 +97,19 @@ class ArbitratorModule(SolverModule):
         )
 
         fallback_used = False
-        if not decision.primary:
+        if decision.fallback_triggered:
             fallback_candidates = generate_fallback_candidates(task_id, train_examples, test_examples)
             for fallback in fallback_candidates:
                 fallback.verification.status = VerificationStatus.PASSED  # type: ignore[union-attr]
                 fallback.score = self._scorer.score_candidate(fallback, observed_signatures=observed_signatures)
                 observed_signatures.add(fallback.compute_signature())
+            fallback_pool = list(verified_candidates) + fallback_candidates
             decision = select_candidates(
-                list(verified_candidates) + fallback_candidates,
+                fallback_pool,
                 confidence_threshold=float(self.config.get("arbitrator", {}).get("confidence_threshold", 0.65)),
                 diversity_gap=float(self.config.get("arbitrator", {}).get("diversity_gap", 0.1)),
             )
-            fallback_used = decision.primary.module == "fallback" if decision.primary else True
+            fallback_used = bool(decision.primary and decision.primary.module == "fallback")
 
         answers = self._materialise_answers(task_id, decision.answers(), test_examples)
         latency_ms = (time.time() - solve_started_at) * 1000.0

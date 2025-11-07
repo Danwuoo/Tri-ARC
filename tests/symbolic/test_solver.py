@@ -79,6 +79,10 @@ def test_symbolic_solver_identity_solution(tmp_path):
     result = solver.solve(task)
     assert result.status == "success"
     assert any(candidate.verification_passed for candidate in result.candidates)
+    solved = next(candidate for candidate in result.candidates if candidate.verification_passed)
+    token = solved.metadata.get("smt_token")
+    assert isinstance(token, str) and token.startswith("smt:")
+    assert "heuristics" in solved.metadata
     assert result.telemetry.frontier_report is not None
     assert Path(result.telemetry.frontier_report).exists()
     assert result.telemetry.progress_path is not None
@@ -144,3 +148,6 @@ def test_symbolic_solver_pause_and_resume(tmp_path):
     resumed_result = solver.solve(resume_task)
     assert resumed_result.status == "success"
     assert any(candidate.verification_passed for candidate in resumed_result.candidates)
+    solved = next(candidate for candidate in resumed_result.candidates if candidate.verification_passed)
+    token = solved.metadata.get("smt_token")
+    assert isinstance(token, str) and token.startswith("smt:")
