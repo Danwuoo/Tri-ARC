@@ -42,6 +42,10 @@ def test_ttt_module_generates_candidate() -> None:
     assert result.candidates
     candidate = result.candidates[0]
     metadata = candidate.get("metadata", {})
+    assert metadata.get("strategy") == "ttt_model"
+    assert metadata.get("verification_ready") is True
+    loss_summary = metadata.get("loss_summary", {})
+    assert "best_reconstruction" in loss_summary
     train_outputs = metadata.get("train_outputs", [])
     assert train_outputs and train_outputs[0]["grid"] == [[1, 2], [3, 4]]
     module.shutdown()
