@@ -1,0 +1,1102 @@
+{
+  "status": "completed",
+  "timestamps": {
+    "started_at": "2025-11-09T07:29:46.295956+00:00",
+    "completed_at": "2025-11-09T07:29:47.209059+00:00"
+  },
+  "modules": {
+    "ttt": {
+      "status": "partial",
+      "summary": {
+        "lane": "ttt",
+        "profile": "default",
+        "strategy": "ttt_model",
+        "steps_executed": 4,
+        "best_reconstruction": 2.5393879413604736,
+        "mean_confidence": 0.38081836700439453,
+        "loss_adjusted_confidence": 0.05,
+        "augmented_examples": 4,
+        "converged": false,
+        "reason": "loss_not_converged"
+      },
+      "candidates": [],
+      "telemetry": {
+        "module_name": "ttt",
+        "stage": "solve",
+        "status": "completed",
+        "started_at": 1762673386.461538,
+        "completed_at": 1762673386.6933746,
+        "duration_s": 0.23183655738830566,
+        "error": null,
+        "extras": {
+          "perf": {
+            "duration_s": 0.2307,
+            "cpu": {
+              "rss_mb": 1614.9727,
+              "rss_delta_mb": 0.0,
+              "vms_mb": 25792.8906,
+              "vms_delta_mb": 0.0
+            },
+            "io": {
+              "read_mb": 520.1523,
+              "write_mb": 396.457,
+              "read_delta_mb": 0.0,
+              "write_delta_mb": 0.0
+            },
+            "gpu": {
+              "allocated_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 16.25,
+                "cuda:2": 8.125,
+                "cuda:3": 0.0
+              },
+              "allocated_delta_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 0.0,
+                "cuda:2": 0.0,
+                "cuda:3": 0.0
+              },
+              "reserved_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 436.0,
+                "cuda:2": 22.0,
+                "cuda:3": 0.0
+              },
+              "reserved_delta_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 0.0,
+                "cuda:2": 0.0,
+                "cuda:3": 0.0
+              }
+            },
+            "metadata": {
+              "pid": 217,
+              "num_threads": 76
+            }
+          }
+        }
+      },
+      "elapsed_s": 0.23475933074951172,
+      "budget_s": 94.49999999999999,
+      "hard_budget_s": 157.49999999999997,
+      "priority": 0.34426229508196715
+    },
+    "symbolic": {
+      "status": "success",
+      "summary": {
+        "task_id": "45a5af55",
+        "status": "success",
+        "elapsed_s": 0.00552790699975958,
+        "expansions": 1,
+        "nodes": 2,
+        "solutions": 0,
+        "egraph": {
+          "task_id": "45a5af55",
+          "iterations": 2,
+          "rewrites": 1,
+          "unique_programs": 2,
+          "best_cost": 0.0,
+          "history_path": "logs/symbolic/egraph/egraph_history.jsonl",
+          "best_program": []
+        },
+        "lane": "symbolic",
+        "candidate_count": 1,
+        "telemetry_snapshot": {
+          "frontier_report": "reports/symbolic/frontier_45a5af55_20251109_072946.md",
+          "frontier_log": "logs/symbolic/symbolic_frontier.log",
+          "diagnostics": [
+            "logs/symbolic/diagnostics/45a5af55_diag_20251109_072946.json"
+          ],
+          "progress_path": "logs/symbolic/solve_progress.jsonl",
+          "checkpoint_path": null,
+          "elapsed_s": 0.00552790699975958,
+          "expansions": 1,
+          "generated_nodes": 2
+        }
+      },
+      "candidates": [
+        {
+          "node_id": 1,
+          "score": 0.4935032553933129,
+          "cost": 0.0,
+          "solved_examples": 0,
+          "total_examples": 2,
+          "verification_passed": false,
+          "metadata": {
+            "note": "placeholder",
+            "rule_based": {
+              "coverage": 0.0,
+              "consistency": 0.0,
+              "progress": 0.0,
+              "novelty": 0.0,
+              "depth_ratio": 0.0625,
+              "cost": 0.0,
+              "stagnation": 0.0
+            },
+            "neural": {
+              "coverage": 0.0,
+              "consistency": 0.0,
+              "progress": 0.0,
+              "novelty": 0.0,
+              "stagnation": 0.0,
+              "depth_ratio": 0.0625,
+              "cost": 0.0
+            },
+            "calibration": {
+              "raw": 1.001604276896308,
+              "midpoint": 1.0132990753652236,
+              "scale": 0.45,
+              "min_score": 0.0,
+              "max_score": 1.0
+            },
+            "heuristics": {
+              "score": 0.4935032553933129,
+              "components": {
+                "rule_based": 0.4843800842769844,
+                "neural": 0.5172241926193237,
+                "ensemble_total": 1.001604276896308,
+                "calibrated_total": 0.4935032553933129
+              }
+            },
+            "task_id": "45a5af55",
+            "node_id": 1,
+            "depth": 1,
+            "cost": 0.0,
+            "generated_at": 1762673386.8673341,
+            "solved_examples": 0,
+            "total_examples": 2,
+            "smt_token": "smt:virtual-symbolic:0c12749bf3a14480dcc96101",
+            "failures": [
+              {
+                "index": 0,
+                "type": "exception",
+                "message": "IndexError('list index out of range')"
+              },
+              {
+                "index": 1,
+                "type": "exception",
+                "message": "IndexError('list index out of range')"
+              }
+            ],
+            "solution_reason": "Null enumerator returns identity program."
+          },
+          "program": [
+            [
+              "identity",
+              []
+            ]
+          ],
+          "smt_token": "smt:virtual-symbolic:0c12749bf3a14480dcc96101"
+        }
+      ],
+      "telemetry": {
+        "module_name": "symbolic",
+        "stage": "solve",
+        "status": "completed",
+        "started_at": 1762673386.8546703,
+        "completed_at": 1762673386.8693876,
+        "duration_s": 0.014717340469360352,
+        "error": null,
+        "extras": {
+          "perf": {
+            "duration_s": 0.0137,
+            "cpu": {
+              "rss_mb": 1614.9727,
+              "rss_delta_mb": 0.0,
+              "vms_mb": 25792.8906,
+              "vms_delta_mb": 0.0
+            },
+            "io": {
+              "read_mb": 520.1523,
+              "write_mb": 400.7227,
+              "read_delta_mb": 0.0,
+              "write_delta_mb": 0.0157
+            },
+            "gpu": {
+              "allocated_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 16.25,
+                "cuda:2": 8.125,
+                "cuda:3": 0.0
+              },
+              "allocated_delta_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 0.0,
+                "cuda:2": 0.0,
+                "cuda:3": 0.0
+              },
+              "reserved_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 436.0,
+                "cuda:2": 22.0,
+                "cuda:3": 0.0
+              },
+              "reserved_delta_mb": {
+                "cuda:0": 0.0,
+                "cuda:1": 0.0,
+                "cuda:2": 0.0,
+                "cuda:3": 0.0
+              }
+            },
+            "metadata": {
+              "pid": 217,
+              "num_threads": 76
+            }
+          }
+        }
+      },
+      "elapsed_s": 0.017998695373535156,
+      "budget_s": 72.0,
+      "hard_budget_s": 150.0,
+      "priority": 0.26229508196721313
+    }
+  },
+  "arbitration": {
+    "status": "success",
+    "summary": {
+      "task_id": "45a5af55",
+      "answers": [
+        {
+          "candidate_id": "fallback-0",
+          "module": "fallback",
+          "outputs": [
+            [
+              [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              [
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7
+              ],
+              [
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7,
+                7
+              ],
+              [
+                5,
+                5,
+                5,
+                5,
+                5,
+                5,
+                5,
+                5,
+                5,
+                5,
+                5
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ],
+              [
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8
+              ]
+            ]
+          ],
+          "score": 1.0,
+          "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+          "rationale": "fallback"
+        }
+      ],
+      "answers_outputs": [
+        [
+          [
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7
+            ],
+            [
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7
+            ],
+            [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          ]
+        ]
+      ],
+      "rationale": [
+        "Primary candidate fallback-0 selected with score 1.000.",
+        "Secondary candidate not selected due to insufficient diversity or score gap."
+      ],
+      "low_confidence": false,
+      "fallback_used": true,
+      "timestamp": "2025-11-09T07:29:47Z",
+      "latency_ms": 2.0339488983154297,
+      "rejected_candidates": [
+        {
+          "candidate_id": "symbolic-0",
+          "module": "symbolic",
+          "score": 0.05,
+          "verification_status": "failed",
+          "failure_reason": "output_mismatch"
+        },
+        {
+          "candidate_id": "fallback-1",
+          "module": "fallback",
+          "score": 1.0,
+          "verification_status": "passed",
+          "failure_reason": null
+        }
+      ]
+    },
+    "elapsed_s": 0.025653362274169922,
+    "candidates": [
+      {
+        "candidate_id": "fallback-0",
+        "module": "fallback",
+        "score": 1.0,
+        "metadata": {
+          "strategy": "identity",
+          "rationale": "No verified candidates; returning test inputs unchanged."
+        },
+        "provenance": {
+          "strategy": "identity",
+          "task_id": "45a5af55"
+        }
+      }
+    ],
+    "telemetry": {
+      "module_name": "arbitrator",
+      "stage": "solve",
+      "status": "completed",
+      "started_at": 1762673387.0314345,
+      "completed_at": 1762673387.033488,
+      "duration_s": 0.002053499221801758,
+      "error": null
+    }
+  },
+  "summary": {
+    "task_id": "45a5af55",
+    "answers": [
+      {
+        "candidate_id": "fallback-0",
+        "module": "fallback",
+        "outputs": [
+          [
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            [
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7
+            ],
+            [
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7
+            ],
+            [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          ]
+        ],
+        "score": 1.0,
+        "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+        "rationale": "fallback"
+      }
+    ],
+    "answers_outputs": [
+      [
+        [
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ]
+        ]
+      ]
+    ],
+    "rationale": [
+      "Primary candidate fallback-0 selected with score 1.000.",
+      "Secondary candidate not selected due to insufficient diversity or score gap."
+    ],
+    "low_confidence": false,
+    "fallback_used": true,
+    "timestamp": "2025-11-09T07:29:47Z",
+    "latency_ms": 2.0339488983154297,
+    "rejected_candidates": [
+      {
+        "candidate_id": "symbolic-0",
+        "module": "symbolic",
+        "score": 0.05,
+        "verification_status": "failed",
+        "failure_reason": "output_mismatch"
+      },
+      {
+        "candidate_id": "fallback-1",
+        "module": "fallback",
+        "score": 1.0,
+        "verification_status": "passed",
+        "failure_reason": null
+      }
+    ]
+  }
+}

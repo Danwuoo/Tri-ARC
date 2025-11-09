@@ -1,0 +1,33 @@
+{
+  "tasks_total": 1,
+  "tasks_completed": 1,
+  "tasks_failed": 0,
+  "tasks_skipped": 0,
+  "modules": {
+    "ttt": {
+      "success": 0,
+      "attempts": 1
+    },
+    "llm": {
+      "success": 1,
+      "attempts": 1
+    },
+    "symbolic": {
+      "success": 0,
+      "attempts": 1
+    }
+  },
+  "elapsed_s": 4.762411832809448,
+  "run_state": {
+    "run_id": "kaggle_local_dryrun",
+    "split": "evaluation",
+    "config_fingerprint": "26ec8eb125d6c773",
+    "time_limit_hours": 12.0,
+    "status": "running",
+    "started_at": "2025-11-07T11:07:57.439999+00:00",
+    "updated_at": "2025-11-07T11:08:02.193251+00:00",
+    "completed_tasks": 1,
+    "failed_tasks": 0,
+    "tasks_total": 1
+  }
+}

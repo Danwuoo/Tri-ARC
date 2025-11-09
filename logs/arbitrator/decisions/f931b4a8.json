@@ -1,0 +1,258 @@
+{
+  "task_id": "f931b4a8",
+  "answers": [
+    {
+      "candidate_id": "fallback-0",
+      "module": "fallback",
+      "outputs": [
+        [
+          [
+            2,
+            0,
+            0,
+            5,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            5,
+            0,
+            1,
+            3,
+            1
+          ],
+          [
+            5,
+            5,
+            5,
+            5,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            3,
+            2,
+            3,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0,
+            5
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            1,
+            0
+          ]
+        ],
+        [
+          [
+            2,
+            2,
+            5,
+            5
+          ],
+          [
+            2,
+            2,
+            5,
+            5
+          ],
+          [
+            7,
+            3,
+            7,
+            0
+          ],
+          [
+            6,
+            8,
+            0,
+            7
+          ]
+        ]
+      ],
+      "score": 1.0,
+      "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+      "rationale": "fallback"
+    }
+  ],
+  "answers_outputs": [
+    [
+      [
+        [
+          2,
+          0,
+          0,
+          5,
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          3,
+          0,
+          5,
+          0,
+          1,
+          3,
+          1
+        ],
+        [
+          5,
+          5,
+          5,
+          5,
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          5,
+          2,
+          0,
+          0,
+          3,
+          0
+        ],
+        [
+          2,
+          2,
+          2,
+          2,
+          0,
+          3,
+          3,
+          3
+        ],
+        [
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          3,
+          0
+        ],
+        [
+          2,
+          2,
+          2,
+          2,
+          3,
+          0,
+          0,
+          5
+        ],
+        [
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          2,
+          2,
+          5,
+          5
+        ],
+        [
+          2,
+          2,
+          5,
+          5
+        ],
+        [
+          7,
+          3,
+          7,
+          0
+        ],
+        [
+          6,
+          8,
+          0,
+          7
+        ]
+      ]
+    ]
+  ],
+  "rationale": [
+    "Primary candidate fallback-0 selected with score 1.000.",
+    "Secondary candidate not selected due to insufficient diversity or score gap."
+  ],
+  "low_confidence": false,
+  "fallback_used": true,
+  "timestamp": "2025-11-09T07:32:47Z",
+  "latency_ms": 2.4344921112060547,
+  "rejected_candidates": [
+    {
+      "candidate_id": "symbolic-0",
+      "module": "symbolic",
+      "score": 0.05,
+      "verification_status": "failed",
+      "failure_reason": "output_mismatch"
+    },
+    {
+      "candidate_id": "fallback-1",
+      "module": "fallback",
+      "score": 1.0,
+      "verification_status": "passed",
+      "failure_reason": null
+    }
+  ]
+}

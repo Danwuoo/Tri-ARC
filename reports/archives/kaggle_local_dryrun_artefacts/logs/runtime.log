@@ -1,0 +1,75 @@
+2025-11-07 19:07:56 | INFO | tri_arc.run_eval | Tri-ARC evaluation starting
+2025-11-07 19:07:56 | INFO | tri_arc.run_eval | Runtime log: reports\eval_runs\full\kaggle_local_dryrun\logs\runtime.log
+2025-11-07 19:07:56 | INFO | tri_arc.run_eval | Run directory: reports\eval_runs\full\kaggle_local_dryrun
+2025-11-07 19:07:56 | INFO | tri_arc.run_eval | Metrics file: reports\eval_runs\full\kaggle_local_dryrun\metrics.jsonl
+2025-11-07 19:07:57 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> running
+2025-11-07 19:07:57 | INFO | tri_arc.modules.symbolic | symbolic::initialize -> completed
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | ttt::initialize -> running
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | TTT module initialised with profile=default, device=cpu, steps=16
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | ttt::initialize -> completed
+2025-11-07 19:07:57 | INFO | tri_arc.modules.llm | llm::initialize -> running
+2025-11-07 19:07:57 | INFO | tri_arc.modules.llm | llm::initialize -> completed
+2025-11-07 19:07:57 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> running
+2025-11-07 19:07:57 | INFO | tri_arc.modules.arbitrator | arbitrator::initialize -> completed
+2025-11-07 19:07:57 | INFO | tri_arc.eval.harness | Evaluating task 0934a4d8 (C:\Users\000000\Desktop\Tri-ARC\data\arcagi2\evaluation\0934a4d8.json)
+2025-11-07 19:07:57 | INFO | tri_arc.scheduler.ingest | Computed features for task_id=0934a4d8
+2025-11-07 19:07:57 | INFO | tri_arc.scheduler | Scheduled task_id=0934a4d8 projected=306.0s risk=0.01 matched_rules=['large_palette_noise']
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | ttt::prepare_task -> running
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | ttt::prepare_task -> completed
+2025-11-07 19:07:57 | INFO | tri_arc.modules.ttt | ttt::solve -> running
+2025-11-07 19:08:01 | INFO | tri_arc.modules.ttt | ttt::solve -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::prepare_task -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::prepare_task -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::solve -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::solve -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.symbolic | symbolic::prepare_task -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.symbolic | symbolic::solve -> running
+2025-11-07 19:08:02 | WARNING | arc.symbolic.heuristics.neural | Failed to move neural heuristic to cuda:2: Torch not compiled with CUDA enabled
+2025-11-07 19:08:02 | INFO | arc.symbolic.heuristics.neural | Loaded neural heuristic model from models\symbolic\heuristic.pt
+2025-11-07 19:08:02 | ERROR | tri_arc.modules.symbolic | symbolic::solve -> error
+2025-11-07 19:08:02 | ERROR | tri_arc.eval.harness | Module symbolic failed on task 0934a4d8: Torch not compiled with CUDA enabled
+Traceback (most recent call last):
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\evaluation\harness.py", line 252, in _run_module
+    result: ModuleResult = module.solve(prepared)
+                           ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\core\module_base.py", line 123, in solve
+    result, telemetry = self._run_stage("solve", self._on_solve, task_context)
+                        ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\core\module_base.py", line 209, in _run_stage
+    result = handler(*args, **kwargs)
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\__init__.py", line 91, in _on_solve
+    solver_result = self._solver.solve(payload)
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\solver.py", line 316, in solve
+    node_score = self.heuristic.score(node)
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\heuristics\base.py", line 54, in score
+    return self.score_node(node)
+           ~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\heuristics\base.py", line 126, in score_node
+    base = super().score_node(node)
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\heuristics\base.py", line 81, in score_node
+    result = member.score(node)
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\heuristics\base.py", line 54, in score
+    return self.score_node(node)
+           ~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\000000\Desktop\Tri-ARC\arc\symbolic\heuristics\neural.py", line 114, in score_node
+    tensor = self._torch.tensor(
+        [
+    ...<9 lines>...
+        device=self._device,
+    )
+  File "C:\Users\000000\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\cuda\__init__.py", line 403, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::prepare_task -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::solve -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.symbolic | symbolic::shutdown -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.ttt | ttt::shutdown -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.ttt | ttt::shutdown -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::shutdown -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.llm | llm::shutdown -> completed
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> running
+2025-11-07 19:08:02 | INFO | tri_arc.modules.arbitrator | arbitrator::shutdown -> completed

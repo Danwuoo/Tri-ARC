@@ -1,0 +1,25 @@
+{
+  "tasks_total": 5,
+  "tasks_completed": 5,
+  "tasks_failed": 0,
+  "tasks_skipped": 0,
+  "modules": {
+    "symbolic": {
+      "success": 5,
+      "attempts": 5
+    }
+  },
+  "elapsed_s": 1.0660076141357422,
+  "run_state": {
+    "run_id": "smoke-20251107T033827Z",
+    "split": "smoke",
+    "config_fingerprint": "3b5d115df2a7e934",
+    "time_limit_hours": 0.5,
+    "status": "running",
+    "started_at": "2025-11-07T03:38:28.162568+00:00",
+    "updated_at": "2025-11-07T03:38:29.196837+00:00",
+    "completed_tasks": 5,
+    "failed_tasks": 0,
+    "tasks_total": 5
+  }
+}

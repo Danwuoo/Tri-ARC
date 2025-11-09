@@ -58,3 +58,243 @@
 {"task_id": "13e47133", "status": "success", "elapsed_s": 0.005028899991884828, "expansions": 1, "nodes": 2, "timestamp": 1762486708.7995503}
 {"event": "egraph_saturation", "task_id": "142ca369", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs\\symbolic\\egraph\\egraph_history.jsonl", "best_program": []}
 {"task_id": "142ca369", "status": "success", "elapsed_s": 0.009467700001550838, "expansions": 1, "nodes": 2, "timestamp": 1762486709.0249584}
+{"event": "egraph_saturation", "task_id": "0934a4d8", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "0934a4d8", "status": "success", "elapsed_s": 0.11493877999964752, "expansions": 1, "nodes": 2, "timestamp": 1762673362.879188}
+{"event": "egraph_saturation", "task_id": "135a2760", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "135a2760", "status": "success", "elapsed_s": 0.006388793000041915, "expansions": 1, "nodes": 2, "timestamp": 1762673363.2029703}
+{"event": "egraph_saturation", "task_id": "136b0064", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "136b0064", "status": "success", "elapsed_s": 0.006401998000001186, "expansions": 1, "nodes": 2, "timestamp": 1762673363.282267}
+{"event": "egraph_saturation", "task_id": "13e47133", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "13e47133", "status": "success", "elapsed_s": 0.007378713999969477, "expansions": 1, "nodes": 2, "timestamp": 1762673363.903496}
+{"event": "egraph_saturation", "task_id": "142ca369", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "142ca369", "status": "success", "elapsed_s": 0.007871048000197334, "expansions": 1, "nodes": 2, "timestamp": 1762673364.0317094}
+{"event": "egraph_saturation", "task_id": "16b78196", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "16b78196", "status": "success", "elapsed_s": 0.007919954000044527, "expansions": 1, "nodes": 2, "timestamp": 1762673364.5119896}
+{"event": "egraph_saturation", "task_id": "16de56c4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "16de56c4", "status": "success", "elapsed_s": 0.006564409000020532, "expansions": 1, "nodes": 2, "timestamp": 1762673365.1318579}
+{"event": "egraph_saturation", "task_id": "1818057f", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "1818057f", "status": "success", "elapsed_s": 0.006906546999744023, "expansions": 1, "nodes": 2, "timestamp": 1762673365.5410428}
+{"event": "egraph_saturation", "task_id": "195c6913", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "195c6913", "status": "success", "elapsed_s": 0.00848516899986862, "expansions": 1, "nodes": 2, "timestamp": 1762673366.4687734}
+{"event": "egraph_saturation", "task_id": "1ae2feb7", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "1ae2feb7", "status": "success", "elapsed_s": 0.006677264999780164, "expansions": 1, "nodes": 2, "timestamp": 1762673366.7057328}
+{"event": "egraph_saturation", "task_id": "20270e3b", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "20270e3b", "status": "success", "elapsed_s": 0.0065321570000378415, "expansions": 1, "nodes": 2, "timestamp": 1762673367.219765}
+{"event": "egraph_saturation", "task_id": "20a9e565", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "20a9e565", "status": "success", "elapsed_s": 0.008145834000060859, "expansions": 1, "nodes": 2, "timestamp": 1762673367.7189863}
+{"event": "egraph_saturation", "task_id": "21897d95", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "21897d95", "status": "success", "elapsed_s": 0.007547671000338596, "expansions": 1, "nodes": 2, "timestamp": 1762673368.4327383}
+{"event": "egraph_saturation", "task_id": "221dfab4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "221dfab4", "status": "success", "elapsed_s": 0.0074643449997893185, "expansions": 1, "nodes": 2, "timestamp": 1762673369.4657886}
+{"event": "egraph_saturation", "task_id": "247ef758", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "247ef758", "status": "success", "elapsed_s": 0.006768447000013111, "expansions": 1, "nodes": 2, "timestamp": 1762673370.086523}
+{"event": "egraph_saturation", "task_id": "269e22fb", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "269e22fb", "status": "success", "elapsed_s": 0.008005834999949002, "expansions": 1, "nodes": 2, "timestamp": 1762673370.9143827}
+{"event": "egraph_saturation", "task_id": "271d71e2", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "271d71e2", "status": "success", "elapsed_s": 0.006799952000164922, "expansions": 1, "nodes": 2, "timestamp": 1762673371.632884}
+{"event": "egraph_saturation", "task_id": "28a6681f", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "28a6681f", "status": "success", "elapsed_s": 0.00697314200033361, "expansions": 1, "nodes": 2, "timestamp": 1762673372.0313134}
+{"event": "egraph_saturation", "task_id": "291dc1e1", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "291dc1e1", "status": "success", "elapsed_s": 0.007262385000103677, "expansions": 1, "nodes": 2, "timestamp": 1762673372.6849825}
+{"event": "egraph_saturation", "task_id": "2b83f449", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "2b83f449", "status": "success", "elapsed_s": 0.006134721999842441, "expansions": 1, "nodes": 2, "timestamp": 1762673373.6550944}
+{"event": "egraph_saturation", "task_id": "2ba387bc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "2ba387bc", "status": "success", "elapsed_s": 0.008305627000027016, "expansions": 1, "nodes": 2, "timestamp": 1762673374.4923024}
+{"event": "egraph_saturation", "task_id": "2c181942", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "2c181942", "status": "success", "elapsed_s": 0.00792031599985421, "expansions": 1, "nodes": 2, "timestamp": 1762673374.9339998}
+{"event": "egraph_saturation", "task_id": "2d0172a1", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "2d0172a1", "status": "success", "elapsed_s": 0.008070853000390343, "expansions": 1, "nodes": 2, "timestamp": 1762673376.2646167}
+{"event": "egraph_saturation", "task_id": "31f7f899", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "31f7f899", "status": "success", "elapsed_s": 0.006862848000309896, "expansions": 1, "nodes": 2, "timestamp": 1762673376.7507763}
+{"event": "egraph_saturation", "task_id": "332f06d7", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "332f06d7", "status": "success", "elapsed_s": 0.007506100000227889, "expansions": 1, "nodes": 2, "timestamp": 1762673377.5552573}
+{"event": "egraph_saturation", "task_id": "35ab12c3", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "35ab12c3", "status": "success", "elapsed_s": 0.00742210199996407, "expansions": 1, "nodes": 2, "timestamp": 1762673378.4187539}
+{"event": "egraph_saturation", "task_id": "36a08778", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "36a08778", "status": "success", "elapsed_s": 0.008858814000177517, "expansions": 1, "nodes": 2, "timestamp": 1762673379.336712}
+{"event": "egraph_saturation", "task_id": "38007db0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "38007db0", "status": "success", "elapsed_s": 0.007323862000248482, "expansions": 1, "nodes": 2, "timestamp": 1762673380.7373776}
+{"event": "egraph_saturation", "task_id": "3a25b0d8", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "3a25b0d8", "status": "success", "elapsed_s": 0.006539310000334808, "expansions": 1, "nodes": 2, "timestamp": 1762673381.6934936}
+{"event": "egraph_saturation", "task_id": "3dc255db", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "3dc255db", "status": "success", "elapsed_s": 0.00661930400019628, "expansions": 1, "nodes": 2, "timestamp": 1762673382.2962499}
+{"event": "egraph_saturation", "task_id": "3e6067c3", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "3e6067c3", "status": "success", "elapsed_s": 0.00818175800031895, "expansions": 1, "nodes": 2, "timestamp": 1762673383.236761}
+{"event": "egraph_saturation", "task_id": "409aa875", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "409aa875", "status": "success", "elapsed_s": 0.007300802999907319, "expansions": 1, "nodes": 2, "timestamp": 1762673384.415208}
+{"event": "egraph_saturation", "task_id": "446ef5d2", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "446ef5d2", "status": "success", "elapsed_s": 0.00621094300004188, "expansions": 1, "nodes": 2, "timestamp": 1762673385.7952795}
+{"event": "egraph_saturation", "task_id": "45a5af55", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "45a5af55", "status": "success", "elapsed_s": 0.00552790699975958, "expansions": 1, "nodes": 2, "timestamp": 1762673386.8680544}
+{"event": "egraph_saturation", "task_id": "4a21e3da", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "4a21e3da", "status": "success", "elapsed_s": 0.007588803000089683, "expansions": 1, "nodes": 2, "timestamp": 1762673387.5513244}
+{"event": "egraph_saturation", "task_id": "4c3d4a41", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "4c3d4a41", "status": "success", "elapsed_s": 0.0061330470002758375, "expansions": 1, "nodes": 2, "timestamp": 1762673388.6861565}
+{"event": "egraph_saturation", "task_id": "4c416de3", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "4c416de3", "status": "success", "elapsed_s": 0.008224164999774075, "expansions": 1, "nodes": 2, "timestamp": 1762673390.223928}
+{"event": "egraph_saturation", "task_id": "4c7dc4dd", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "4c7dc4dd", "status": "success", "elapsed_s": 0.007081959000061033, "expansions": 1, "nodes": 2, "timestamp": 1762673391.4256992}
+{"event": "egraph_saturation", "task_id": "4e34c42c", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "4e34c42c", "status": "success", "elapsed_s": 0.006722955999975966, "expansions": 1, "nodes": 2, "timestamp": 1762673392.5987384}
+{"event": "egraph_saturation", "task_id": "53fb4810", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "53fb4810", "status": "success", "elapsed_s": 0.006920097999682184, "expansions": 1, "nodes": 2, "timestamp": 1762673393.3853652}
+{"event": "egraph_saturation", "task_id": "5545f144", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "5545f144", "status": "success", "elapsed_s": 0.006883979999656731, "expansions": 1, "nodes": 2, "timestamp": 1762673394.9624379}
+{"event": "egraph_saturation", "task_id": "581f7754", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "581f7754", "status": "success", "elapsed_s": 0.007007980999787833, "expansions": 1, "nodes": 2, "timestamp": 1762673396.19028}
+{"event": "egraph_saturation", "task_id": "58490d8a", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "58490d8a", "status": "success", "elapsed_s": 0.00733073300034448, "expansions": 1, "nodes": 2, "timestamp": 1762673397.4530776}
+{"event": "egraph_saturation", "task_id": "58f5dbd5", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "58f5dbd5", "status": "success", "elapsed_s": 0.007446667000294838, "expansions": 1, "nodes": 2, "timestamp": 1762673398.74177}
+{"event": "egraph_saturation", "task_id": "5961cc34", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "5961cc34", "status": "success", "elapsed_s": 0.00931327499984036, "expansions": 1, "nodes": 2, "timestamp": 1762673399.59876}
+{"event": "egraph_saturation", "task_id": "5dbc8537", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "5dbc8537", "status": "success", "elapsed_s": 0.006410811999558064, "expansions": 1, "nodes": 2, "timestamp": 1762673401.5463734}
+{"event": "egraph_saturation", "task_id": "62593bfd", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "62593bfd", "status": "success", "elapsed_s": 0.007913229999758187, "expansions": 1, "nodes": 2, "timestamp": 1762673402.4476385}
+{"event": "egraph_saturation", "task_id": "64efde09", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "64efde09", "status": "success", "elapsed_s": 0.007747870999992301, "expansions": 1, "nodes": 2, "timestamp": 1762673403.9609938}
+{"event": "egraph_saturation", "task_id": "65b59efc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "65b59efc", "status": "success", "elapsed_s": 0.00720737800020288, "expansions": 1, "nodes": 2, "timestamp": 1762673405.937011}
+{"event": "egraph_saturation", "task_id": "67e490f4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "67e490f4", "status": "success", "elapsed_s": 0.00734121999994386, "expansions": 1, "nodes": 2, "timestamp": 1762673407.4175408}
+{"event": "egraph_saturation", "task_id": "6e453dd6", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "6e453dd6", "status": "success", "elapsed_s": 0.007279082999957609, "expansions": 1, "nodes": 2, "timestamp": 1762673408.405162}
+{"event": "egraph_saturation", "task_id": "6e4f6532", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "6e4f6532", "status": "success", "elapsed_s": 0.007377893000011682, "expansions": 1, "nodes": 2, "timestamp": 1762673410.4577081}
+{"event": "egraph_saturation", "task_id": "6ffbe589", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "6ffbe589", "status": "success", "elapsed_s": 0.007555470999704994, "expansions": 1, "nodes": 2, "timestamp": 1762673411.4983242}
+{"event": "egraph_saturation", "task_id": "71e489b6", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "71e489b6", "status": "success", "elapsed_s": 0.007543488000010257, "expansions": 1, "nodes": 2, "timestamp": 1762673413.0434272}
+{"event": "egraph_saturation", "task_id": "7491f3cf", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7491f3cf", "status": "success", "elapsed_s": 0.00760676899972168, "expansions": 1, "nodes": 2, "timestamp": 1762673415.23464}
+{"event": "egraph_saturation", "task_id": "7666fa5d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7666fa5d", "status": "success", "elapsed_s": 0.006754263999937393, "expansions": 1, "nodes": 2, "timestamp": 1762673416.3080776}
+{"event": "egraph_saturation", "task_id": "78332cb0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "78332cb0", "status": "success", "elapsed_s": 0.006457815999965533, "expansions": 1, "nodes": 2, "timestamp": 1762673417.8244338}
+{"event": "egraph_saturation", "task_id": "7b0280bc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7b0280bc", "status": "success", "elapsed_s": 0.007609668999975838, "expansions": 1, "nodes": 2, "timestamp": 1762673419.9216328}
+{"event": "egraph_saturation", "task_id": "7b3084d4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7b3084d4", "status": "success", "elapsed_s": 0.007538730999840482, "expansions": 1, "nodes": 2, "timestamp": 1762673421.0501738}
+{"event": "egraph_saturation", "task_id": "7b5033c1", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7b5033c1", "status": "success", "elapsed_s": 0.006359993999922153, "expansions": 1, "nodes": 2, "timestamp": 1762673422.6715958}
+{"event": "egraph_saturation", "task_id": "7b80bb43", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7b80bb43", "status": "success", "elapsed_s": 0.007521831000303791, "expansions": 1, "nodes": 2, "timestamp": 1762673424.237178}
+{"event": "egraph_saturation", "task_id": "7c66cb00", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7c66cb00", "status": "success", "elapsed_s": 0.009387528999923234, "expansions": 1, "nodes": 2, "timestamp": 1762673426.7483356}
+{"event": "egraph_saturation", "task_id": "7ed72f31", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "7ed72f31", "status": "success", "elapsed_s": 0.00660966700024801, "expansions": 1, "nodes": 2, "timestamp": 1762673428.4600904}
+{"event": "egraph_saturation", "task_id": "800d221b", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "800d221b", "status": "success", "elapsed_s": 0.007391681000171957, "expansions": 1, "nodes": 2, "timestamp": 1762673430.2190278}
+{"event": "egraph_saturation", "task_id": "80a900e0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "80a900e0", "status": "success", "elapsed_s": 0.007396073999643704, "expansions": 1, "nodes": 2, "timestamp": 1762673431.4652717}
+{"event": "egraph_saturation", "task_id": "8698868d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8698868d", "status": "success", "elapsed_s": 0.0069611220001206675, "expansions": 1, "nodes": 2, "timestamp": 1762673433.8303957}
+{"event": "egraph_saturation", "task_id": "88bcf3b4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "88bcf3b4", "status": "success", "elapsed_s": 0.008151762000125018, "expansions": 1, "nodes": 2, "timestamp": 1762673435.1053822}
+{"event": "egraph_saturation", "task_id": "88e364bc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "88e364bc", "status": "success", "elapsed_s": 0.008220768999763095, "expansions": 1, "nodes": 2, "timestamp": 1762673437.0067127}
+{"event": "egraph_saturation", "task_id": "89565ca0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "89565ca0", "status": "success", "elapsed_s": 0.007571852000182844, "expansions": 1, "nodes": 2, "timestamp": 1762673439.544165}
+{"event": "egraph_saturation", "task_id": "898e7135", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "898e7135", "status": "success", "elapsed_s": 0.006842606000191154, "expansions": 1, "nodes": 2, "timestamp": 1762673441.4644046}
+{"event": "egraph_saturation", "task_id": "8b7bacbf", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8b7bacbf", "status": "success", "elapsed_s": 0.008305794000079914, "expansions": 1, "nodes": 2, "timestamp": 1762673442.8266637}
+{"event": "egraph_saturation", "task_id": "8b9c3697", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8b9c3697", "status": "success", "elapsed_s": 0.008168403000127, "expansions": 1, "nodes": 2, "timestamp": 1762673444.8733482}
+{"event": "egraph_saturation", "task_id": "8e5c0c38", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8e5c0c38", "status": "success", "elapsed_s": 0.007152815999688755, "expansions": 1, "nodes": 2, "timestamp": 1762673447.5635421}
+{"event": "egraph_saturation", "task_id": "8f215267", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8f215267", "status": "success", "elapsed_s": 0.008402501000091434, "expansions": 1, "nodes": 2, "timestamp": 1762673449.7060094}
+{"event": "egraph_saturation", "task_id": "8f3a5a89", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "8f3a5a89", "status": "success", "elapsed_s": 0.007448376999946049, "expansions": 1, "nodes": 2, "timestamp": 1762673451.166132}
+{"event": "egraph_saturation", "task_id": "9385bd28", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "9385bd28", "status": "success", "elapsed_s": 0.007551030999820796, "expansions": 1, "nodes": 2, "timestamp": 1762673453.795202}
+{"event": "egraph_saturation", "task_id": "97d7923e", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "97d7923e", "status": "success", "elapsed_s": 0.006872013000247534, "expansions": 1, "nodes": 2, "timestamp": 1762673455.2742722}
+{"event": "egraph_saturation", "task_id": "981571dc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "981571dc", "status": "success", "elapsed_s": 0.011692683999626752, "expansions": 1, "nodes": 2, "timestamp": 1762673458.4115708}
+{"event": "egraph_saturation", "task_id": "9aaea919", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "9aaea919", "status": "success", "elapsed_s": 0.010279745999923762, "expansions": 1, "nodes": 2, "timestamp": 1762673460.8939118}
+{"event": "egraph_saturation", "task_id": "9bbf930d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "9bbf930d", "status": "success", "elapsed_s": 0.007398276999992959, "expansions": 1, "nodes": 2, "timestamp": 1762673463.0830739}
+{"event": "egraph_saturation", "task_id": "a251c730", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a251c730", "status": "success", "elapsed_s": 0.007364836000306241, "expansions": 1, "nodes": 2, "timestamp": 1762673465.3258705}
+{"event": "egraph_saturation", "task_id": "a25697e4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a25697e4", "status": "success", "elapsed_s": 0.0082959309997932, "expansions": 1, "nodes": 2, "timestamp": 1762673466.9302285}
+{"event": "egraph_saturation", "task_id": "a32d8b75", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a32d8b75", "status": "success", "elapsed_s": 0.00863725399995019, "expansions": 1, "nodes": 2, "timestamp": 1762673470.1665676}
+{"event": "egraph_saturation", "task_id": "a395ee82", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a395ee82", "status": "success", "elapsed_s": 0.008319598000070982, "expansions": 1, "nodes": 2, "timestamp": 1762673472.6036434}
+{"event": "egraph_saturation", "task_id": "a47bf94d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a47bf94d", "status": "success", "elapsed_s": 0.008369609000055789, "expansions": 1, "nodes": 2, "timestamp": 1762673474.3033135}
+{"event": "egraph_saturation", "task_id": "a6f40cea", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "a6f40cea", "status": "success", "elapsed_s": 0.007793841999955475, "expansions": 1, "nodes": 2, "timestamp": 1762673477.4767358}
+{"event": "egraph_saturation", "task_id": "aa4ec2a5", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "aa4ec2a5", "status": "success", "elapsed_s": 0.008722858000055567, "expansions": 1, "nodes": 2, "timestamp": 1762673479.210437}
+{"event": "egraph_saturation", "task_id": "abc82100", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "abc82100", "status": "success", "elapsed_s": 0.007844739000120171, "expansions": 1, "nodes": 2, "timestamp": 1762673481.7803316}
+{"event": "egraph_saturation", "task_id": "b0039139", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b0039139", "status": "success", "elapsed_s": 0.0077445249999072985, "expansions": 1, "nodes": 2, "timestamp": 1762673484.2046409}
+{"event": "egraph_saturation", "task_id": "b10624e5", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b10624e5", "status": "success", "elapsed_s": 0.008018750999781332, "expansions": 1, "nodes": 2, "timestamp": 1762673486.5934062}
+{"event": "egraph_saturation", "task_id": "b5ca7ac4", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b5ca7ac4", "status": "success", "elapsed_s": 0.008281982999960746, "expansions": 1, "nodes": 2, "timestamp": 1762673489.9687705}
+{"event": "egraph_saturation", "task_id": "b6f77b65", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b6f77b65", "status": "success", "elapsed_s": 0.008051540999986173, "expansions": 1, "nodes": 2, "timestamp": 1762673491.7932708}
+{"event": "egraph_saturation", "task_id": "b99e7126", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b99e7126", "status": "success", "elapsed_s": 0.009870199000033608, "expansions": 1, "nodes": 2, "timestamp": 1762673495.3440447}
+{"event": "egraph_saturation", "task_id": "b9e38dc0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "b9e38dc0", "status": "success", "elapsed_s": 0.007104935999905138, "expansions": 1, "nodes": 2, "timestamp": 1762673497.8757877}
+{"event": "egraph_saturation", "task_id": "bf45cf4b", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "bf45cf4b", "status": "success", "elapsed_s": 0.007060024000111298, "expansions": 1, "nodes": 2, "timestamp": 1762673499.747109}
+{"event": "egraph_saturation", "task_id": "c4d067a0", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "c4d067a0", "status": "success", "elapsed_s": 0.008723489999738376, "expansions": 1, "nodes": 2, "timestamp": 1762673502.26999}
+{"event": "egraph_saturation", "task_id": "c7f57c3e", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "c7f57c3e", "status": "success", "elapsed_s": 0.006683779000013601, "expansions": 1, "nodes": 2, "timestamp": 1762673505.695308}
+{"event": "egraph_saturation", "task_id": "cb2d8a2c", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "cb2d8a2c", "status": "success", "elapsed_s": 0.00859822600023108, "expansions": 1, "nodes": 2, "timestamp": 1762673507.6238976}
+{"event": "egraph_saturation", "task_id": "cbebaa4b", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "cbebaa4b", "status": "success", "elapsed_s": 0.007327832000100898, "expansions": 1, "nodes": 2, "timestamp": 1762673510.376137}
+{"event": "egraph_saturation", "task_id": "d35bdbdc", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "d35bdbdc", "status": "success", "elapsed_s": 0.006808229999933246, "expansions": 1, "nodes": 2, "timestamp": 1762673513.1153524}
+{"event": "egraph_saturation", "task_id": "d59b0160", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "d59b0160", "status": "success", "elapsed_s": 0.007520285999817133, "expansions": 1, "nodes": 2, "timestamp": 1762673516.4676743}
+{"event": "egraph_saturation", "task_id": "d8e07eb2", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "d8e07eb2", "status": "success", "elapsed_s": 0.011993044000064401, "expansions": 1, "nodes": 2, "timestamp": 1762673519.6798537}
+{"event": "egraph_saturation", "task_id": "da515329", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "da515329", "status": "success", "elapsed_s": 0.0076523200000337965, "expansions": 1, "nodes": 2, "timestamp": 1762673521.7359555}
+{"event": "egraph_saturation", "task_id": "db0c5428", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "db0c5428", "status": "success", "elapsed_s": 0.0075890450002589205, "expansions": 1, "nodes": 2, "timestamp": 1762673525.368676}
+{"event": "egraph_saturation", "task_id": "db695cfb", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "db695cfb", "status": "success", "elapsed_s": 0.008264727000096173, "expansions": 1, "nodes": 2, "timestamp": 1762673527.4568193}
+{"event": "egraph_saturation", "task_id": "dbff022c", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "dbff022c", "status": "success", "elapsed_s": 0.006725440000082017, "expansions": 1, "nodes": 2, "timestamp": 1762673530.3401208}
+{"event": "egraph_saturation", "task_id": "dd6b8c4b", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "dd6b8c4b", "status": "success", "elapsed_s": 0.006938830999843049, "expansions": 1, "nodes": 2, "timestamp": 1762673533.1156478}
+{"event": "egraph_saturation", "task_id": "de809cff", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "de809cff", "status": "success", "elapsed_s": 0.007109775000117224, "expansions": 1, "nodes": 2, "timestamp": 1762673536.687468}
+{"event": "egraph_saturation", "task_id": "dfadab01", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "dfadab01", "status": "success", "elapsed_s": 0.008265182999821263, "expansions": 1, "nodes": 2, "timestamp": 1762673538.8224194}
+{"event": "egraph_saturation", "task_id": "e12f9a14", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "e12f9a14", "status": "success", "elapsed_s": 0.008468255000025238, "expansions": 1, "nodes": 2, "timestamp": 1762673541.7833867}
+{"event": "egraph_saturation", "task_id": "e3721c99", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "e3721c99", "status": "success", "elapsed_s": 0.008679368999764847, "expansions": 1, "nodes": 2, "timestamp": 1762673544.8561153}
+{"event": "egraph_saturation", "task_id": "e376de54", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "e376de54", "status": "success", "elapsed_s": 0.008050328000081208, "expansions": 1, "nodes": 2, "timestamp": 1762673548.0606241}
+{"event": "egraph_saturation", "task_id": "e8686506", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "e8686506", "status": "success", "elapsed_s": 0.006230891000086558, "expansions": 1, "nodes": 2, "timestamp": 1762673551.0567846}
+{"event": "egraph_saturation", "task_id": "e87109e9", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "e87109e9", "status": "success", "elapsed_s": 0.008643218000088382, "expansions": 1, "nodes": 2, "timestamp": 1762673554.889422}
+{"event": "egraph_saturation", "task_id": "edb79dae", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "edb79dae", "status": "success", "elapsed_s": 0.007018971999968926, "expansions": 1, "nodes": 2, "timestamp": 1762673557.9536402}
+{"event": "egraph_saturation", "task_id": "eee78d87", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "eee78d87", "status": "success", "elapsed_s": 0.006816278999849601, "expansions": 1, "nodes": 2, "timestamp": 1762673560.234743}
+{"event": "egraph_saturation", "task_id": "f560132c", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "f560132c", "status": "success", "elapsed_s": 0.0065140810002048966, "expansions": 1, "nodes": 2, "timestamp": 1762673564.0349839}
+{"event": "egraph_saturation", "task_id": "f931b4a8", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "f931b4a8", "status": "success", "elapsed_s": 0.00796774699983871, "expansions": 1, "nodes": 2, "timestamp": 1762673566.3417275}
+{"event": "egraph_saturation", "task_id": "faa9f03d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "faa9f03d", "status": "success", "elapsed_s": 0.007660019000013563, "expansions": 1, "nodes": 2, "timestamp": 1762673569.4601588}
+{"event": "egraph_saturation", "task_id": "fc7cae8d", "iterations": 2, "rewrites": 1, "unique_programs": 2, "best_cost": 0.0, "history_path": "logs/symbolic/egraph/egraph_history.jsonl", "best_program": []}
+{"task_id": "fc7cae8d", "status": "success", "elapsed_s": 0.008012452000002668, "expansions": 1, "nodes": 2, "timestamp": 1762673573.4235537}
