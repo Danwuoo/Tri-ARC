@@ -18,12 +18,62 @@ Tri-ARC runs fully offline on Kaggle notebooks and local workstations that mirro
 1. **Enable GPUs**: In the notebook settings, choose four GPUs (A100 or L4 when available).
 2. **Offline data**: Upload dataset archives produced by `scripts/package_data.py`. Place them under `/kaggle/input/tri-arc-data/`.
 3. **Repository**: Upload the code bundle as a Kaggle dataset or copy from the competition data tab. Extract to `/kaggle/working/Tri-ARC/`.
-4. **Environment bootstrap**:
+4. **Environment bootstrap**: run the following notebook cell (Python, not Bash) at the top of your Kaggle notebook to install dependencies directly inside the runtime:
+   ```python
+   import os
+   import subprocess
+   import sys
+   from pathlib import Path
+
+   project_root = Path("/kaggle/working/Tri-ARC")
+   wheel_root = project_root / "vendor" / "wheels"
+   requirements = project_root / "requirements.txt"
+
+   allow_pypi = os.environ.get("TRI_ARC_ALLOW_PYPI", "0") == "1"
+   extra_index = os.environ.get(
+       "TRI_ARC_PIP_EXTRA_INDEX_URL",
+       "https://download.pytorch.org/whl/cu121",
+   )
+
+   def run(cmd):
+       print(f"[Tri-ARC] {' '.join(cmd)}")
+       subprocess.check_call(cmd)
+
+   try:
+       run(
+           [
+               sys.executable,
+               "-m",
+               "pip",
+               "install",
+               "--no-index",
+               "--find-links",
+               str(wheel_root),
+               "-r",
+               str(requirements),
+           ]
+       )
+   except subprocess.CalledProcessError:
+       if not allow_pypi:
+           raise
+       print("[Tri-ARC] Offline install failed; falling back to PyPI.")
+       run(
+           [
+               sys.executable,
+               "-m",
+               "pip",
+               "install",
+               "--extra-index-url",
+               extra_index,
+               "-r",
+               str(requirements),
+           ]
+       )
+
+   run([sys.executable, "--version"])
+   run([sys.executable, "-m", "pip", "--version"])
    ```
-   cd /kaggle/working/Tri-ARC
-   bash scripts/setup_kaggle_env.sh
-   ```
-   (All wheels must be pre-packaged; upload `vendor/wheels/` as a Kaggle dataset.)
+   (Upload `vendor/wheels/` as a Kaggle dataset so the offline install succeeds. Set `TRI_ARC_ALLOW_PYPI=1` only when the competition rules allow hitting PyPI.)
 5. **GPU pinning**: Use `CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_eval.py ...` to align with the device map in `docs/CONFIG_DEFAULTS.yaml`.
 6. **Logging**: Redirect logs to `/kaggle/temp/` to avoid quota issues on `/kaggle/working/`.
 

@@ -16,5 +16,5 @@
 - **進度更新**：`arc/llm` 已切換至 Qwen-2.5 Coder 7B 4-bit pipeline，PromptBuilder/DSLInterpreter 驗證與 metadata 打包皆完成，smoke 設定預設啟用 stub backend 驗證流程。
 
 # 階段五：Kaggle Notebook 首跑與交付
-- **工作內容**：依 `docs/ENV_SETUP.md` 打包 wheels、在 Kaggle GPU Notebook 套用 `scripts/setup_kaggle_env.sh`，調整 `CONFIG_DEFAULTS.yaml`（GPU 映射、SMT 關閉、記憶體保護），執行 `python scripts/run_eval.py --split evaluation`、收集 `logs/runtime.log`／`reports/metrics.jsonl`，並整理 `outputs/pass2.json` 為最終提交流程。
+- **工作內容**：依 `docs/ENV_SETUP.md` 打包 wheels、在 Kaggle GPU Notebook 首個 cell 直接執行 Python 安裝片段（詳見 `docs/ENV_SETUP.md`），調整 `CONFIG_DEFAULTS.yaml`（GPU 映射、SMT 關閉、記憶體保護），執行 `python scripts/run_eval.py --split evaluation`、收集 `logs/runtime.log`／`reports/metrics.jsonl`，並整理 `outputs/pass2.json` 為最終提交流程。
 - **完成條件**：Kaggle Notebook 成功跑完整個 evaluation split，三個求解模組皆產生候選並由 Arbitrator 統合；`pass2.json` 可直接上傳評分，附帶一次完整的日誌與資源使用記錄以供後續迭代分析。

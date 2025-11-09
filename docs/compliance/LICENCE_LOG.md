@@ -17,7 +17,6 @@ This log records third-party artefacts bundled with the offline package and thei
 | orjson | 3.10.7 | Apache-2.0 | Fast JSON serialization for reports. |
 | msgpack | 1.0.8 | Apache-2.0 | Artefact caching, optional. |
 | PyYAML | 6.0.1 | MIT | Configuration parsing. |
-| antlr4-python3-runtime | 4.9.3 | BSD-3-Clause | Dependency for Hydra CLI; source tarball included. |
 
 ## Maintenance Checklist
 
@@ -26,4 +25,3 @@ This log records third-party artefacts bundled with the offline package and thei
 - [x] Asset inventory exported (`reports/offline_inventory_20251104.json`).
 - [ ] Confirm downstream consumers acknowledge upstream attribution when repackaging.
 - [ ] Re-run licence diff before next release to capture new dependencies.
-
