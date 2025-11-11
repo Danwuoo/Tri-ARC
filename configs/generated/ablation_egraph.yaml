@@ -1,0 +1,207 @@
+global:
+  seed: 1337
+  device_map:
+    llm: cuda:0
+    ttt: cuda:1
+    symbolic: cuda:2
+    flex: cuda:3
+  max_wall_clock_hours: 12
+  data_root: C:\Users\000000\Desktop\Tri-ARC\data\arcagi2
+  cache_root: C:\Users\000000\Desktop\Tri-ARC\cache
+  log_root: C:\Users\000000\Desktop\Tri-ARC\logs
+modules:
+  symbolic:
+    class: arc.symbolic.SymbolicModule
+    enabled: true
+    device: ${global.device_map.symbolic}
+    migration_log_path: reports/module_interface_migration.md
+    warm_start: false
+  ttt:
+    class: arc.ttt.TTTModule
+    enabled: true
+    device: ${global.device_map.ttt}
+    mock_class: arc.ttt.mocks.MockTTTModule
+    warm_start: false
+  llm:
+    class: arc.llm.LLMModule
+    enabled: true
+    device: ${global.device_map.llm}
+    mock_class: arc.llm.mocks.MockLLMModule
+    warm_start: false
+  arbitrator:
+    class: arc.arbitration.ArbitratorModule
+    enabled: true
+scheduler:
+  feature_lookup: configs/scheduler/features.yaml
+  default_soft_timeout_s: 90
+  default_hard_timeout_s: 150
+  priority_threshold: 0.65
+  donation_window_s: 20
+  backlog_alert_threshold: 50
+  halt_threshold: 0.95
+  feature_cache:
+    max_items: 512
+    ttl_seconds: 43200
+    backing_store: cache/scheduler/features_cache.jsonl
+  descriptor_cache:
+    max_items: 256
+  warm_start_cache:
+    max_items: 128
+  logging:
+    ingest_log: logs/scheduler/ingest.log
+  diagnostics:
+    fingerprint_salt: scheduler_v1
+    snapshot_dir: reports
+  resource_pool:
+    gpu_capacity: 1.0
+    cpu_worker_capacity: 16
+symbolic:
+  enabled: true
+  seed: 1337
+  search_strategy: beam
+  max_depth: 12
+  max_expansions: 2500
+  max_nodes: 20000
+  beam_width: 96
+  soft_timeout_s: 90
+  hard_timeout_s: 150
+  heuristics_model_path: models/symbolic/heuristic.pt
+  heuristics:
+    mode: hybrid
+    rule_based:
+      enabled: true
+      weight: 1.0
+      weights:
+        coverage: 2.0
+        consistency: 1.5
+        progress: 1.0
+        novelty: 0.5
+        depth_penalty: 1.0
+        cost_penalty: 0.2
+        stagnation_penalty: 0.5
+        normalise_scale: 1.0
+    neural:
+      enabled: false
+      weight: 1.0
+      model_path: models/symbolic/heuristic.pt
+      checksum_path: models/symbolic/heuristic.sha256
+      requires_checksum: false
+    calibration:
+      enabled: true
+      midpoint: auto
+      scale: 0.45
+      min_score: 0.0
+      max_score: 1.0
+      ema_alpha: 0.2
+  egraph:
+    enabled: true
+    rewrite_limit: 5000
+    cost_metric: min_nodes
+    max_iterations: 50
+    history_dir: logs/symbolic/egraph
+  frontier:
+    report_dir: reports/symbolic
+    log_path: logs/symbolic/symbolic_frontier.log
+    snapshot_interval_s: 5.0
+  telemetry:
+    progress_file: logs/symbolic/solve_progress.jsonl
+    diagnostics_dir: logs/symbolic/diagnostics
+    checkpoint_dir: cache/symbolic/checkpoints
+  library_path: dsl/library.json
+  interpreter_cache:
+    enabled: true
+    max_items: 512
+    ttl_seconds: 43200
+  smt:
+    issue_tokens: true
+    token_prefix: 'smt:virtual-symbolic:'
+    virtual_secret: tri-arc-symbolic
+ttt:
+  enabled: true
+  model_path: models/ttt/base.ckpt
+  trainable_params: adapters
+  steps: 16
+  learning_rate: 0.0003
+  gradient_clip: 1.0
+  early_stop_patience: 3
+  losses:
+    reconstruction: 1.0
+    color_conservation: 0.5
+    object_count: 0.3
+    smoothness: 0.2
+llm:
+  enabled: true
+  backend: auto
+  model_path: models/Qwen2.5-Coder-7B-Instruct
+  tokenizer_path: models/Qwen2.5-Coder-7B-Instruct
+  prompt_version: dsl-v1
+  initial_candidates: 8
+  refinement_candidates: 4
+  temperature_initial: 0.7
+  top_p_initial: 0.9
+  max_input_tokens: 1536
+  max_new_tokens: 512
+  quantisation_bits: 4
+  keep_failed_candidates: false
+  stop_sequences:
+  - </json>
+  - </response>
+  - <|im_end|>
+  prompt_variants:
+  - name: planner
+    weight: 1.0
+  - name: symmetry
+    weight: 0.8
+  - name: contrast
+    weight: 0.6
+  smt:
+    issue_tokens: true
+    token_prefix: 'smt:virtual-llm:'
+    virtual_secret: tri-arc-llm
+smt:
+  enabled: false
+  token_prefix: 'smt:virtual-symbolic:'
+  solver: z3
+  timeout_ms: 2000
+  max_retries: 2
+  reuse_context: true
+  max_clause_cache: 10000
+  clause_cache_max_items: 2048
+arbitrator:
+  confidence_threshold: 0.65
+  diversity_gap: 0.1
+  runtime_penalty_weight: 0.05
+  log_top_k: 5
+  default_prior: 0.5
+  diversity_bonus: 0.05
+  module_priors:
+    symbolic: 0.75
+    ttt: 0.5
+    llm: 0.45
+  outputs_dir: outputs
+  reports_dir: reports
+  logs_dir: logs/arbitrator
+  verification_batch_size: 1
+logging:
+  level: INFO
+  metrics_file: metrics.jsonl
+  runtime_log: runtime.log
+  profiler_enabled: false
+  compress_rotated_logs: true
+  log_max_bytes_mb: 10
+  log_backup_count: 3
+guardrails:
+  max_duration_s: 300
+  max_rss_mb: 110000
+  max_gpu_mb: 23000
+  scheduler:
+    feature_cache_min_hit_rate: 0.2
+    descriptor_cache_min_hit_rate: 0.2
+  smt:
+    clause_cache_miss_threshold: 0.7
+debug:
+  enable_replay_cache: true
+  store_failed_candidates: true
+  dump_smt_constraints: true
+evaluation:
+  runs_dir: reports/eval_runs/full

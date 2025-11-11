@@ -905,8 +905,8 @@
   ],
   "low_confidence": false,
   "fallback_used": true,
-  "timestamp": "2025-11-09T07:29:38Z",
-  "latency_ms": 2.9985904693603516,
+  "timestamp": "2025-11-10T14:25:27Z",
+  "latency_ms": 4.5757293701171875,
   "rejected_candidates": [
     {
       "candidate_id": "symbolic-0",

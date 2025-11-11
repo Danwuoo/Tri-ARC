@@ -1,0 +1,1883 @@
+{
+  "status": "completed",
+  "timestamps": {
+    "started_at": "2025-11-10T14:30:12.979458+00:00",
+    "completed_at": "2025-11-10T14:30:17.396174+00:00"
+  },
+  "modules": {
+    "symbolic": {
+      "status": "success",
+      "summary": {
+        "task_id": "dbff022c",
+        "status": "success",
+        "elapsed_s": 0.0059587000287137926,
+        "expansions": 1,
+        "nodes": 2,
+        "solutions": 0,
+        "lane": "symbolic",
+        "candidate_count": 1,
+        "telemetry_snapshot": {
+          "frontier_report": "reports\\symbolic\\frontier_dbff022c_20251110_223013.md",
+          "frontier_log": "logs\\symbolic\\symbolic_frontier.log",
+          "diagnostics": [
+            "logs\\symbolic\\diagnostics\\dbff022c_diag_20251110_223013.json"
+          ],
+          "progress_path": "logs\\symbolic\\solve_progress.jsonl",
+          "checkpoint_path": null,
+          "elapsed_s": 0.0059587000287137926,
+          "expansions": 1,
+          "generated_nodes": 2
+        }
+      },
+      "candidates": [
+        {
+          "node_id": 1,
+          "score": 0.49074715185289064,
+          "cost": 0.0,
+          "solved_examples": 0,
+          "total_examples": 3,
+          "verification_passed": false,
+          "metadata": {
+            "note": "placeholder",
+            "rule_based": {
+              "coverage": 0.0,
+              "consistency": 0.0,
+              "progress": 0.0,
+              "novelty": 0.0,
+              "depth_ratio": 0.08333333333333333,
+              "cost": 0.0,
+              "stagnation": 0.0
+            },
+            "calibration": {
+              "raw": 0.47917871462725703,
+              "midpoint": 0.4958357429254514,
+              "scale": 0.45,
+              "min_score": 0.0,
+              "max_score": 1.0
+            },
+            "heuristics": {
+              "score": 0.49074715185289064,
+              "components": {
+                "rule_based": 0.47917871462725703,
+                "ensemble_total": 0.47917871462725703,
+                "calibrated_total": 0.49074715185289064
+              }
+            },
+            "task_id": "dbff022c",
+            "node_id": 1,
+            "depth": 1,
+            "cost": 0.0,
+            "generated_at": 1762785013.5149481,
+            "solved_examples": 0,
+            "total_examples": 3,
+            "smt_token": "smt:virtual-symbolic:841494b64bdc21b565fb3cfe",
+            "failures": [
+              {
+                "index": 0,
+                "type": "grid_mismatch",
+                "expected": [
+                  [
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    3,
+                    4,
+                    6,
+                    9,
+                    5
+                  ],
+                  [
+                    0,
+                    4,
+                    6,
+                    4,
+                    6,
+                    4,
+                    0,
+                    3,
+                    6,
+                    7,
+                    2,
+                    9
+                  ],
+                  [
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    7,
+                    7,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    7,
+                    0,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    3,
+                    0,
+                    0,
+                    0,
+                    7,
+                    7,
+                    0,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    7,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                ],
+                "actual": [
+                  [
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    3,
+                    4,
+                    6,
+                    9,
+                    5
+                  ],
+                  [
+                    0,
+                    4,
+                    0,
+                    4,
+                    0,
+                    4,
+                    0,
+                    3,
+                    6,
+                    7,
+                    2,
+                    9
+                  ],
+                  [
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    3,
+                    3,
+                    3,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    0,
+                    0,
+                    3,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    0,
+                    0,
+                    3,
+                    0,
+                    0,
+                    7,
+                    7,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    3,
+                    0,
+                    0,
+                    3,
+                    0,
+                    0,
+                    7,
+                    0,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    3,
+                    0,
+                    3,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    3,
+                    0,
+                    0,
+                    0,
+                    7,
+                    7,
+                    0,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    7,
+                    7,
+                    7,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                ],
+                "diff": {
+                  "first_mismatch": {
+                    "row": 1,
+                    "col": 2,
+                    "expected": 6,
+                    "actual": 0
+                  }
+                }
+              },
+              {
+                "index": 1,
+                "type": "grid_mismatch",
+                "expected": [
+                  [
+                    2,
+                    6,
+                    0,
+                    0,
+                    8,
+                    8,
+                    8,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    4,
+                    5,
+                    0,
+                    0,
+                    8,
+                    1,
+                    1,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    6,
+                    8,
+                    0,
+                    0,
+                    8,
+                    1,
+                    1,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    1,
+                    0,
+                    0,
+                    8,
+                    8,
+                    8,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    0,
+                    4,
+                    4,
+                    4
+                  ],
+                  [
+                    0,
+                    5,
+                    0,
+                    0,
+                    0,
+                    5,
+                    0,
+                    4,
+                    5,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    5,
+                    5,
+                    5,
+                    5,
+                    0,
+                    4,
+                    4,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    5,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    4,
+                    4
+                  ]
+                ],
+                "actual": [
+                  [
+                    2,
+                    6,
+                    0,
+                    0,
+                    8,
+                    8,
+                    8,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    4,
+                    5,
+                    0,
+                    0,
+                    8,
+                    0,
+                    0,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    6,
+                    8,
+                    0,
+                    0,
+                    8,
+                    0,
+                    0,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    1,
+                    0,
+                    0,
+                    8,
+                    8,
+                    8,
+                    8,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    0,
+                    4,
+                    4,
+                    4
+                  ],
+                  [
+                    0,
+                    5,
+                    0,
+                    0,
+                    0,
+                    5,
+                    0,
+                    4,
+                    0,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    5,
+                    5,
+                    5,
+                    5,
+                    0,
+                    4,
+                    4,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    4
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    4,
+                    4
+                  ]
+                ],
+                "diff": {
+                  "first_mismatch": {
+                    "row": 1,
+                    "col": 5,
+                    "expected": 1,
+                    "actual": 0
+                  }
+                }
+              },
+              {
+                "index": 2,
+                "type": "grid_mismatch",
+                "expected": [
+                  [
+                    0,
+                    2,
+                    6,
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    2,
+                    2,
+                    2,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    7,
+                    1,
+                    0,
+                    4,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    2,
+                    7,
+                    2,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    2,
+                    2,
+                    7,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    2,
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                ],
+                "actual": [
+                  [
+                    0,
+                    2,
+                    6,
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    2,
+                    2,
+                    2,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    7,
+                    1,
+                    0,
+                    4,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    2,
+                    0,
+                    2,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    0,
+                    0,
+                    4,
+                    0,
+                    2,
+                    2,
+                    0,
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    0,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    0,
+                    2,
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                ],
+                "diff": {
+                  "first_mismatch": {
+                    "row": 1,
+                    "col": 11,
+                    "expected": 7,
+                    "actual": 0
+                  }
+                }
+              }
+            ],
+            "solution_reason": "Null enumerator returns identity program."
+          },
+          "program": [
+            [
+              "identity",
+              []
+            ]
+          ],
+          "smt_token": "smt:virtual-symbolic:841494b64bdc21b565fb3cfe"
+        }
+      ],
+      "telemetry": {
+        "module_name": "symbolic",
+        "stage": "solve",
+        "status": "completed",
+        "started_at": 1762785013.5040736,
+        "completed_at": 1762785013.5204642,
+        "duration_s": 0.016390562057495117,
+        "error": null,
+        "extras": {
+          "perf": {
+            "duration_s": 0.0123,
+            "cpu": {
+              "rss_mb": 522.418,
+              "rss_delta_mb": 0.0,
+              "vms_mb": 1403.0,
+              "vms_delta_mb": 0.0
+            },
+            "io": {
+              "read_mb": 176.2186,
+              "write_mb": 4503.9779,
+              "read_delta_mb": 0.0,
+              "write_delta_mb": 0.0169
+            },
+            "metadata": {
+              "pid": 21792,
+              "num_threads": 32
+            }
+          }
+        }
+      },
+      "elapsed_s": 0.030760765075683594,
+      "budget_s": 90.0,
+      "hard_budget_s": 150.0,
+      "priority": 0.4
+    },
+    "ttt": {
+      "status": "partial",
+      "summary": {
+        "lane": "ttt",
+        "profile": "default",
+        "strategy": "ttt_model",
+        "steps_executed": 5,
+        "best_reconstruction": 2.979355573654175,
+        "mean_confidence": 0.4435056746006012,
+        "loss_adjusted_confidence": 0.05,
+        "augmented_examples": 6,
+        "converged": false,
+        "reason": "loss_not_converged"
+      },
+      "candidates": [],
+      "telemetry": {
+        "module_name": "ttt",
+        "stage": "solve",
+        "status": "completed",
+        "started_at": 1762785013.9797323,
+        "completed_at": 1762785015.7342508,
+        "duration_s": 1.7545185089111328,
+        "error": null,
+        "extras": {
+          "perf": {
+            "duration_s": 1.7479,
+            "cpu": {
+              "rss_mb": 544.6641,
+              "rss_delta_mb": 22.2461,
+              "vms_mb": 1422.5938,
+              "vms_delta_mb": 19.5938
+            },
+            "io": {
+              "read_mb": 176.2186,
+              "write_mb": 4518.0189,
+              "read_delta_mb": 0.0,
+              "write_delta_mb": 0.0003
+            },
+            "metadata": {
+              "pid": 21792,
+              "num_threads": 32
+            }
+          }
+        }
+      },
+      "elapsed_s": 1.765188217163086,
+      "budget_s": 67.5,
+      "hard_budget_s": 150.0,
+      "priority": 0.3
+    },
+    "llm": {
+      "status": "partial",
+      "summary": {
+        "lane": "llm",
+        "prompt_version": "dsl-v1",
+        "engine": "stub",
+        "backend": "auto",
+        "generated": 8,
+        "verified": 0,
+        "failure_reasons": {
+          "failed_verification": 8
+        },
+        "engine_warning": "transformers is required to load the Qwen engine."
+      },
+      "candidates": [],
+      "telemetry": {
+        "module_name": "llm",
+        "stage": "solve",
+        "status": "completed",
+        "started_at": 1762785016.2698617,
+        "completed_at": 1762785016.3059492,
+        "duration_s": 0.0360875129699707,
+        "error": null,
+        "extras": {
+          "perf": {
+            "duration_s": 0.0323,
+            "cpu": {
+              "rss_mb": 544.6641,
+              "rss_delta_mb": 0.0,
+              "vms_mb": 1422.5938,
+              "vms_delta_mb": 0.0
+            },
+            "io": {
+              "read_mb": 176.2186,
+              "write_mb": 4532.0706,
+              "read_delta_mb": 0.0,
+              "write_delta_mb": 0.0094
+            },
+            "metadata": {
+              "pid": 21792,
+              "num_threads": 32
+            }
+          }
+        }
+      },
+      "elapsed_s": 0.05070376396179199,
+      "budget_s": 67.5,
+      "hard_budget_s": 150.0,
+      "priority": 0.3
+    }
+  },
+  "arbitration": {
+    "status": "success",
+    "summary": {
+      "task_id": "dbff022c",
+      "answers": [
+        {
+          "candidate_id": "fallback-0",
+          "module": "fallback",
+          "outputs": [
+            [
+              [
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                3,
+                3,
+                3,
+                3,
+                0
+              ],
+              [
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                3,
+                0,
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                1,
+                1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                3,
+                0,
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                3,
+                3,
+                3,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                5,
+                5,
+                5,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                5,
+                0,
+                0,
+                0,
+                5,
+                0
+              ],
+              [
+                0,
+                2,
+                0,
+                2,
+                0,
+                0,
+                0,
+                5,
+                0,
+                0,
+                0,
+                0,
+                5
+              ],
+              [
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                5,
+                5,
+                5,
+                5,
+                5
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                5,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0
+              ],
+              [
+                5,
+                4,
+                6,
+                7,
+                8,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                2,
+                0
+              ],
+              [
+                9,
+                8,
+                3,
+                1,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0
+              ]
+            ]
+          ],
+          "score": 1.0,
+          "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+          "rationale": "fallback"
+        }
+      ],
+      "answers_outputs": [
+        [
+          [
+            [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              3,
+              3,
+              3,
+              3,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              3,
+              0,
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              3,
+              0,
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              3,
+              3,
+              3,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              5,
+              5,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              5,
+              0
+            ],
+            [
+              0,
+              2,
+              0,
+              2,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              0,
+              5
+            ],
+            [
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0
+            ],
+            [
+              5,
+              4,
+              6,
+              7,
+              8,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              2,
+              0
+            ],
+            [
+              9,
+              8,
+              3,
+              1,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0
+            ]
+          ]
+        ]
+      ],
+      "rationale": [
+        "Primary candidate fallback-0 selected with score 1.000.",
+        "Secondary candidate not selected due to insufficient diversity or score gap."
+      ],
+      "low_confidence": false,
+      "fallback_used": true,
+      "timestamp": "2025-11-10T14:30:16Z",
+      "latency_ms": 3.7546157836914062,
+      "rejected_candidates": [
+        {
+          "candidate_id": "symbolic-0",
+          "module": "symbolic",
+          "score": 0.05,
+          "verification_status": "failed",
+          "failure_reason": "output_mismatch"
+        },
+        {
+          "candidate_id": "fallback-1",
+          "module": "fallback",
+          "score": 1.0,
+          "verification_status": "passed",
+          "failure_reason": null
+        }
+      ]
+    },
+    "elapsed_s": 0.0833747386932373,
+    "candidates": [
+      {
+        "candidate_id": "fallback-0",
+        "module": "fallback",
+        "score": 1.0,
+        "metadata": {
+          "strategy": "identity",
+          "rationale": "No verified candidates; returning test inputs unchanged."
+        },
+        "provenance": {
+          "strategy": "identity",
+          "task_id": "dbff022c"
+        }
+      }
+    ],
+    "telemetry": {
+      "module_name": "arbitrator",
+      "stage": "solve",
+      "status": "completed",
+      "started_at": 1762785016.8483994,
+      "completed_at": 1762785016.8521798,
+      "duration_s": 0.003780364990234375,
+      "error": null
+    }
+  },
+  "summary": {
+    "task_id": "dbff022c",
+    "answers": [
+      {
+        "candidate_id": "fallback-0",
+        "module": "fallback",
+        "outputs": [
+          [
+            [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              3,
+              3,
+              3,
+              3,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              3,
+              0,
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              3,
+              0,
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              3,
+              3,
+              3,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              5,
+              5,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              5,
+              0
+            ],
+            [
+              0,
+              2,
+              0,
+              2,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              0,
+              5
+            ],
+            [
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0
+            ],
+            [
+              5,
+              4,
+              6,
+              7,
+              8,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              2,
+              0
+            ],
+            [
+              9,
+              8,
+              3,
+              1,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0
+            ]
+          ]
+        ],
+        "score": 1.0,
+        "signature": "ba2245258db9b9064285fb490cd51cefe8536e8a78fa3e016c2b08c6c6153996",
+        "rationale": "fallback"
+      }
+    ],
+    "answers_outputs": [
+      [
+        [
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            3,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            3,
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            3,
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            3,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5,
+            5,
+            5,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0,
+            5,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            2,
+            0,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0,
+            0,
+            5
+          ],
+          [
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            5,
+            4,
+            6,
+            7,
+            8,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            2,
+            0
+          ],
+          [
+            9,
+            8,
+            3,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0
+          ]
+        ]
+      ]
+    ],
+    "rationale": [
+      "Primary candidate fallback-0 selected with score 1.000.",
+      "Secondary candidate not selected due to insufficient diversity or score gap."
+    ],
+    "low_confidence": false,
+    "fallback_used": true,
+    "timestamp": "2025-11-10T14:30:16Z",
+    "latency_ms": 3.7546157836914062,
+    "rejected_candidates": [
+      {
+        "candidate_id": "symbolic-0",
+        "module": "symbolic",
+        "score": 0.05,
+        "verification_status": "failed",
+        "failure_reason": "output_mismatch"
+      },
+      {
+        "candidate_id": "fallback-1",
+        "module": "fallback",
+        "score": 1.0,
+        "verification_status": "passed",
+        "failure_reason": null
+      }
+    ]
+  }
+}

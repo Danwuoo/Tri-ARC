@@ -725,13 +725,13 @@
   ],
   "low_confidence": false,
   "fallback_used": true,
-  "timestamp": "2025-11-09T07:30:09Z",
-  "latency_ms": 4.814386367797852,
+  "timestamp": "2025-11-10T14:26:39Z",
+  "latency_ms": 8.532524108886719,
   "rejected_candidates": [
     {
       "candidate_id": "ttt-6e453dd6-grid",
       "module": "ttt",
-      "score": 0.11386611798924103,
+      "score": 0.11386987903851534,
       "verification_status": "failed",
       "failure_reason": "output_mismatch"
     },

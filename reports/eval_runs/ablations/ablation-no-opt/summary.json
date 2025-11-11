@@ -1,0 +1,33 @@
+{
+  "tasks_total": 120,
+  "tasks_completed": 120,
+  "tasks_failed": 0,
+  "tasks_skipped": 0,
+  "modules": {
+    "ttt": {
+      "success": 5,
+      "attempts": 120
+    },
+    "llm": {
+      "success": 0,
+      "attempts": 120
+    },
+    "symbolic": {
+      "success": 120,
+      "attempts": 120
+    }
+  },
+  "elapsed_s": 422.1463735103607,
+  "run_state": {
+    "run_id": "ablation-no-opt",
+    "split": "evaluation",
+    "config_fingerprint": "f82e6b569529ee40",
+    "time_limit_hours": 12.0,
+    "status": "running",
+    "started_at": "2025-11-10T14:24:28.574187+00:00",
+    "updated_at": "2025-11-10T14:31:30.203409+00:00",
+    "completed_tasks": 120,
+    "failed_tasks": 0,
+    "tasks_total": 120
+  }
+}

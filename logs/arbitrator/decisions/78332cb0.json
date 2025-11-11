@@ -637,8 +637,8 @@
   ],
   "low_confidence": false,
   "fallback_used": true,
-  "timestamp": "2025-11-09T07:30:18Z",
-  "latency_ms": 3.2439231872558594,
+  "timestamp": "2025-11-10T14:26:59Z",
+  "latency_ms": 7.770061492919922,
   "rejected_candidates": [
     {
       "candidate_id": "ttt-78332cb0-grid",
