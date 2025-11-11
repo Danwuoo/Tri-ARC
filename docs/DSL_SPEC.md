@@ -150,6 +150,26 @@ All failures attach `stage_index`, `operator`, and evaluated arguments to the `d
 - Runtime logs emit structured messages using the root logging configuration established during Phase 1 (`logs/runtime.log`).
 - The interpreter exposes trace objects so downstream tooling can perform richer analyses (coverage, timings, diffs).
 
+## DSL Library Growth
+The symbolic solver is designed to learn new primitives over time, accelerating search on future tasks. This process is inspired by the DreamCoder methodology, where high-frequency sub-programs from successful solutions are compressed into new DSL functions.
+
+### Core Principles
+- **Abstraction**: Reusable program fragments are identified and promoted to first-class primitives.
+- **Distillation**: Only general-purpose, high-utility fragments are retained to prevent the library from becoming bloated with task-specific solutions.
+- **Governance**: The promotion of new primitives is a governed process, requiring evidence of utility and review by the governance board.
+
+### Candidate Identification
+1. **Fragment Mining**: After a task is solved, the e-graph and execution traces are mined for frequently occurring sub-programs.
+2. **Utility Scoring**: Candidates are scored based on their frequency, complexity reduction, and applicability across a diverse set of validation tasks.
+3. **Generalization**: Candidate fragments are parameterized to create more general-purpose primitives.
+
+### Promotion Workflow
+1. **Proposal**: A candidate primitive is proposed via a pull request, including its implementation, documentation, and validation evidence.
+2. **Review**: The governance board reviews the proposal for correctness, utility, and adherence to DSL design principles.
+3. **Integration**: Upon approval, the new primitive is integrated into the DSL, versioned, and announced in the changelog.
+
+This self-reinforcing cycle allows the DSL to evolve a rich library of operations tailored to the ARC domain, improving both search efficiency and the expressiveness of the language.
+
 ## Governance and Versioning
 - Spec updates follow semantic versioning. Increments occur alongside entries in `docs/changelog.md` describing the change, review owner, and ratification timestamp.
 - Any change to operator semantics, argument contracts, or evaluation order must land as a spec pull request that includes updated canonical examples and green DSL tests.
