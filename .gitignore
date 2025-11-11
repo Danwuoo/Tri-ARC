@@ -3,9 +3,4 @@
 *.safetensors.index.json
 *.safetensors.idx
 model/**/.cache/
-cache/
-logs/
-reports/
-outputs/
-dist/
 __pycache__/
