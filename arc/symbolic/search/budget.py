@@ -15,6 +15,7 @@ class SearchBudget:
     hard_timeout_s: float
     max_nodes: Optional[int] = None
     beam_width: Optional[int] = None
+    max_candidates: int = 10
     seed: Optional[int] = None
     _start_time: Optional[float] = field(default=None, init=False, repr=False)
     _expansions: int = field(default=0, init=False, repr=False)
@@ -70,6 +71,17 @@ class SearchBudget:
         if limit <= 0:
             return float("inf")
         return max(0.0, limit - self.elapsed_s)
+    
+    def has_time_remaining(self, *, soft: bool = False) -> bool:
+        """Check if there is time remaining in the budget.
+        
+        Args:
+            soft: Whether to check against soft timeout
+            
+        Returns:
+            True if time remaining, False otherwise
+        """
+        return self.within_time(soft=soft)
 
     def export_state(self) -> dict:
         """Serialise budget counters for checkpointing."""

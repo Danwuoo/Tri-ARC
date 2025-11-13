@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/000000/Desktop/Tri-ARC
+configfile: pytest.ini
+collecting ... collected 3 items / 2 deselected / 1 selected
+
+tests/symbolic/test_symbolic_module.py::test_symbolic_module_success_flow PASSED [100%]
+
+======================= 1 passed, 2 deselected in 2.87s ========================

@@ -1,0 +1,423 @@
+{
+  "root": "arc.symbolic",
+  "module_count": 93,
+  "edge_count": 239,
+  "cycles": [
+    [
+      "arc.symbolic.dsl.runtime.context",
+      "arc.symbolic.dsl.runtime.primitives"
+    ]
+  ],
+  "adjacency": {
+    "arc.symbolic": [
+      "arc.symbolic.solver"
+    ],
+    "arc.symbolic.coordination": [
+      "arc.symbolic.coordination.integration",
+      "arc.symbolic.coordination.llm_coordinator",
+      "arc.symbolic.coordination.message_queue",
+      "arc.symbolic.coordination.ttt_coordinator",
+      "arc.symbolic.coordination.types"
+    ],
+    "arc.symbolic.coordination.integration": [
+      "arc.symbolic.coordination.llm_coordinator",
+      "arc.symbolic.coordination.message_queue",
+      "arc.symbolic.coordination.ttt_coordinator",
+      "arc.symbolic.coordination.types",
+      "arc.symbolic.ir.sketch"
+    ],
+    "arc.symbolic.coordination.llm_coordinator": [
+      "arc.symbolic.coordination.message_queue",
+      "arc.symbolic.coordination.types",
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.sketch",
+      "arc.symbolic.smt.verifier"
+    ],
+    "arc.symbolic.coordination.message_queue": [],
+    "arc.symbolic.coordination.ttt_coordinator": [
+      "arc.symbolic.coordination.message_queue",
+      "arc.symbolic.coordination.types"
+    ],
+    "arc.symbolic.coordination.types": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.decomposition": [
+      "arc.symbolic.decomposition.block_ops",
+      "arc.symbolic.decomposition.integration",
+      "arc.symbolic.decomposition.object_centric",
+      "arc.symbolic.decomposition.parallel"
+    ],
+    "arc.symbolic.decomposition.block_ops": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.decomposition.integration": [
+      "arc.symbolic.decomposition.object_centric",
+      "arc.symbolic.decomposition.parallel",
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.object_graph"
+    ],
+    "arc.symbolic.decomposition.object_centric": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.object_graph"
+    ],
+    "arc.symbolic.decomposition.parallel": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl": [],
+    "arc.symbolic.dsl.exceptions": [],
+    "arc.symbolic.dsl.interpreter": [
+      "arc.symbolic.dsl.runtime.context",
+      "arc.symbolic.dsl.runtime.errors",
+      "arc.symbolic.dsl.runtime.evaluation",
+      "arc.symbolic.dsl.runtime.primitives",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.parser": [
+      "arc.symbolic.dsl.exceptions",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.runtime": [],
+    "arc.symbolic.dsl.runtime.context": [
+      "arc.symbolic.dsl.runtime.primitives",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.runtime.errors": [],
+    "arc.symbolic.dsl.runtime.evaluation": [
+      "arc.symbolic.dsl.runtime.context",
+      "arc.symbolic.dsl.runtime.errors",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.runtime.primitives": [
+      "arc.symbolic.dsl.runtime.context",
+      "arc.symbolic.dsl.runtime.errors",
+      "arc.symbolic.dsl.runtime.utils",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.runtime.utils": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.dsl.types": [],
+    "arc.symbolic.dsl.verify": [
+      "arc.symbolic.dsl.interpreter",
+      "arc.symbolic.dsl.parser",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.egraph": [
+      "arc.symbolic.egraph.analyzer",
+      "arc.symbolic.egraph.compression",
+      "arc.symbolic.egraph.engine",
+      "arc.symbolic.egraph.extractor",
+      "arc.symbolic.egraph.rule_miner",
+      "arc.symbolic.egraph.rules"
+    ],
+    "arc.symbolic.egraph.analyzer": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.egraph.compression": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.egraph.engine": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.egraph.extractor": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine"
+    ],
+    "arc.symbolic.egraph.rule_miner": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine"
+    ],
+    "arc.symbolic.egraph.rules": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine"
+    ],
+    "arc.symbolic.engineering": [
+      "arc.symbolic.engineering.artifacts",
+      "arc.symbolic.engineering.budget",
+      "arc.symbolic.engineering.cache",
+      "arc.symbolic.engineering.circuit_breaker",
+      "arc.symbolic.engineering.metrics",
+      "arc.symbolic.engineering.telemetry",
+      "arc.symbolic.engineering.timeout"
+    ],
+    "arc.symbolic.engineering.artifacts": [],
+    "arc.symbolic.engineering.budget": [
+      "arc.symbolic.search.budget"
+    ],
+    "arc.symbolic.engineering.cache": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.engineering.circuit_breaker": [],
+    "arc.symbolic.engineering.integration_example": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.engineering",
+      "arc.symbolic.engineering.budget",
+      "arc.symbolic.engineering.circuit_breaker",
+      "arc.symbolic.engineering.metrics",
+      "arc.symbolic.engineering.telemetry",
+      "arc.symbolic.search.budget"
+    ],
+    "arc.symbolic.engineering.metrics": [],
+    "arc.symbolic.engineering.telemetry": [],
+    "arc.symbolic.engineering.timeout": [],
+    "arc.symbolic.evaluation": [
+      "arc.symbolic.evaluation.baseline",
+      "arc.symbolic.evaluation.dashboard",
+      "arc.symbolic.evaluation.dataset",
+      "arc.symbolic.evaluation.metrics",
+      "arc.symbolic.evaluation.runner"
+    ],
+    "arc.symbolic.evaluation.baseline": [
+      "arc.symbolic.evaluation.metrics"
+    ],
+    "arc.symbolic.evaluation.dashboard": [
+      "arc.symbolic.evaluation.metrics"
+    ],
+    "arc.symbolic.evaluation.dataset": [],
+    "arc.symbolic.evaluation.metrics": [],
+    "arc.symbolic.evaluation.runner": [
+      "arc.symbolic.evaluation.baseline",
+      "arc.symbolic.evaluation.dashboard",
+      "arc.symbolic.evaluation.dataset",
+      "arc.symbolic.evaluation.metrics"
+    ],
+    "arc.symbolic.heuristics": [
+      "arc.symbolic.heuristics.base",
+      "arc.symbolic.heuristics.neural",
+      "arc.symbolic.heuristics.rule_based"
+    ],
+    "arc.symbolic.heuristics.base": [
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.heuristics.neural": [
+      "arc.symbolic.heuristics.base",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.heuristics.rule_based": [
+      "arc.symbolic.heuristics.base",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.interpreter_adapter": [
+      "arc.symbolic.dsl.interpreter",
+      "arc.symbolic.dsl.parser",
+      "arc.symbolic.dsl.verify"
+    ],
+    "arc.symbolic.ir": [
+      "arc.symbolic.ir.dsl_mapper",
+      "arc.symbolic.ir.grid_mapper",
+      "arc.symbolic.ir.object_graph",
+      "arc.symbolic.ir.sketch"
+    ],
+    "arc.symbolic.ir.dsl_mapper": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.object_graph",
+      "arc.symbolic.ir.sketch"
+    ],
+    "arc.symbolic.ir.grid_mapper": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.object_graph"
+    ],
+    "arc.symbolic.ir.object_graph": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.ir.sketch": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.library": [
+      "arc.symbolic.library.curator",
+      "arc.symbolic.library.fragment_miner",
+      "arc.symbolic.library.integration",
+      "arc.symbolic.library.persistence",
+      "arc.symbolic.library.rule_learner"
+    ],
+    "arc.symbolic.library.curator": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine",
+      "arc.symbolic.library.fragment_miner"
+    ],
+    "arc.symbolic.library.fragment_miner": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.library.integration": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine",
+      "arc.symbolic.library.curator",
+      "arc.symbolic.library.fragment_miner",
+      "arc.symbolic.library.persistence",
+      "arc.symbolic.library.rule_learner",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.library.persistence": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.library.curator",
+      "arc.symbolic.library.fragment_miner"
+    ],
+    "arc.symbolic.library.rule_learner": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.engine"
+    ],
+    "arc.symbolic.search": [
+      "arc.symbolic.search.abstract_interpreter",
+      "arc.symbolic.search.advanced_search_integration",
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.diversity",
+      "arc.symbolic.search.enumerators",
+      "arc.symbolic.search.frontier",
+      "arc.symbolic.search.generator",
+      "arc.symbolic.search.mcts",
+      "arc.symbolic.search.neural_models",
+      "arc.symbolic.search.pcfg",
+      "arc.symbolic.search.sketch_guided",
+      "arc.symbolic.search.strategy",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.abstract_interpreter": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.search.advanced_search_integration": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.abstract_interpreter",
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.diversity",
+      "arc.symbolic.search.mcts",
+      "arc.symbolic.search.neural_models",
+      "arc.symbolic.search.pcfg",
+      "arc.symbolic.search.sketch_guided",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.budget": [],
+    "arc.symbolic.search.diversity": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.enumerators": [
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.strategy",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.frontier": [
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.generator": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.mcts": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.neural_models": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.pcfg": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.sketch_guided": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.sketch",
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.strategy": [
+      "arc.symbolic.search.budget",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.search.types": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.smt": [
+      "arc.symbolic.smt.encoder",
+      "arc.symbolic.smt.types",
+      "arc.symbolic.smt.verifier",
+      "arc.symbolic.smt.witness"
+    ],
+    "arc.symbolic.smt.bdd": [
+      "arc.symbolic.dsl.runtime.utils",
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.smt.encoder": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.smt.types"
+    ],
+    "arc.symbolic.smt.types": [],
+    "arc.symbolic.smt.verifier": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.smt.encoder",
+      "arc.symbolic.smt.types"
+    ],
+    "arc.symbolic.smt.witness": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.sketch"
+    ],
+    "arc.symbolic.solver": [
+      "arc.symbolic.coordination",
+      "arc.symbolic.decomposition",
+      "arc.symbolic.dsl.interpreter",
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.egraph.analyzer",
+      "arc.symbolic.egraph.engine",
+      "arc.symbolic.egraph.extractor",
+      "arc.symbolic.egraph.rule_miner",
+      "arc.symbolic.egraph.rules",
+      "arc.symbolic.engineering",
+      "arc.symbolic.heuristics",
+      "arc.symbolic.ir",
+      "arc.symbolic.library.integration",
+      "arc.symbolic.search",
+      "arc.symbolic.search.advanced_search_integration",
+      "arc.symbolic.search.enumerators",
+      "arc.symbolic.search.generator",
+      "arc.symbolic.smt",
+      "arc.symbolic.smt.types",
+      "arc.symbolic.symmetry",
+      "arc.symbolic.verification",
+      "arc.symbolic.verification.cegis"
+    ],
+    "arc.symbolic.symmetry": [
+      "arc.symbolic.symmetry.color_normalizer",
+      "arc.symbolic.symmetry.step_normalizer",
+      "arc.symbolic.symmetry.symmetry_detector"
+    ],
+    "arc.symbolic.symmetry.color_normalizer": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.types"
+    ],
+    "arc.symbolic.symmetry.demo_symmetry": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.search.types",
+      "arc.symbolic.solver",
+      "arc.symbolic.symmetry"
+    ],
+    "arc.symbolic.symmetry.step_normalizer": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.symmetry.symmetry_detector": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.ir.object_graph"
+    ],
+    "arc.symbolic.verification": [
+      "arc.symbolic.verification.cegis",
+      "arc.symbolic.verification.counterexample",
+      "arc.symbolic.verification.invariant",
+      "arc.symbolic.verification.repair"
+    ],
+    "arc.symbolic.verification.cegis": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.verification.counterexample": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.verification.cegis"
+    ],
+    "arc.symbolic.verification.invariant": [
+      "arc.symbolic.dsl.types"
+    ],
+    "arc.symbolic.verification.repair": [
+      "arc.symbolic.dsl.types",
+      "arc.symbolic.verification.cegis"
+    ]
+  }
+}

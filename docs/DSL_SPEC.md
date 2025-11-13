@@ -180,3 +180,138 @@ This self-reinforcing cycle allows the DSL to evolve a rich library of operation
 See `docs/DSL_PRIMER.md` and the fixture set under `fixtures/dsl/spec_examples/` for end-to-end worked examples covering every primitive and combinator defined in this release.
 
 
+
+
+## Intermediate Representation (IR) Layer
+
+**Added in v0.4.0 (2025-11-12)**
+
+The IR layer provides bidirectional mappings between grids, object graphs, and DSL programs, enabling object-centric reasoning and decomposition strategies.
+
+### IR Architecture
+
+```
+Grid ←→ ObjectGraph ←→ DSL Program
+  ↑         ↑              ↑
+  └─────────┴──────────────┘
+     Bidirectional Mappings
+```
+
+### ObjectNode Structure
+
+Represents a connected component in a grid:
+
+```python
+@dataclass
+class ObjectNode:
+    id: int                          # Unique identifier
+    region: Region                   # Set of (row, col) coordinates
+    color: int                       # Primary color (0-9)
+    bbox: BoundingBox               # (min_row, min_col, max_row, max_col)
+    properties: Dict[str, Any]      # symmetry, connectivity, area, etc.
+```
+
+### ObjectGraph Structure
+
+Represents a grid as a collection of objects with relationships:
+
+```python
+@dataclass
+class ObjectGraph:
+    nodes: List[ObjectNode]                    # All objects
+    edges: List[Tuple[int, int, str]]         # (src_id, dst_id, relation_type)
+    background_color: int                      # Background color
+    canvas_shape: Tuple[int, int]             # (height, width)
+    metadata: Dict[str, Any]                  # Additional metadata
+```
+
+**Edge Relation Types**:
+- `"adjacent"`: Objects share a boundary
+- `"contains"`: One object spatially contains another
+- `"aligned_horizontal"`: Objects share same row range
+- `"aligned_vertical"`: Objects share same column range
+- `"same_color"`: Objects have the same color
+- `"same_shape"`: Objects have similar shapes
+
+### Grid-to-ObjectGraph Mapping
+
+**API**: `GridToObjectGraphMapper.map_grid_to_objects(grid, connectivity=4, min_size=1)`
+
+**Algorithm**:
+1. Connected component analysis on same-color regions
+2. Extract ObjectNode for each component
+3. Compute properties (bbox, area, symmetry)
+4. Detect spatial relationships
+5. Build ObjectGraph
+
+**Reconstruction**: `GridToObjectGraphMapper.map_objects_to_grid(object_graph, canvas_shape)`
+
+Guarantees: `map_objects_to_grid(map_grid_to_objects(grid)) == grid`
+
+### ObjectGraph-to-DSL Mapping
+
+**API**: `ObjectGraphToDSLMapper.generate_sketch(input_graph, output_graph)`
+
+Generates program sketches with holes based on I/O object graph analysis:
+
+**Heuristics**:
+- Object count change → `detect_objects` + `repeat` pattern
+- Color change → `paint_region` or `recolor`
+- Spatial transformation → `translate`, `rotate`, `reflect`
+- Topological change → `flood_fill`, `draw_line`, `connect`
+
+**Sketch Instantiation**: `ObjectGraphToDSLMapper.instantiate_sketch(sketch, hole_assignments)`
+
+Fills holes to create complete programs.
+
+### ProgramSketch Structure
+
+```python
+@dataclass
+class ProgramSketch:
+    stages: List[Union[Stage, Hole]]    # Mix of concrete stages and holes
+    constraints: List[Constraint]        # Constraints on holes
+    metadata: Dict[str, Any]            # Sketch metadata
+```
+
+### Hole Structure
+
+```python
+@dataclass
+class Hole:
+    id: str                    # Unique hole identifier
+    type: Type                 # Expected type (e.g., "color", "direction")
+    domain: Set[Any]          # Possible values
+    constraints: List[Constraint]  # Additional constraints
+```
+
+### Integration with DSL
+
+The IR layer extends the DSL with object-centric operations:
+
+```python
+# Example: Object-centric decomposition
+input_graph = mapper.map_grid_to_objects(input_grid)
+output_graph = mapper.map_grid_to_objects(output_grid)
+
+# Generate sketch
+sketch = dsl_mapper.generate_sketch(input_graph, output_graph)
+
+# Synthesize program
+program = synthesizer.synthesize_from_sketch(sketch, examples)
+
+# Execute
+result = interpreter.execute(program, input_grid)
+```
+
+### Performance Characteristics
+
+- **Memory**: ObjectGraph uses 10-100x less memory than dense grid for sparse patterns
+- **Computation**: Grid-to-ObjectGraph is O(H×W), ObjectGraph-to-Grid is O(N×A)
+- **Suitable for**: Grids up to 30×30 (ARC-AGI-2 maximum)
+
+### See Also
+
+- Full IR Specification: `docs/symbolic/ir_spec.md`
+- Implementation: `arc/symbolic/ir/`
+- Tests: `tests/symbolic/test_ir.py`

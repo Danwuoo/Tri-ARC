@@ -1754,3 +1754,12 @@
 {"event": "dsl_stage", "operator": "identity", "stage_path": "0", "duration_ms": 0.015099998563528061, "result_type": "grid"}
 {"event": "dsl_cache", "cache": "interpreter", "kind": "miss", "cache_key": "a8939890d87c8c973275156385547d6528ae117e", "timestamp": "2025-11-07T11:42:44.236024+00:00", "task_id": "sample-task", "hit_rate": 0.0, "size": 1, "capacity": 512, "stage_count": 1}
 {"event": "dsl_cache", "cache": "interpreter", "kind": "hit", "cache_key": "a8939890d87c8c973275156385547d6528ae117e", "timestamp": "2025-11-07T11:42:44.236848+00:00", "task_id": "sample-task", "hit_rate": 0.5, "size": 1, "capacity": 512, "stage_count": 1}
+{"event": "dsl_stage", "operator": "identity", "stage_path": "0", "duration_ms": 0.07670000195503235, "result_type": "grid"}
+{"event": "dsl_cache", "cache": "interpreter", "kind": "miss", "cache_key": "a8939890d87c8c973275156385547d6528ae117e", "timestamp": "2025-11-12T13:24:41.220498+00:00", "task_id": "test_identity", "hit_rate": 0.0, "size": 1, "capacity": 512, "stage_count": 1}
+{"module": "symbolic_solver", "task_id": "test_identity", "status": "success", "elapsed_s": 0.09085319998848718, "expansions": 1, "nodes": 2, "solutions": 1}
+{"event": "dsl_stage", "operator": "identity", "stage_path": "0", "duration_ms": 0.010299991117790341, "result_type": "grid"}
+{"event": "dsl_cache", "cache": "interpreter", "kind": "miss", "cache_key": "a8939890d87c8c973275156385547d6528ae117e", "timestamp": "2025-11-12T13:24:53.133880+00:00", "task_id": "test_identity", "hit_rate": 0.0, "size": 1, "capacity": 512, "stage_count": 1}
+{"module": "symbolic_solver", "task_id": "test_identity", "status": "success", "elapsed_s": 0.04926780000096187, "expansions": 1, "nodes": 2, "solutions": 1}
+{"event": "dsl_stage", "operator": "identity", "stage_path": "0", "duration_ms": 0.010799994925037026, "result_type": "grid"}
+{"event": "dsl_cache", "cache": "interpreter", "kind": "miss", "cache_key": "3fd077ec487e1e938c2f469233cc655eecddb216", "timestamp": "2025-11-12T13:25:03.848883+00:00", "task_id": "legacy_test", "hit_rate": 0.0, "size": 1, "capacity": 512, "stage_count": 1}
+{"module": "symbolic_solver", "task_id": "legacy_test", "status": "success", "elapsed_s": 0.04961860000912566, "expansions": 1, "nodes": 2, "solutions": 1}

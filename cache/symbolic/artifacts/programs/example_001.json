@@ -1,0 +1,12 @@
+{
+  "task_id": "example_001",
+  "program": {
+    "stages": [],
+    "metadata": {}
+  },
+  "metadata": {
+    "score": 0.0,
+    "verification": "passed"
+  },
+  "version": null
+}

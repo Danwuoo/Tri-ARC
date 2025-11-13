@@ -1,0 +1,6 @@
+{"timestamp": 1762949523.6246145, "event_type": "cache_access", "task_id": "example_001", "payload": {"cache_type": "program", "hit": false}}
+{"timestamp": 1762949523.6246355, "event_type": "phase_start", "task_id": "example_001", "payload": {"phase": "search", "metadata": {}}}
+{"timestamp": 1762949523.6246853, "event_type": "phase_end", "task_id": "example_001", "payload": {"phase": "search", "success": true, "elapsed_s": 4.8600006266497076e-05, "metadata": {}}}
+{"timestamp": 1762949523.6246982, "event_type": "phase_start", "task_id": "example_001", "payload": {"phase": "verification", "metadata": {}}}
+{"timestamp": 1762949523.6247084, "event_type": "candidate_verified", "task_id": "example_001", "payload": {"success": true, "verification_time": 0.5, "method": "smt"}}
+{"timestamp": 1762949523.6247149, "event_type": "phase_end", "task_id": "example_001", "payload": {"phase": "verification", "success": true, "elapsed_s": 1.6599995433352888e-05, "metadata": {}}}

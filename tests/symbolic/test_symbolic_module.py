@@ -57,6 +57,7 @@ def build_solver_result(status: str = "success") -> SolverResult:
     return SolverResult(task_id="task-1", status=status, candidates=[], telemetry=telemetry, summary=summary)
 
 
+@pytest.mark.smoke
 def test_symbolic_module_success_flow(module_context: ModuleContext) -> None:
     solver_result = build_solver_result("success")
     dummy_solver = DummySolver(solver_result)
