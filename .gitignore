@@ -4,3 +4,4 @@
 *.safetensors.idx
 model/**/.cache/
 __pycache__/
+.pytest_cache/
