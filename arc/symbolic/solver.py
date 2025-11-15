@@ -13,7 +13,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from arc.config import load_config
 from arc.logging_utils import append_metric
 from arc.symbolic.dsl.interpreter import DSLInterpreter, validate_program
-from arc.symbolic.dsl.types import Program, Stage
+from arc.symbolic.dsl.types import Grid, Program, Stage
 from arc.symbolic.ir import GridToObjectGraphMapper, ObjectGraphToDSLMapper
 from arc.symbolic.search import (
     BeamSearchStrategy,
@@ -61,6 +61,14 @@ class SolverResult:
     candidates: List[CandidateProgram]
     telemetry: SolverTelemetry
     summary: Dict[str, Any] = field(default_factory=dict)
+
+
+class TaskValidationError(Exception):
+    """Raised when task examples fail structural validation."""
+
+    def __init__(self, message: str, *, diagnostics: Optional[List[Dict[str, Any]]] = None) -> None:
+        super().__init__(message)
+        self.diagnostics: List[Dict[str, Any]] = list(diagnostics or [])
 
 
 @dataclass
@@ -355,11 +363,41 @@ class SymbolicSolver:
         control = SolverControl.from_task(task.get("control"))
         if control.signal_path and not control.signal_path.is_absolute():
             control.signal_path = (self.control_dir / control.signal_path).resolve()
+        solve_start = time.perf_counter()
+        telemetry_started = False
+
+        def ensure_telemetry_started() -> None:
+            nonlocal telemetry_started
+            if telemetry_started:
+                return
+            if self.telemetry_collector:
+                self.telemetry_collector.start_task(task_id)
+                telemetry_started = True
 
         train_examples = task.get("train_examples") or task.get("examples") or []
-        examples = self._build_examples(train_examples)
         metadata = task.get("metadata", {})
-        
+        try:
+            examples = self._build_examples(train_examples)
+        except TaskValidationError as exc:
+            ensure_telemetry_started()
+            elapsed = time.perf_counter() - solve_start
+            LOGGER.error("Task %s failed validation: %s", task_id, exc)
+            failure_result = self._build_failed_result(
+                task_id=task_id,
+                message=str(exc),
+                reason="invalid_task",
+                diagnostics=exc.diagnostics,
+                elapsed_s=elapsed,
+            )
+            failure_metadata = {
+                "elapsed_s": elapsed,
+                "reason": "invalid_task",
+                "message": str(exc),
+                "invalid_examples": [entry.get("index") for entry in exc.diagnostics],
+            }
+            self._dispatch_failure_feedback(task_id, "invalid_task", failure_metadata)
+            return failure_result
+
         # Receive invariants and sketches from TTT/LLM modules
         invariants = []
         relations = []
@@ -438,8 +476,7 @@ class SymbolicSolver:
                 return self._build_cached_result(task_id, cached_result)
         
         # Start telemetry collection
-        if self.telemetry_collector:
-            self.telemetry_collector.start_task(task_id)
+        ensure_telemetry_started()
 
         root_node = SearchNode(
             node_id=0,
@@ -859,6 +896,7 @@ class SymbolicSolver:
                 self.cache_manager.cache_program(task_id, examples, successful_programs[0])
         
         # Record telemetry
+        ensure_telemetry_started()
         if self.telemetry_collector:
             self.telemetry_collector.record_task_completion(
                 task_id,
@@ -870,43 +908,29 @@ class SymbolicSolver:
                 len([c for c in candidates if c.verification_passed])
             )
         
-        # Send failure feedback to TTT/LLM if no solutions found
-        if self.coordination_enabled and self.coordination:
-            if summary_status == "no_solution":
-                failure_metadata = {
-                    "elapsed_s": elapsed_s,
-                    "expansions": budget.expansions,
-                    "nodes": budget.generated_nodes,
-                    "candidates_generated": len(candidates),
-                }
-                self.coordination.send_failure_feedback(
-                    task_id,
-                    "search_exhausted",
-                    failure_metadata
-                )
-                LOGGER.info(f"Sent failure feedback for task {task_id}: search_exhausted")
-                
-                # Also notify library manager of failure
-                if self.library_manager:
-                    self.library_manager.on_solve_failure(task_id, "search_exhausted", failure_metadata)
-            elif summary_status == "partial":
-                failure_metadata = {
-                    "elapsed_s": elapsed_s,
-                    "control_reason": control_reason,
-                }
-                self.coordination.send_failure_feedback(
-                    task_id,
-                    "timeout" if control_reason == "cancel" else "interrupted",
-                    failure_metadata
-                )
-                
-                # Also notify library manager of failure
-                if self.library_manager:
-                    self.library_manager.on_solve_failure(
-                        task_id,
-                        "timeout" if control_reason == "cancel" else "interrupted",
-                        failure_metadata
-                    )
+        # Send failure feedback to TTT/LLM (and library manager) if we failed to solve the task
+        if summary_status == "no_solution":
+            failure_metadata = {
+                "elapsed_s": elapsed_s,
+                "expansions": budget.expansions,
+                "nodes": budget.generated_nodes,
+                "candidates_generated": len(candidates),
+            }
+            self._dispatch_failure_feedback(task_id, "search_exhausted", failure_metadata)
+        elif summary_status == "partial":
+            reason = "timeout" if control_reason == "cancel" else "interrupted"
+            failure_metadata = {
+                "elapsed_s": elapsed_s,
+                "control_reason": control_reason,
+            }
+            self._dispatch_failure_feedback(task_id, reason, failure_metadata)
+        elif summary_status == "failed":
+            failure_metadata = {
+                "elapsed_s": elapsed_s,
+                "reason": summary.get("reason"),
+                "validation": summary.get("validation_errors"),
+            }
+            self._dispatch_failure_feedback(task_id, summary.get("reason", "failed"), failure_metadata)
 
         return SolverResult(
             task_id=task_id,
@@ -920,13 +944,40 @@ class SymbolicSolver:
     # Internal helpers
     # ------------------------------------------------------------------ #
     def _build_examples(self, raw_examples: Sequence[Dict[str, Any]]) -> List[TrainingExample]:
+        if not raw_examples:
+            diag = self._make_validation_diag(
+                index=None,
+                message="Task must include at least one training example.",
+                diag_type="invalid_task",
+            )
+            raise TaskValidationError("No training examples were provided.", diagnostics=[diag])
         examples: List[TrainingExample] = []
         for index, example in enumerate(raw_examples):
+            if not isinstance(example, dict):
+                diag = self._make_validation_diag(
+                    index=index,
+                    message="Training example must be a mapping.",
+                    diag_type="invalid_example",
+                    extra={"observed_type": type(example).__name__},
+                )
+                raise TaskValidationError("Training example is not a mapping.", diagnostics=[diag])
             input_grid = example.get("input") or example.get("input_grid")
             output_grid = example.get("output") or example.get("output_grid")
             metadata = dict(example.get("metadata", {}))
             metadata.setdefault("index", index)
-            examples.append(TrainingExample(input_grid=input_grid, output_grid=output_grid, metadata=metadata))
+            normalised_input, _ = self._normalise_example_grid(
+                input_grid,
+                grid_role="input",
+                example_index=index,
+                metadata=metadata,
+            )
+            normalised_output, _ = self._normalise_example_grid(
+                output_grid,
+                grid_role="output",
+                example_index=index,
+                metadata=metadata,
+            )
+            examples.append(TrainingExample(input_grid=normalised_input, output_grid=normalised_output, metadata=metadata))
         
         # Apply color normalization if enabled
         if self.symmetry_enabled and self.color_normalization_enabled and self.color_normalizer:
@@ -938,6 +989,249 @@ class SymbolicSolver:
                 LOGGER.warning("Color normalization failed: %s. Using original examples.", e)
         
         return examples
+
+    def _normalise_example_grid(
+        self,
+        grid_value: Any,
+        *,
+        grid_role: str,
+        example_index: int,
+        metadata: Dict[str, Any],
+    ) -> Tuple[Any, Tuple[int, int]]:
+        if grid_value is None:
+            diag = self._make_validation_diag(
+                index=example_index,
+                message=f"Missing {grid_role} grid.",
+                grid_role=grid_role,
+                metadata=metadata,
+            )
+            raise TaskValidationError(f"Missing {grid_role} grid.", diagnostics=[diag])
+        if isinstance(grid_value, Grid):
+            rows, cols = grid_value.shape
+            if rows <= 0 or cols <= 0:
+                diag = self._make_validation_diag(
+                    index=example_index,
+                    message=f"{grid_role.capitalize()} grid must be at least 1x1.",
+                    grid_role=grid_role,
+                    metadata=metadata,
+                    extra={"rows": rows, "cols": cols},
+                )
+                raise TaskValidationError("Grid dimensions are invalid.", diagnostics=[diag])
+            return grid_value, (rows, cols)
+        if isinstance(grid_value, (str, bytes)):
+            diag = self._make_validation_diag(
+                index=example_index,
+                message=f"{grid_role.capitalize()} grid must be a 2D list of integers.",
+                grid_role=grid_role,
+                metadata=metadata,
+                extra={"observed_type": type(grid_value).__name__},
+            )
+            raise TaskValidationError("Grid must be a 2D sequence.", diagnostics=[diag])
+        try:
+            rows_iterable = list(grid_value)
+        except TypeError:
+            diag = self._make_validation_diag(
+                index=example_index,
+                message=f"{grid_role.capitalize()} grid is not iterable.",
+                grid_role=grid_role,
+                metadata=metadata,
+                extra={"observed_type": type(grid_value).__name__},
+            )
+            raise TaskValidationError("Grid must be iterable.", diagnostics=[diag])
+        if not rows_iterable:
+            diag = self._make_validation_diag(
+                index=example_index,
+                message=f"{grid_role.capitalize()} grid must contain at least one row.",
+                grid_role=grid_role,
+                metadata=metadata,
+            )
+            raise TaskValidationError("Grid must contain rows.", diagnostics=[diag])
+
+        normalised_rows: List[List[Any]] = []
+        row_length: Optional[int] = None
+        row_lengths: List[int] = []
+        for row_idx, row in enumerate(rows_iterable):
+            if isinstance(row, (str, bytes)):
+                diag = self._make_validation_diag(
+                    index=example_index,
+                    message=f"{grid_role.capitalize()} grid rows must be sequences of integers.",
+                    grid_role=grid_role,
+                    metadata=metadata,
+                    extra={"row_index": row_idx},
+                )
+                raise TaskValidationError("Grid rows must be sequences.", diagnostics=[diag])
+            try:
+                row_values = list(row)
+            except TypeError:
+                diag = self._make_validation_diag(
+                    index=example_index,
+                    message=f"{grid_role.capitalize()} grid rows must be sequences of integers.",
+                    grid_role=grid_role,
+                    metadata=metadata,
+                    extra={"row_index": row_idx},
+                )
+                raise TaskValidationError("Grid rows must be sequences.", diagnostics=[diag])
+            if not row_values:
+                diag = self._make_validation_diag(
+                    index=example_index,
+                    message=f"{grid_role.capitalize()} grid rows must contain at least one column.",
+                    grid_role=grid_role,
+                    metadata=metadata,
+                    extra={"row_index": row_idx},
+                )
+                raise TaskValidationError("Grid row is empty.", diagnostics=[diag])
+            row_len = len(row_values)
+            row_lengths.append(row_len)
+            if row_length is None:
+                row_length = row_len
+            elif row_len != row_length:
+                diag = self._make_validation_diag(
+                    index=example_index,
+                    message=f"{grid_role.capitalize()} grid rows must all have the same length.",
+                    grid_role=grid_role,
+                    metadata=metadata,
+                    extra={"row_index": row_idx, "row_lengths": row_lengths},
+                )
+                raise TaskValidationError("Grid rows are not rectangular.", diagnostics=[diag])
+            normalised_rows.append(list(row_values))
+
+        if row_length is None or row_length <= 0:
+            diag = self._make_validation_diag(
+                index=example_index,
+                message=f"{grid_role.capitalize()} grid must be at least 1 column wide.",
+                grid_role=grid_role,
+                metadata=metadata,
+            )
+            raise TaskValidationError("Grid columns missing.", diagnostics=[diag])
+
+        return normalised_rows, (len(normalised_rows), row_length)
+
+    def _make_validation_diag(
+        self,
+        *,
+        index: Optional[int],
+        message: str,
+        diag_type: str = "invalid_grid",
+        grid_role: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        entry: Dict[str, Any] = {
+            "index": index,
+            "type": diag_type,
+            "reason": message,
+        }
+        if grid_role:
+            entry["grid_role"] = grid_role
+        if metadata:
+            entry["example_metadata"] = self._sanitize_metadata(metadata)
+        if extra:
+            entry.update(extra)
+        return entry
+
+    def _sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        def _convert(value: Any) -> Any:
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                return value
+            if isinstance(value, dict):
+                return {str(key): _convert(val) for key, val in value.items()}
+            if isinstance(value, (list, tuple)):
+                return [_convert(item) for item in value]
+            return repr(value)
+
+        try:
+            return {str(key): _convert(val) for key, val in metadata.items()}
+        except Exception:
+            return {str(key): repr(val) for key, val in metadata.items()}
+
+    def _summarize_validation_errors(self, diagnostics: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        summary: List[Dict[str, Any]] = []
+        for entry in diagnostics:
+            summary.append(
+                {
+                    "index": entry.get("index"),
+                    "type": entry.get("type"),
+                    "grid_role": entry.get("grid_role"),
+                    "reason": entry.get("reason"),
+                }
+            )
+        return summary
+
+    def _build_failed_result(
+        self,
+        *,
+        task_id: str,
+        message: str,
+        reason: str,
+        diagnostics: Sequence[Dict[str, Any]],
+        elapsed_s: float,
+    ) -> SolverResult:
+        diag_paths: List[Path] = []
+        diag_entries = list(diagnostics)
+        if diag_entries:
+            diag_program = Program(stages=tuple())
+            diag_paths.append(self._write_diagnostics(task_id, diag_program, diag_entries))
+
+        progress_path = self._write_progress(
+            task_id=task_id,
+            status="failed",
+            elapsed_s=elapsed_s,
+            expansions=0,
+            nodes=0,
+        )
+
+        summary: Dict[str, Any] = {
+            "task_id": task_id,
+            "status": "failed",
+            "reason": reason,
+            "message": message,
+            "elapsed_s": elapsed_s,
+            "expansions": 0,
+            "nodes": 0,
+            "solutions": 0,
+        }
+        if diag_entries:
+            summary["validation_errors"] = self._summarize_validation_errors(diag_entries)
+
+        self._emit_metric(summary)
+
+        telemetry = SolverTelemetry(
+            frontier_report=None,
+            frontier_log=self.frontier_log_path,
+            diagnostics=diag_paths,
+            events=[],
+            progress_path=progress_path,
+            checkpoint_path=None,
+            elapsed_s=elapsed_s,
+            expansions=0,
+            generated_nodes=0,
+        )
+
+        if self.telemetry_collector:
+            self.telemetry_collector.record_task_completion(
+                task_id,
+                "failed",
+                elapsed_s,
+                0,
+                0,
+                0,
+                0,
+            )
+
+        return SolverResult(
+            task_id=task_id,
+            status="failed",
+            candidates=[],
+            telemetry=telemetry,
+            summary=summary,
+        )
+
+    def _dispatch_failure_feedback(self, task_id: str, reason: str, metadata: Dict[str, Any]) -> None:
+        if self.coordination_enabled and self.coordination:
+            self.coordination.send_failure_feedback(task_id, reason, metadata)
+            LOGGER.info("Sent failure feedback for task %s: %s", task_id, reason)
+        if self.library_manager:
+            self.library_manager.on_solve_failure(task_id, reason, metadata)
 
     def _build_budget(self, task_id: str) -> SearchBudget:
         symbolic = self.symbolic_cfg

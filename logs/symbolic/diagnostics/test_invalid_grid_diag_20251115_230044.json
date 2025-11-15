@@ -1,0 +1,16 @@
+{
+  "task_id": "test_invalid_grid",
+  "program": [
+    [
+      "identity",
+      []
+    ]
+  ],
+  "failures": [
+    {
+      "index": 0,
+      "type": "exception",
+      "message": "ValueError('setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (2,) + inhomogeneous part.')"
+    }
+  ]
+}

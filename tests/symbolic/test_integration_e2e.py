@@ -6,6 +6,8 @@ including TTT/LLM coordination, fallback mechanisms, and error handling.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from typing import Any, Dict, List
 
@@ -307,13 +309,23 @@ class TestFallbackMechanisms:
                 },
             ],
         }
-        
+
         solver = SymbolicSolver(minimal_config)
         result = solver.solve(invalid_task)
-        
+
         assert isinstance(result, SolverResult)
-        # Should handle gracefully
-        assert result.status in ["no_solution", "failed", "partial"]
+        assert result.status == "failed"
+        assert result.summary["status"] == "failed"
+        assert result.summary.get("reason") == "invalid_task"
+        assert result.summary.get("validation_errors")
+
+        diagnostics = result.telemetry.diagnostics
+        assert diagnostics, "Expected diagnostics output for invalid grids"
+        payload = json.loads(diagnostics[0].read_text(encoding="utf-8"))
+        failure_entries = payload.get("failures", [])
+        assert failure_entries, "Diagnostics should include failure entries"
+        assert any(entry.get("grid_role") == "input" for entry in failure_entries)
+        assert any(entry.get("type") == "invalid_grid" for entry in failure_entries)
 
 
 class TestFeatureToggling:
