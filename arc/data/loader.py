@@ -5,7 +5,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Iterable, Iterator, List, Mapping, MutableMapping, Optional, Sequence, Tuple, Union
 
 LOGGER = logging.getLogger("arc.data.loader")
 
@@ -14,6 +14,16 @@ SPLIT_ALIASES = {
     "evaluation": ("evaluation", "test", "public_evaluation"),
     "smoke": ("smoke",),
 }
+
+_SPLIT_DIRECTORY_CANDIDATES: Tuple[str, ...] = tuple(
+    sorted(
+        {
+            token
+            for canonical, aliases in SPLIT_ALIASES.items()
+            for token in (canonical, *aliases)
+        }
+    )
+)
 
 
 def _normalise_split_name(split: str) -> str:
@@ -247,27 +257,14 @@ class DatasetLoader:
             raw = json.load(handle)
         task_id = self._derive_task_id(split, path)
         checksum = self._compute_checksum(path) if self.enable_checksums else None
-
-        train_examples = _normalise_examples(raw.get("train", []), require_output=True)
-        if not train_examples:
-            raise ValueError(f"Task {task_id} missing train examples.")
-        evaluation_examples = _normalise_examples(raw.get("test") or raw.get("evaluation") or [], require_output=False)
-        metadata = _extract_metadata(
-            raw_metadata=raw.get("metadata"),
+        payload = _build_task_payload(
+            raw,
+            task_id=task_id,
             split=split,
             path=path,
             checksum=checksum,
-            train_examples=train_examples,
-            eval_examples=evaluation_examples,
             data_root=self.data_root,
         )
-        payload: Dict[str, Any] = {
-            "task_id": task_id,
-            "train_examples": train_examples,
-            "test_examples": evaluation_examples,
-            "eval_examples": evaluation_examples,
-            "metadata": metadata,
-        }
         return TaskRecord(task_id=task_id, split=split, path=path, payload=payload, checksum=checksum)
 
     def _compute_checksum(self, path: Path) -> str:
@@ -335,3 +332,234 @@ def _collect_shapes(examples: Sequence[Mapping[str, Any]]) -> List[List[int]]:
         if shape:
             shapes.append(shape)
     return shapes
+
+
+def _build_task_payload(
+    raw: Mapping[str, Any],
+    *,
+    task_id: str,
+    split: str,
+    path: Path,
+    checksum: Optional[str],
+    data_root: Path,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = dict(raw)
+    train_source = payload.get("train_examples") or payload.get("train") or payload.get("examples") or []
+    train_examples = _normalise_examples(train_source, require_output=True)
+    if not train_examples:
+        raise ValueError(f"Task {task_id} missing train examples.")
+    eval_source = (
+        payload.get("test_examples")
+        or payload.get("eval_examples")
+        or payload.get("test")
+        or payload.get("evaluation")
+        or payload.get("eval")
+        or []
+    )
+    evaluation_examples = _normalise_examples(eval_source, require_output=False)
+    metadata = _extract_metadata(
+        raw_metadata=payload.get("metadata"),
+        split=split,
+        path=path,
+        checksum=checksum,
+        train_examples=train_examples,
+        eval_examples=evaluation_examples,
+        data_root=data_root,
+    )
+    for legacy_key in ("train", "test", "evaluation", "examples", "train_examples", "test_examples", "eval_examples"):
+        payload.pop(legacy_key, None)
+    payload["task_id"] = task_id
+    payload["train_examples"] = train_examples
+    payload["test_examples"] = evaluation_examples
+    payload["eval_examples"] = evaluation_examples
+    payload["metadata"] = metadata
+    return payload
+
+
+def _records_to_payloads(records: Iterable[TaskRecord]) -> List[Dict[str, Any]]:
+    return [record.to_payload() for record in records]
+
+
+def _guess_split_from_name(name: str) -> Optional[str]:
+    token = name.lower()
+    for canonical, aliases in SPLIT_ALIASES.items():
+        if canonical in token:
+            return canonical
+        for alias in aliases:
+            if alias in token:
+                return canonical
+    return None
+
+
+def _has_split_subdirectories(directory: Path) -> bool:
+    return any((directory / candidate).is_dir() for candidate in _SPLIT_DIRECTORY_CANDIDATES)
+
+
+def _load_directory_files(
+    directory: Path,
+    *,
+    canonical_split: str,
+    limit: Optional[int],
+    enable_checksums: bool,
+    logger: logging.Logger,
+) -> List[Dict[str, Any]]:
+    loader = DatasetLoader(directory, enable_checksums=enable_checksums, logger=logger)
+    sources = sorted(directory.glob("*.json"))
+    if not sources:
+        sources = sorted(directory.rglob("*.json"))
+    if not sources:
+        raise FileNotFoundError(f"No task files found under {directory}.")
+    dataset: List[Dict[str, Any]] = []
+    for path in sources:
+        if limit is not None and len(dataset) >= limit:
+            break
+        try:
+            record = loader._load_task(path, canonical_split)
+        except Exception as exc:
+            logger.error("Failed to load task %s: %s", path, exc)
+            continue
+        dataset.append(record.to_payload())
+    return dataset
+
+
+def _load_dataset_from_directory(
+    directory: Path,
+    *,
+    split: Optional[str],
+    limit: Optional[int],
+    enable_checksums: bool,
+    logger: logging.Logger,
+) -> List[Dict[str, Any]]:
+    if _has_split_subdirectories(directory):
+        canonical = _normalise_split_name(split or "train")
+        loader = DatasetLoader(directory, enable_checksums=enable_checksums, logger=logger)
+        return _records_to_payloads(loader.iter_split(canonical, limit=limit))
+
+    parent = directory.parent
+    split_guess = split or _guess_split_from_name(directory.name)
+    if parent and parent != directory and parent.exists() and split_guess:
+        loader = DatasetLoader(parent, enable_checksums=enable_checksums, logger=logger)
+        canonical = _normalise_split_name(split_guess)
+        try:
+            return _records_to_payloads(loader.iter_split(canonical, limit=limit))
+        except FileNotFoundError:
+            logger.debug("Parent %s did not contain split '%s'. Falling back to direct loading.", parent, canonical)
+
+    canonical = _normalise_split_name(split or split_guess or "train")
+    return _load_directory_files(
+        directory,
+        canonical_split=canonical,
+        limit=limit,
+        enable_checksums=enable_checksums,
+        logger=logger,
+    )
+
+
+def _load_dataset_from_file(
+    file_path: Path,
+    *,
+    split: Optional[str],
+    limit: Optional[int],
+    enable_checksums: bool,
+    logger: logging.Logger,
+) -> List[Dict[str, Any]]:
+    entries: List[Any] = []
+    suffix = file_path.suffix.lower()
+    if suffix in {".jsonl", ".ndjson"}:
+        with file_path.open("r", encoding="utf-8") as handle:
+            for line_no, line in enumerate(handle, 1):
+                candidate = line.strip()
+                if not candidate:
+                    continue
+                try:
+                    entries.append(json.loads(candidate))
+                except json.JSONDecodeError as exc:
+                    logger.error("Skipping invalid JSON line %d in %s: %s", line_no, file_path, exc)
+    else:
+        with file_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if isinstance(payload, list):
+            entries = payload
+        elif isinstance(payload, Mapping) and isinstance(payload.get("tasks"), list):
+            entries = payload["tasks"]
+        else:
+            entries = [payload]
+
+    canonical = _normalise_split_name(split or _guess_split_from_name(file_path.stem) or "train")
+    dataset_root = file_path.parent
+    dataset: List[Dict[str, Any]] = []
+    safe_base = file_path.stem or "task"
+
+    for index, entry in enumerate(entries):
+        if limit is not None and len(dataset) >= limit:
+            break
+        if not isinstance(entry, Mapping):
+            logger.warning("Skipping non-mapping entry at index %d from %s.", index, file_path)
+            continue
+        task_id = str(entry.get("task_id") or entry.get("id") or f"{safe_base}_{index:05d}")
+        safe_id = task_id.replace("/", "__")
+        synthetic_path = file_path.with_name(f"{safe_base}__{safe_id}.json")
+        try:
+            payload = _build_task_payload(
+                entry,
+                task_id=task_id,
+                split=canonical,
+                path=synthetic_path,
+                checksum=None,
+                data_root=dataset_root,
+            )
+        except ValueError as exc:
+            logger.error("Skipping invalid task %s from %s: %s", task_id, file_path, exc)
+            continue
+        dataset.append(payload)
+    return dataset
+
+
+def load_dataset(
+    resource: Union[str, Path],
+    *,
+    split: Optional[str] = None,
+    limit: Optional[int] = None,
+    enable_checksums: bool = False,
+    logger: Optional[logging.Logger] = None,
+) -> List[Dict[str, Any]]:
+    """Load ARC task data from files or directories into solver-ready payloads."""
+    dataset_path = Path(resource)
+    active_logger = logger or LOGGER
+
+    if dataset_path.is_dir():
+        return _load_dataset_from_directory(
+            dataset_path,
+            split=split,
+            limit=limit,
+            enable_checksums=enable_checksums,
+            logger=active_logger,
+        )
+
+    if dataset_path.is_file():
+        return _load_dataset_from_file(
+            dataset_path,
+            split=split,
+            limit=limit,
+            enable_checksums=enable_checksums,
+            logger=active_logger,
+        )
+
+    parent = dataset_path.parent
+    inferred_split = split or _guess_split_from_name(dataset_path.stem)
+    if parent.exists() and inferred_split and parent.is_dir() and _has_split_subdirectories(parent):
+        active_logger.info(
+            "Dataset path %s not found; using parent %s split '%s' instead.",
+            dataset_path,
+            parent,
+            inferred_split,
+        )
+        return _load_dataset_from_directory(
+            parent,
+            split=inferred_split,
+            limit=limit,
+            enable_checksums=enable_checksums,
+            logger=active_logger,
+        )
+
+    raise FileNotFoundError(f"Dataset resource '{dataset_path}' does not exist.")

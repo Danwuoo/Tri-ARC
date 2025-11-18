@@ -5,6 +5,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Dict, Optional
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -19,6 +20,16 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 LOGGER = logging.getLogger("symbolic_evaluation")
+
+
+def _build_extractor_overrides(extractor: Optional[str]) -> Dict[str, Dict[str, Dict[str, str]]]:
+    """Construct overrides for selecting the e-graph extractor."""
+    overrides: Dict[str, Dict[str, Dict[str, str]]] = {}
+    if extractor:
+        symbolic = overrides.setdefault("symbolic", {})
+        egraph = symbolic.setdefault("egraph", {})
+        egraph["extraction_method"] = extractor
+    return overrides
 
 
 def main():
@@ -90,6 +101,13 @@ def main():
         action="store_true",
         help="Run all ablation studies",
     )
+    parser.add_argument(
+        "--extractor",
+        type=str,
+        choices=["astar", "ilp", "cp_sat"],
+        default=None,
+        help="Force symbolic.egraph.extraction_method for this run",
+    )
     
     # Execution configuration
     parser.add_argument(
@@ -136,22 +154,27 @@ def main():
     }
     baseline_config = baseline_map[args.baseline]()
     
-    # Create evaluation config
-    config = EvaluationConfig(
-        run_id=args.run_id,
-        dataset_root=args.dataset_root,
-        output_dir=args.output_dir / args.run_id,
-        split=DatasetSplit(args.split),
-        max_tasks=args.max_tasks,
-        task_ids=args.task_ids,
-        baseline_config=baseline_config,
-        run_ablations=args.run_ablations,
-        seed=args.seed,
-        timeout_per_task=args.timeout_per_task,
-        save_metrics=not args.no_metrics,
-        save_dashboard_data=not args.no_dashboard,
-        generate_report=not args.no_report,
-    )
+    extractor_override = args.extractor.lower() if args.extractor else None
+
+    def build_config(run_id: str, extractor: Optional[str]) -> EvaluationConfig:
+        return EvaluationConfig(
+            run_id=run_id,
+            dataset_root=args.dataset_root,
+            output_dir=args.output_dir / run_id,
+            split=DatasetSplit(args.split),
+            max_tasks=args.max_tasks,
+            task_ids=args.task_ids,
+            baseline_config=baseline_config,
+            run_ablations=args.run_ablations,
+            seed=args.seed,
+            timeout_per_task=args.timeout_per_task,
+            save_metrics=not args.no_metrics,
+            save_dashboard_data=not args.no_dashboard,
+            generate_report=not args.no_report,
+            config_overrides=_build_extractor_overrides(extractor),
+        )
+
+    config = build_config(args.run_id, extractor_override)
     
     # Create runner
     runner = EvaluationRunner(config, logger=LOGGER)
@@ -169,7 +192,18 @@ def main():
                 f"pass@2={result.pass_at_2:.2%}"
             )
     else:
-        LOGGER.info(f"Running evaluation with baseline: {args.baseline}")
+        baseline_result = None
+        if extractor_override and extractor_override != "astar":
+            baseline_run_id = f"{args.run_id}_astar_baseline"
+            LOGGER.info("Running reference evaluation with extractor=astar for delta metrics")
+            baseline_config = build_config(baseline_run_id, "astar")
+            baseline_runner = EvaluationRunner(baseline_config, logger=LOGGER)
+            baseline_result = baseline_runner.run()
+        
+        LOGGER.info(
+            f"Running evaluation with baseline: {args.baseline} "
+            f"(extractor={extractor_override or 'config'})"
+        )
         result = runner.run()
         
         LOGGER.info("\n=== Evaluation Results ===")
@@ -181,6 +215,25 @@ def main():
         LOGGER.info(f"Pass@2: {result.pass_at_2:.2%}")
         LOGGER.info(f"Elapsed: {result.elapsed_s:.2f}s")
         LOGGER.info(f"\nOutput directory: {config.output_dir}")
+        
+        if baseline_result is not None:
+            delta_pass = result.pass_at_2 - baseline_result.pass_at_2
+            delta_rewrites = (
+                result.metrics.total_egraph_rewrites - baseline_result.metrics.total_egraph_rewrites
+            )
+            delta_hot = (
+                result.metrics.total_hot_rule_applications - baseline_result.metrics.total_hot_rule_applications
+            )
+            delta_cold = (
+                result.metrics.total_cold_rule_applications - baseline_result.metrics.total_cold_rule_applications
+            )
+            LOGGER.info(
+                "Extractor delta vs A*: pass@2 %+0.2f%% | rewrites %+d | hot %+d | cold %+d",
+                delta_pass * 100.0,
+                delta_rewrites,
+                delta_hot,
+                delta_cold,
+            )
     
     return 0
 

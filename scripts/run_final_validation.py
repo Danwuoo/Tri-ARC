@@ -205,7 +205,7 @@ class FinalValidator:
         print("[Validation] Verifying documentation...")
         required_docs = [
             "docs/DEPLOYMENT_GUIDE.md",
-            "docs/DEPLOYMENT_RUNBOOK.md",
+            "docs/operations/runtime_playbook.md",
             "docs/SYMBOLIC_GETTING_STARTED.md",
             "docs/API_SYMBOLIC_SYNTHESIZER.md",
         ]

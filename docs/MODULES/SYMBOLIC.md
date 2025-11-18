@@ -58,7 +58,7 @@ The symbolic lane is the precision backbone of Tri-ARC. It searches a domain-spe
 - Capability flags (`supports_partial_results`, `supports_resume`, `requires_gpu`) are declared on the class and enforced during registry bootstrap; mismatched device affinities emit warnings for quick triage.
 - `prepare_task` centralises cache hydration under `shared_cache["symbolic"][<task_id>]`, making per-task diagnostics and result summaries accessible to sibling lanes and the arbitrator without bespoke glue.
 - `solve` returns a standard `ModuleResult`, tagging lane metadata, summary counters, and telemetry snapshots so downstream consumers can reason about success / failure states uniformly.
-- Lifecycle events emit `module_start`, `module_stop`, and `module_error` records into the global metrics stream. These entries power the new observability dashboards and anchor the troubleshooting flows documented in `docs/DEBUG_PLAYBOOK.md`.
+- Lifecycle events emit `module_start`, `module_stop`, and `module_error` records into the global metrics stream. These entries power the new observability dashboards and anchor the troubleshooting flows documented in `docs/operations/troubleshooting.md`.
 
 
 ## Enhancements (v1.0.0 - 2025-11-12)
@@ -72,7 +72,7 @@ The symbolic synthesis module has been comprehensively enhanced with advanced te
 - Object-centric reasoning and decomposition
 - Program sketch generation from I/O examples
 - Implementation: `arc/symbolic/ir/`
-- Documentation: `docs/symbolic/ir_spec.md`
+- Documentation: `docs/MODULES/symbolic/decomposition.md`
 
 #### 2. DSL Library Management
 - Automatic fragment mining from successful programs
@@ -80,7 +80,7 @@ The symbolic synthesis module has been comprehensively enhanced with advanced te
 - A/B testing and versioning
 - Usage-based pruning
 - Implementation: `arc/symbolic/library/`
-- Documentation: `docs/symbolic/library_spec.md`
+- Documentation: `docs/MODULES/symbolic/library.md`
 
 #### 3. Enhanced E-graph
 - Tiered rule application (hot/warm/cold)
@@ -88,7 +88,7 @@ The symbolic synthesis module has been comprehensively enhanced with advanced te
 - Optimal extraction (ILP/CP-SAT/A*)
 - Automatic rule discovery
 - Implementation: `arc/symbolic/egraph/`
-- Documentation: `docs/symbolic/rewrite_rules.md`
+- Documentation: `docs/MODULES/symbolic/egraph.md`
 
 #### 4. CEGIS & Verification
 - Counter-example guided inductive synthesis
@@ -134,7 +134,7 @@ The symbolic synthesis module has been comprehensively enhanced with advanced te
 - Asynchronous message passing
 - Failure feedback loops
 - Implementation: `arc/symbolic/coordination/`
-- Documentation: `docs/API_ARBITRATOR_INTEGRATION.md`
+- Documentation: `docs/policies/orchestration.md`
 
 #### 10. Engineering Infrastructure
 - Semantic caching with LRU eviction
@@ -143,7 +143,7 @@ The symbolic synthesis module has been comprehensively enhanced with advanced te
 - Comprehensive telemetry
 - Artifact management
 - Implementation: `arc/symbolic/engineering/`
-- Documentation: `docs/symbolic/configuration.md`
+- Documentation: `docs/MODULES/symbolic/engineering.md`
 
 #### 11. Evaluation Infrastructure
 - Comprehensive metrics collection
@@ -189,7 +189,29 @@ symbolic:
       enabled: true
 ```
 
-See `docs/symbolic/configuration.md` for complete configuration reference.
+See `docs/MODULES/symbolic/configuration.md` for complete configuration reference.
+
+### Beam Search Defaults & Fallbacks
+
+- `SymbolicSolver` samples the minimum beam width from `symbolic.beam_width_minimum`,
+  `symbolic.min_beam_width`, or `symbolic.default_beam_width` (in that order), clamps
+  it to an integer `>= 1`, and falls back to `16` if parsing fails.
+- Whenever `search_strategy` resolves to beam search but `symbolic.beam_width` is
+  absent, non-positive, or unparsable, that minimum takes effect automatically and
+  the solver logs the enforced width per task.
+- The enforced width also feeds the search budget, so downstream tools that read
+  `solve_progress.jsonl` or module summaries see the exact fallback that was used.
+
+### Input Validation & Status Semantics
+
+- Tasks must provide at least one mapping-style training example with rectangular
+  `input` and `output` grids (lists of lists or `Grid` objects). Non-iterable rows,
+  ragged shapes, or missing grids raise `TaskValidationError`.
+- Validation failures return `status: "failed"` with `reason: "invalid_task"` plus a
+  `validation_errors` array describing the offending indices and grid roles.
+- Before leaving `solve`, the module dispatches `invalid_task` feedback to TTT/LLM
+  coordinators, ensuring no retry happens with the same payload until the producer
+  fixes the input structure.
 
 ### Performance Impact
 
@@ -244,11 +266,11 @@ python scripts/run_symbolic_evaluation.py --preset ablation-no-witness
 
 ### Documentation
 
-- **Getting Started**: `docs/symbolic/getting_started.md`
-- **Configuration**: `docs/symbolic/configuration.md`
-- **Troubleshooting**: `docs/symbolic/troubleshooting.md`
+- **Getting Started**: `docs/MODULES/SYMBOLIC.md#usage`
+- **Configuration**: `docs/MODULES/symbolic/configuration.md`
+- **Troubleshooting**: `docs/operations/troubleshooting.md`
 - **API Reference**: `docs/api/symbolic_synthesizer.md`
-- **Documentation Hub**: `docs/symbolic/README.md`
+- **Documentation Hub**: `docs/MODULES/SYMBOLIC.md`
 
 For subsystem-specific guidance (coordination, decomposition, e-graph, SMT, etc.),
 see the curated set under `docs/MODULES/symbolic/` plus the corresponding

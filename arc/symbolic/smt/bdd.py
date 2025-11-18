@@ -257,14 +257,9 @@ class BDDVerifier:
         """
         # Use connected components analysis
         from arc.symbolic.dsl.runtime.utils import connected_components
-        
-        # Create mask for the target color
-        mask = (grid.data == color)
-        
-        # Find connected components
-        components = connected_components(mask, connectivity=connectivity)
-        
-        # Count unique components (excluding 0 which is background)
-        unique_components = len(set(components.flatten())) - 1
-        
-        return unique_components == expected_components
+
+        # Count components that match the requested colour.  We pass a sentinel
+        # background (-1) so that every colour in the grid is considered.
+        components = connected_components(grid, connectivity=connectivity, background=-1)
+        matching = sum(1 for entry in components if entry.get("colour") == color)
+        return matching == expected_components

@@ -1,0 +1,33 @@
+{
+  "task_id": "test_cegis_iterations",
+  "program": [
+    [
+      "identity",
+      []
+    ]
+  ],
+  "failures": [
+    {
+      "index": 0,
+      "type": "grid_mismatch",
+      "expected": [
+        [
+          2
+        ]
+      ],
+      "actual": [
+        [
+          1
+        ]
+      ],
+      "diff": {
+        "first_mismatch": {
+          "row": 0,
+          "col": 0,
+          "expected": 2,
+          "actual": 1
+        }
+      }
+    }
+  ]
+}

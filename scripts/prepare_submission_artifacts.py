@@ -337,7 +337,7 @@ This report summarizes the evaluation results for the Tri-ARC Symbolic Synthesis
         
         doc_files = [
             "DEPLOYMENT_GUIDE.md",
-            "DEPLOYMENT_RUNBOOK.md",
+            "operations/runtime_playbook.md",
             "SYMBOLIC_GETTING_STARTED.md",
             "SYMBOLIC_CONFIGURATION.md",
             "SYMBOLIC_TROUBLESHOOTING.md",
@@ -353,7 +353,9 @@ This report summarizes the evaluation results for the Tri-ARC Symbolic Synthesis
         for doc_file in doc_files:
             src_path = self.root / "docs" / doc_file
             if src_path.exists():
-                shutil.copy2(src_path, docs_dir / doc_file)
+                dest_path = docs_dir / doc_file
+                dest_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_path, dest_path)
         
         print(f"[Artifacts] ✓ Copied {len(doc_files)} documentation files")
         
@@ -410,7 +412,7 @@ See `docs/DEPLOYMENT_GUIDE.md` for detailed deployment instructions.
 ## Documentation
 
 - **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md`
-- **Runbook**: `docs/DEPLOYMENT_RUNBOOK.md`
+- **Runbook**: `docs/operations/runtime_playbook.md`
 - **Getting Started**: `docs/SYMBOLIC_GETTING_STARTED.md`
 - **Configuration**: `docs/SYMBOLIC_CONFIGURATION.md`
 - **Troubleshooting**: `docs/SYMBOLIC_TROUBLESHOOTING.md`

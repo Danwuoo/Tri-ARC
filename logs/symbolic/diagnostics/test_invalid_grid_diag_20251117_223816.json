@@ -1,0 +1,20 @@
+{
+  "task_id": "test_invalid_grid",
+  "program": [],
+  "failures": [
+    {
+      "index": 0,
+      "type": "invalid_grid",
+      "reason": "Input grid rows must all have the same length.",
+      "grid_role": "input",
+      "example_metadata": {
+        "index": 0
+      },
+      "row_index": 1,
+      "row_lengths": [
+        2,
+        1
+      ]
+    }
+  ]
+}

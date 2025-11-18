@@ -531,4 +531,4 @@ answers = solve_with_arbitration(task)
 
 - Implementation: `arc/symbolic/solver.py`, `arc/arbitration/`
 - Tests: `tests/arbitration/test_symbolic_integration.py`
-- Related: symbolic_synthesizer.md, ARBITRATOR_RULES.md
+- Related: symbolic_synthesizer.md, `docs/policies/orchestration.md`

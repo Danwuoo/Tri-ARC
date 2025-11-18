@@ -60,16 +60,19 @@ print(f"Symmetry: {summary.symmetry}")
 
 Multiple extraction algorithms for finding optimal programs:
 
-- **A* Extraction**: Fast greedy extraction (default)
-- **ILP Extraction**: Integer Linear Programming (requires PuLP)
-- **CP-SAT Extraction**: Constraint Programming (requires OR-Tools)
+- **A\* Extraction**: Fast greedy extraction (default)
+- **ILP Extraction**: Integer Linear Programming backed by PuLP (ideal for exact costs)
+- **CP-SAT Extraction**: Constraint Programming via OR-Tools (robust with tight bounds)
 - **Greedy Extraction**: Simple minimum cost selection
 - **Beam Extraction**: Beam search for balanced quality/speed
 - **Multi-Objective Extraction**: Optimize multiple cost functions
 
+Select the backend via configuration (`symbolic.egraph.extraction_method`) or by
+passing `--extractor {astar,ilp,cp_sat}` to `scripts/run_symbolic_evaluation.py`.
+
 **Usage:**
 ```python
-extractor = OptimalExtractor(method="astar")
+extractor = OptimalExtractor(method="ilp")
 best = extractor.extract_best(egraph._records)
 ```
 
@@ -173,11 +176,10 @@ pytest tests/symbolic/test_egraph_enhancements.py -v
 
 Planned improvements:
 
-1. **Full ILP/CP-SAT Extraction**: Complete implementation of optimal extraction algorithms
-2. **Neural Rule Scoring**: Use learned models to score rule effectiveness
-3. **Distributed E-Graph**: Scale to very large program spaces
-4. **Incremental Saturation**: Resume saturation from checkpoints
-5. **Rule Synthesis**: Automatically synthesize new rewrite rules
+1. **Neural Rule Scoring**: Use learned models to score rule effectiveness
+2. **Distributed E-Graph**: Scale to very large program spaces
+3. **Incremental Saturation**: Resume saturation from checkpoints
+4. **Rule Synthesis**: Automatically synthesize new rewrite rules
 
 ## References
 

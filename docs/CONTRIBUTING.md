@@ -26,7 +26,7 @@ Thank you for helping build Tri-ARC. This guide describes the workflow, coding s
 ## Review Process
 - Open a pull request targeting `develop`.
 - Fill out the PR template, including risk assessment and testing status.
-- Request review from module owners (`docs/ARCHITECTURE.md` outlines responsibilities).
+- Request review from module owners (`docs/handbook/architecture.md` outlines responsibilities).
 - Address comments promptly; mark updates with follow-up commits or amend.
 - Squash commits on merge unless review history needs preservation.
 
@@ -39,7 +39,7 @@ Thank you for helping build Tri-ARC. This guide describes the workflow, coding s
 ## Documentation
 - Update relevant docs when behaviour changes (architecture, modules, scheduler, prompts, etc.).
 - Keep ASCII text unless existing file uses non-ASCII.
-- Link new docs from `docs/README.md` (to be created) when available.
+- Link new docs from `README.md` or the relevant module hub when available.
 
 ## Collaboration Etiquette
 - Prefer asynchronous discussion via issues. Summaries should include reproduction steps and log snippets.
@@ -48,4 +48,4 @@ Thank you for helping build Tri-ARC. This guide describes the workflow, coding s
 
 ## Contact
 - For urgent issues, ping maintainers on the project chat (offline mirror).
-- Escalate environment problems to the Infra contact listed in `docs/ENV_SETUP.md`.
+- Escalate environment problems to the Infra contact listed in `docs/operations/runtime_playbook.md`.

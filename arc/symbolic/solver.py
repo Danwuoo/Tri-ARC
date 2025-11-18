@@ -139,8 +139,31 @@ class SymbolicSolver:
         self.global_cfg = raw_config.get("global", {})
         self.interpreter = interpreter or DSLInterpreter(config=raw_config)
 
+        # Provide a configurable floor for beam search when width is omitted.
+        beam_width_floor = next(
+            (
+                candidate
+                for candidate in (
+                    self.symbolic_cfg.get("beam_width_minimum"),
+                    self.symbolic_cfg.get("min_beam_width"),
+                    self.symbolic_cfg.get("default_beam_width"),
+                )
+                if candidate is not None
+            ),
+            16,
+        )
+        try:
+            self._beam_width_minimum = max(1, int(beam_width_floor))
+        except (TypeError, ValueError):
+            self._beam_width_minimum = 16
+            LOGGER.warning(
+                "Invalid symbolic.beam_width_minimum=%r; falling back to %d",
+                beam_width_floor,
+                self._beam_width_minimum,
+            )
+
         device_map = self.global_cfg.get("device_map", {})
-        self.device = self.symbolic_cfg.get("device", device_map.get("symbolic", "cuda:0"))
+        self.device = self.symbolic_cfg.get("device", device_map.get("symbolic", "cpu"))
 
         self.enumerator = enumerator or NullEnumerator()
 
@@ -370,7 +393,7 @@ class SymbolicSolver:
             nonlocal telemetry_started
             if telemetry_started:
                 return
-            if self.telemetry_collector:
+            if self.telemetry_collector and hasattr(self.telemetry_collector, "start_task"):
                 self.telemetry_collector.start_task(task_id)
                 telemetry_started = True
 
@@ -440,11 +463,17 @@ class SymbolicSolver:
                 LOGGER.warning("Failed to load checkpoint %s for task %s: %s", resume_path, task_id, exc)
 
         # Use adaptive budget if enabled
+        base_budget = self._build_budget(task_id)
         if self.adaptive_budget:
-            budget = self.adaptive_budget.allocate_budget(task_id, examples, metadata)
-            LOGGER.info(f"Adaptive budget allocated for task {task_id}: depth={budget.max_depth}, expansions={budget.max_expansions}")
+            budget = self.adaptive_budget.allocate_budget(task, base_budget)
+            LOGGER.info(
+                "Adaptive budget allocated for task %s: depth=%s, expansions=%s",
+                task_id,
+                budget.max_depth,
+                budget.max_expansions,
+            )
         else:
-            budget = self._build_budget(task_id)
+            budget = base_budget
         strategy = self._build_strategy(budget)
         if resume_payload:
             strategy_state = resume_payload.get("strategy", {})
@@ -469,7 +498,7 @@ class SymbolicSolver:
         # Check cache for previously solved programs
         cached_result = None
         if self.cache_manager:
-            cached_result = self.cache_manager.get_cached_program(task_id, examples)
+            cached_result = self.cache_manager.get_cached_program(task_id)
             if cached_result:
                 LOGGER.info(f"Found cached solution for task {task_id}")
                 # Return cached result immediately
@@ -892,12 +921,20 @@ class SymbolicSolver:
         # Cache successful programs
         if self.cache_manager and summary_status == "success":
             successful_programs = [c.program for c in candidates if c.verification_passed]
-            if successful_programs:
-                self.cache_manager.cache_program(task_id, examples, successful_programs[0])
+            if successful_programs and hasattr(self.cache_manager, "cache_program_semantics"):
+                io_examples = [(example.input_grid, example.output_grid) for example in examples]
+                try:
+                    self.cache_manager.cache_program_semantics(
+                        successful_programs[0],
+                        io_examples,
+                        interpreter=self.interpreter,
+                    )
+                except Exception as exc:  # pragma: no cover - cache is best effort
+                    LOGGER.debug("Failed to cache program for %s: %s", task_id, exc)
         
         # Record telemetry
         ensure_telemetry_started()
-        if self.telemetry_collector:
+        if self.telemetry_collector and hasattr(self.telemetry_collector, "record_task_completion"):
             self.telemetry_collector.record_task_completion(
                 task_id,
                 summary_status,
@@ -1207,7 +1244,7 @@ class SymbolicSolver:
             generated_nodes=0,
         )
 
-        if self.telemetry_collector:
+        if self.telemetry_collector and hasattr(self.telemetry_collector, "record_task_completion"):
             self.telemetry_collector.record_task_completion(
                 task_id,
                 "failed",
@@ -1242,9 +1279,21 @@ class SymbolicSolver:
         max_nodes = symbolic.get("max_nodes")
         if max_nodes is not None:
             max_nodes = int(max_nodes)
-        beam_width = symbolic.get("beam_width")
-        if beam_width is not None:
-            beam_width = int(beam_width)
+        beam_width_cfg = symbolic.get("beam_width")
+        beam_width: Optional[int] = None
+        if beam_width_cfg is not None:
+            try:
+                beam_width = int(beam_width_cfg)
+            except (TypeError, ValueError):
+                LOGGER.warning("Invalid symbolic.beam_width=%r; ignoring override", beam_width_cfg)
+                beam_width = None
+        if (beam_width is None or beam_width <= 0) and self._is_beam_strategy():
+            beam_width = self._beam_width_minimum
+            LOGGER.info(
+                "Beam search selected without a valid beam_width; defaulting to %d for task %s",
+                beam_width,
+                task_id,
+            )
         return SearchBudget(
             max_depth=max_depth,
             max_expansions=max_expansions,
@@ -1254,6 +1303,10 @@ class SymbolicSolver:
             beam_width=beam_width,
             seed=self._derive_seed(task_id),
         )
+
+    def _is_beam_strategy(self) -> bool:
+        strategy_name = self.symbolic_cfg.get("search_strategy", "beam").lower()
+        return strategy_name not in {"dfs", "iddfs", "iterative_deepening"}
 
     def _build_strategy(self, budget: SearchBudget) -> SearchStrategy:
         strategy_name = self.symbolic_cfg.get("search_strategy", "beam").lower()
@@ -1265,6 +1318,12 @@ class SymbolicSolver:
             from arc.symbolic.search.enumerators import IterativeDeepeningStrategy
 
             return IterativeDeepeningStrategy(budget)
+        if budget.beam_width is None or budget.beam_width <= 0:
+            budget.beam_width = self._beam_width_minimum
+            LOGGER.info(
+                "Beam search requested without a valid beam_width; defaulting to %d",
+                budget.beam_width,
+            )
         return BeamSearchStrategy(budget)
 
     def _build_egraph(self) -> Optional[EGraph]:
@@ -1363,6 +1422,15 @@ class SymbolicSolver:
             mined_rules_count = len(mined_rules)
             LOGGER.debug("Mined %d rules from e-graph", mined_rules_count)
         
+        total_tiered = stats.hot_rule_applications + stats.cold_rule_applications
+        tiered_rule_stats = {
+            "hot_applications": stats.hot_rule_applications,
+            "cold_applications": stats.cold_rule_applications,
+            "hot_ratio": (stats.hot_rule_applications / total_tiered) if total_tiered else 0.0,
+            "cold_ratio": (stats.cold_rule_applications / total_tiered) if total_tiered else 0.0,
+        }
+        rewrite_density = stats.rewrites_applied / max(1, stats.iterations)
+        
         payload: Dict[str, Any] = {
             "task_id": task_id,
             "iterations": stats.iterations,
@@ -1375,6 +1443,8 @@ class SymbolicSolver:
             "cold_rule_applications": stats.cold_rule_applications,
             "saturation_limit_reached": stats.saturation_limit_reached,
             "extraction_method": extraction_method,
+            "tiered_rule_stats": tiered_rule_stats,
+            "rewrite_density": rewrite_density,
             "eclass_summaries": eclass_summaries[:5],  # Include first 5 summaries
             "mined_rules_count": mined_rules_count,
         }

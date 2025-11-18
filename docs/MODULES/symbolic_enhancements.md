@@ -27,7 +27,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/ir/`
 
-**Documentation**: `docs/symbolic/ir_spec.md`
+**Documentation**: `docs/MODULES/symbolic/decomposition.md`
 
 ### 2. DSL Library Management
 
@@ -46,7 +46,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/library/`
 
-**Documentation**: `docs/symbolic/library_spec.md`
+**Documentation**: `docs/MODULES/symbolic/library.md`
 
 ### 3. E-graph Enhancement
 
@@ -66,7 +66,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/egraph/`
 
-**Documentation**: `docs/symbolic/rewrite_rules.md`
+**Documentation**: `docs/MODULES/symbolic/egraph.md`
 
 ### 4. CEGIS & Verification
 
@@ -125,7 +125,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/symmetry/`
 
-**Documentation**: `docs/symbolic/ir_spec.md`
+**Documentation**: `docs/MODULES/symbolic/decomposition.md`
 
 ### 7. Advanced Search Strategies
 
@@ -166,7 +166,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/decomposition/`
 
-**Documentation**: `docs/symbolic/ir_spec.md`
+**Documentation**: `docs/MODULES/symbolic/decomposition.md`
 
 ### 9. Module Coordination
 
@@ -209,7 +209,7 @@ This document describes the comprehensive enhancements to the symbolic program s
 
 **Implementation**: `arc/symbolic/engineering/`
 
-**Documentation**: `docs/symbolic/configuration.md`
+**Documentation**: `docs/MODULES/symbolic/configuration.md`
 
 ### 11. Evaluation Infrastructure
 
@@ -331,7 +331,7 @@ symbolic:
       enabled: true
 ```
 
-See `docs/docs/symbolic/configuration.md` for complete configuration reference.
+See `docs/MODULES/symbolic/configuration.md` for complete configuration reference.
 
 ## Performance Impact
 
@@ -448,21 +448,21 @@ Enhancements are backward compatible. To enable:
 
 ## Troubleshooting
 
-See `docs/symbolic/troubleshooting.md` for common issues and solutions.
+See `docs/operations/troubleshooting.md` for common issues and solutions.
 
 ## References
 
 ### Documentation
-- Getting Started: `docs/symbolic/getting_started.md`
-- Configuration: `docs/docs/symbolic/configuration.md`
-- Troubleshooting: `docs/symbolic/troubleshooting.md`
-- API Reference: `docs/docs/api/symbolic_synthesizer.md`
+- Getting Started: `docs/MODULES/SYMBOLIC.md#usage`
+- Configuration: `docs/MODULES/symbolic/configuration.md`
+- Troubleshooting: `docs/operations/troubleshooting.md`
+- API Reference: `docs/api/symbolic_synthesizer.md`
 
 ### Specifications
-- IR Specification: `docs/symbolic/ir_spec.md`
-- Library Management: `docs/symbolic/library_spec.md`
-- Rewrite Rules: `docs/symbolic/rewrite_rules.md`
-- Cost Model: `docs/symbolic/cost_model.md`
+- IR Specification: `docs/MODULES/symbolic/decomposition.md`
+- Library Management: `docs/MODULES/symbolic/library.md`
+- Rewrite Rules: `docs/MODULES/symbolic/egraph.md`
+- Cost Model: `docs/MODULES/symbolic/configuration.md#cost-model`
 
 ### Implementation
 - Source Code: `arc/symbolic/`

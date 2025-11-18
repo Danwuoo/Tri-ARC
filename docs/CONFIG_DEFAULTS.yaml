@@ -69,6 +69,7 @@ symbolic:
   max_expansions: 5000
   max_nodes: 40000
   beam_width: 96
+  beam_width_minimum: 16
   soft_timeout_s: 90
   hard_timeout_s: 150
   heuristics_model_path: models/symbolic/heuristic.pt

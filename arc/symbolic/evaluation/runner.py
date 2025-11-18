@@ -21,6 +21,21 @@ from arc.symbolic.evaluation.metrics import (
 LOGGER = logging.getLogger("tri_arc.symbolic.evaluation")
 
 
+def _resolve_override(overrides: Optional[Dict[str, Any]], dotted_key: str) -> Optional[Any]:
+    """Resolve nested configuration overrides from either dotted or nested dicts."""
+    if not overrides:
+        return None
+    if dotted_key in overrides:
+        return overrides[dotted_key]
+    target: Any = overrides
+    for part in dotted_key.split("."):
+        if isinstance(target, dict) and part in target:
+            target = target[part]
+        else:
+            return None
+    return target
+
+
 @dataclass
 class EvaluationConfig:
     """Configuration for evaluation run."""
@@ -114,7 +129,20 @@ class EvaluationResult:
         metrics.failed_tasks = metrics_data.get("failed_tasks", 0)
         metrics.timeout_tasks = metrics_data.get("timeout_tasks", 0)
         metrics.total_time_s = metrics_data.get("total_time_s", 0.0)
+        metrics.total_expansions = metrics_data.get("total_expansions", 0)
+        metrics.total_nodes = metrics_data.get("total_nodes", 0)
+        metrics.total_pruned = metrics_data.get("total_pruned", 0)
+        metrics.total_verified = metrics_data.get("total_verified", 0)
+        metrics.total_egraph_rewrites = metrics_data.get("total_egraph_rewrites", 0)
+        metrics.total_hot_rule_applications = metrics_data.get("total_hot_rule_applications", 0)
+        metrics.total_cold_rule_applications = metrics_data.get("total_cold_rule_applications", 0)
+        metrics.total_rewrite_density = metrics_data.get("total_rewrite_density", 0.0)
+        metrics.total_cache_hits = metrics_data.get("total_cache_hits", 0)
+        metrics.total_cache_misses = metrics_data.get("total_cache_misses", 0)
+        metrics.total_smt_calls = metrics_data.get("total_smt_calls", 0)
+        metrics.total_smt_timeouts = metrics_data.get("total_smt_timeouts", 0)
         metrics.failure_types = metrics_data.get("failure_types", {})
+        metrics.extractor_usage = metrics_data.get("extractor_usage", {})
         data["metrics"] = metrics
         data["output_files"] = {k: Path(v) for k, v in data.get("output_files", {}).items()}
         return cls(**data)
@@ -151,6 +179,8 @@ class EvaluationRunner:
         
         # Metrics aggregator
         self.metrics = MetricsAggregator()
+        self.config_overrides = config.config_overrides or {}
+        self.extractor_override = _resolve_override(self.config_overrides, "symbolic.egraph.extraction_method")
     
     def run(self) -> EvaluationResult:
         """Run evaluation.
@@ -257,6 +287,7 @@ class EvaluationRunner:
                 save_metrics=True,
                 save_dashboard_data=True,
                 generate_report=True,
+                config_overrides=dict(self.config.config_overrides),
             )
             
             # Run evaluation with this baseline
@@ -316,6 +347,12 @@ class EvaluationRunner:
         
         success = random.random() > 0.3
         elapsed_s = random.uniform(10.0, 100.0)
+        rewrites = random.randint(10, 100)
+        hot_apps = random.randint(0, rewrites)
+        cold_apps = max(0, rewrites - hot_apps)
+        iterations = random.randint(1, 10)
+        rewrite_density = rewrites / max(1, iterations)
+        extractor_method = (self.extractor_override or "astar")
         
         metrics = EvaluationMetrics(
             task_id=task_id,
@@ -326,7 +363,11 @@ class EvaluationRunner:
             pruned_nodes=random.randint(200, 2000),
             verified_candidates=random.randint(5, 50),
             program_length=random.randint(3, 15) if success else None,
-            egraph_rewrites=random.randint(10, 100),
+            egraph_rewrites=rewrites,
+            hot_rule_applications=hot_apps,
+            cold_rule_applications=cold_apps,
+            rewrite_density=rewrite_density,
+            extraction_method=extractor_method,
             cache_hits=random.randint(50, 500),
             cache_misses=random.randint(10, 100),
             smt_calls=random.randint(5, 50),
@@ -334,6 +375,7 @@ class EvaluationRunner:
             timeout=elapsed_s > self.config.timeout_per_task,
             failure_type="search_exhausted" if not success else None,
         )
+        metrics.metadata["extraction_method"] = extractor_method
         
         return metrics
     

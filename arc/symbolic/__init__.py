@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import copy
 import logging
 from pathlib import Path
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, MutableMapping, Optional
+
+from arc.config import load_config
 
 from arc.core import (
     ModuleCapabilities,
@@ -19,6 +22,25 @@ if TYPE_CHECKING:
     from arc.symbolic.solver import SolverResult, SymbolicSolver
 
 LOGGER = logging.getLogger("arc.module.symbolic")
+
+
+def _merge_mapping(target: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None:
+    for key, value in updates.items():
+        if isinstance(value, Mapping) and isinstance(target.get(key), MutableMapping):
+            _merge_mapping(target[key], value)  # type: ignore[index]
+        elif isinstance(value, Mapping):
+            target[key] = copy.deepcopy(value)  # type: ignore[index]
+        else:
+            target[key] = copy.deepcopy(value) if isinstance(value, (list, dict)) else value  # type: ignore[index]
+
+
+def default_config(*, overrides: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
+    """Return the canonical symbolic configuration block from docs/CONFIG_DEFAULTS.yaml."""
+    raw_config = load_config()
+    symbolic_cfg = copy.deepcopy(raw_config.get("symbolic", {}))
+    if overrides:
+        _merge_mapping(symbolic_cfg, overrides)
+    return symbolic_cfg
 
 
 def _normalise_status(status: str) -> ModuleSolveStatus:

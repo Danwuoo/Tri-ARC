@@ -1,0 +1,35 @@
+{
+  "task_id": "test_saturation_limit",
+  "program": [
+    [
+      "identity",
+      []
+    ]
+  ],
+  "failures": [
+    {
+      "index": 0,
+      "type": "grid_mismatch",
+      "expected": [
+        [
+          2,
+          1
+        ]
+      ],
+      "actual": [
+        [
+          1,
+          2
+        ]
+      ],
+      "diff": {
+        "first_mismatch": {
+          "row": 0,
+          "col": 0,
+          "expected": 2,
+          "actual": 1
+        }
+      }
+    }
+  ]
+}

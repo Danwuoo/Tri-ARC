@@ -152,7 +152,7 @@ class PromptBuilder:
             " confidence (0-1 float), test_outputs (list of grids for evaluation inputs)"
         )
         lines.append("All reasoning must stay inside the rationale string. Do not add commentary outside JSON.")
-        lines.append("Keep DSL compliant with docs/DSL_SPEC.md primitives. Use lowercase operator names.")
+        lines.append("Keep DSL compliant with docs/reference/dsl_reference.md primitives. Use lowercase operator names.")
         return "\n".join(lines)
 
 
@@ -160,7 +160,7 @@ def build_default_variants() -> Tuple[PromptVariant, ...]:
     """Return the built-in prompt profiles for the LLM lane."""
 
     system_prompt = (
-        "You are Tri-ARC's DSL synthesis assistant. Use docs/DSL_SPEC.md primitives only."
+        "You are Tri-ARC's DSL synthesis assistant. Use docs/reference/dsl_reference.md primitives only."
         " Think aloud inside the rationale field and prefer concise programs with <=8 stages."
         " Obey resource limits: deterministic, no randomness, no loops beyond provided primitives."
     )

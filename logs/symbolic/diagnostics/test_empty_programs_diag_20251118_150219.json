@@ -1,0 +1,11 @@
+{
+  "task_id": "test_empty_programs",
+  "program": [],
+  "failures": [
+    {
+      "index": null,
+      "type": "invalid_task",
+      "reason": "Task must include at least one training example."
+    }
+  ]
+}

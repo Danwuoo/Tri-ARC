@@ -28,6 +28,10 @@ class EvaluationMetrics:
     
     # Enhancement metrics
     egraph_rewrites: int = 0
+    hot_rule_applications: int = 0
+    cold_rule_applications: int = 0
+    rewrite_density: float = 0.0
+    extraction_method: Optional[str] = None
     cache_hits: int = 0
     cache_misses: int = 0
     smt_calls: int = 0
@@ -102,6 +106,9 @@ class MetricsAggregator:
     total_verified: int = 0
     
     total_egraph_rewrites: int = 0
+    total_hot_rule_applications: int = 0
+    total_cold_rule_applications: int = 0
+    total_rewrite_density: float = 0.0
     total_cache_hits: int = 0
     total_cache_misses: int = 0
     total_smt_calls: int = 0
@@ -109,6 +116,7 @@ class MetricsAggregator:
     
     task_metrics: List[EvaluationMetrics] = field(default_factory=list)
     failure_types: Dict[str, int] = field(default_factory=dict)
+    extractor_usage: Dict[str, int] = field(default_factory=dict)
     
     def add_metrics(self, metrics: EvaluationMetrics) -> None:
         """Add metrics from a task evaluation.
@@ -137,10 +145,16 @@ class MetricsAggregator:
         self.total_verified += metrics.verified_candidates
         
         self.total_egraph_rewrites += metrics.egraph_rewrites
+        self.total_hot_rule_applications += metrics.hot_rule_applications
+        self.total_cold_rule_applications += metrics.cold_rule_applications
+        self.total_rewrite_density += metrics.rewrite_density
         self.total_cache_hits += metrics.cache_hits
         self.total_cache_misses += metrics.cache_misses
         self.total_smt_calls += metrics.smt_calls
         self.total_smt_timeouts += metrics.smt_timeouts
+        if metrics.extraction_method:
+            key = metrics.extraction_method.lower()
+            self.extractor_usage[key] = self.extractor_usage.get(key, 0) + 1
         
         self.task_metrics.append(metrics)
     
@@ -247,11 +261,15 @@ class MetricsAggregator:
             "total_pruned": self.total_pruned,
             "total_verified": self.total_verified,
             "total_egraph_rewrites": self.total_egraph_rewrites,
+            "total_hot_rule_applications": self.total_hot_rule_applications,
+            "total_cold_rule_applications": self.total_cold_rule_applications,
+            "total_rewrite_density": self.total_rewrite_density,
             "total_cache_hits": self.total_cache_hits,
             "total_cache_misses": self.total_cache_misses,
             "total_smt_calls": self.total_smt_calls,
             "total_smt_timeouts": self.total_smt_timeouts,
             "failure_types": dict(self.failure_types),
+            "extractor_usage": dict(self.extractor_usage),
         }
     
     def __repr__(self) -> str:
@@ -333,4 +351,7 @@ def compute_metrics_delta(
         ),
         "tasks_delta": current.total_tasks - baseline.total_tasks,
         "successful_tasks_delta": current.successful_tasks - baseline.successful_tasks,
+        "egraph_rewrites_delta": current.total_egraph_rewrites - baseline.total_egraph_rewrites,
+        "hot_rule_applications_delta": current.total_hot_rule_applications - baseline.total_hot_rule_applications,
+        "cold_rule_applications_delta": current.total_cold_rule_applications - baseline.total_cold_rule_applications,
     }

@@ -12,6 +12,8 @@ from typing import Any, Dict
 from arc.symbolic.solver import SymbolicSolver
 from arc.symbolic.dsl.types import Grid, Program, Stage
 
+pytestmark = pytest.mark.symbolic_regression
+
 
 @pytest.fixture
 def base_config() -> Dict[str, Any]:
@@ -30,6 +32,29 @@ def base_config() -> Dict[str, Any]:
             "hard_timeout_s": 10.0,
         },
     }
+
+
+class TestSearchStrategyDefaults:
+    """Regression tests for default search configuration."""
+
+    def test_beam_width_defaults_when_missing(self, base_config):
+        """Regression: beam search should not crash when beam_width omitted."""
+        solver = SymbolicSolver(base_config)
+        budget = solver._build_budget("regression_defaults")
+        assert budget.beam_width is not None
+        assert budget.beam_width >= 8
+
+    def test_validation_failure_reports_telemetry(self, base_config):
+        """Regression: validation errors must populate telemetry counters."""
+        solver = SymbolicSolver(base_config)
+        task = {"task_id": "invalid_regression_budget", "train_examples": []}
+
+        result = solver.solve(task)
+
+        assert result.status == "failed"
+        assert result.telemetry.elapsed_s >= 0.0
+        assert result.telemetry.generated_nodes == 0
+        assert result.telemetry.expansions == 0
 
 
 class TestEGraphRegressions:

@@ -10,6 +10,7 @@ from arc.symbolic.egraph import (
     RewriteRule,
     EClassAnalyzer,
     EClassSummary,
+    ProgramRecord,
     OptimalExtractor,
     GreedyExtractor,
     BeamExtractor,
@@ -228,8 +229,6 @@ def test_eclass_summary_merge():
 
 def test_optimal_extractor_astar():
     """Test A* extraction finds minimum cost program"""
-    from arc.symbolic.egraph.engine import ProgramRecord
-    
     programs = {
         "p1": ProgramRecord(make_program(("rotate", (1,)), ("rotate", (1,))), cost=2.0),
         "p2": ProgramRecord(make_program(("rotate", (2,))), cost=1.0),
@@ -244,10 +243,56 @@ def test_optimal_extractor_astar():
     assert best.program.stages[0].operator == "rotate"
 
 
+def _build_extraction_candidate_pool():
+    """Create a shared set of records with metadata constraints."""
+    return {
+        "p1": ProgramRecord(make_program(("rotate", (1,))), cost=4.0, metadata={"eclass_id": "root"}),
+        "p2": ProgramRecord(make_program(("rotate", (2,))), cost=1.5, metadata={"eclass_id": "root"}),
+        "forbidden": ProgramRecord(
+            make_program(("identity", ()), ("rotate", (3,))),
+            cost=0.5,
+            metadata={"eclass_id": "root", "forbidden": True},
+        ),
+        "secondary": ProgramRecord(make_program(("reflect", ("horizontal",)),), cost=3.5, metadata={"eclass_id": "alt"}),
+    }
+
+
+def test_optimal_extractor_ilp_matches_astar():
+    """Ensure ILP backend matches A* selection on simple pools."""
+    records = _build_extraction_candidate_pool()
+    
+    astar = OptimalExtractor(method="astar").extract_best(records)
+    ilp = OptimalExtractor(method="ilp").extract_best(records)
+    
+    assert astar is not None
+    assert ilp is not None
+    assert ilp.program == astar.program
+    assert ilp.cost == pytest.approx(astar.cost)
+
+
+def test_optimal_extractor_cp_sat_matches_astar():
+    """Ensure CP-SAT backend matches A* selection on simple pools."""
+    records = _build_extraction_candidate_pool()
+    
+    astar = OptimalExtractor(method="astar").extract_best(records)
+    cp_sat = OptimalExtractor(method="cp_sat").extract_best(records)
+    
+    assert astar is not None
+    assert cp_sat is not None
+    assert cp_sat.program == astar.program
+    assert cp_sat.cost == pytest.approx(astar.cost)
+
+
+def test_optimal_extractor_skips_forbidden_records():
+    """Ensure forbidden metadata excludes records from all extractors."""
+    records = _build_extraction_candidate_pool()
+    best = OptimalExtractor(method="astar").extract_best(records)
+    assert best is not None
+    assert best.cost == pytest.approx(1.5)
+
+
 def test_greedy_extractor():
     """Test greedy extraction"""
-    from arc.symbolic.egraph.engine import ProgramRecord
-    
     programs = {
         "p1": ProgramRecord(make_program(("rotate", (1,))), cost=3.0),
         "p2": ProgramRecord(make_program(("rotate", (2,))), cost=1.0),
